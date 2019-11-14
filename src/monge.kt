@@ -1,28 +1,63 @@
 import java.util.*
 import kotlin.collections.HashMap
 
-abstract class ElemWrapper {
-    abstract operator fun plus(mongeElement: ElemWrapper): ElemWrapper
-    abstract operator fun times(mongeElement: ElemWrapper): ElemWrapper
-    abstract operator fun plusAssign(mongeElement: ElemWrapper)
-    abstract operator fun timesAssign(mongeElement: ElemWrapper)
-    abstract override fun equals(other: Any?): Boolean
-    abstract override fun hashCode(): Int
-    abstract operator fun compareTo(elemWrapper: ElemWrapper): Int
-    abstract fun copy(): ElemWrapper
+/**
+ * Wrapper for numerical values of Matrix elements()
+ * */
+abstract class ElemWrapper : Cloneable {
+
     abstract val positiveInfinity: ElemWrapper
+
     abstract val negativeInfinity: ElemWrapper
+
     abstract val neutralElement: ElemWrapper
 
+    /**
+     * String presentation of wrapped element
+     */
+    abstract fun printable(): String
+
+    abstract operator fun plus(mongeElement: ElemWrapper): ElemWrapper
+
+    abstract operator fun times(mongeElement: ElemWrapper): ElemWrapper
+
+    abstract operator fun plusAssign(mongeElement: ElemWrapper)
+
+    abstract operator fun timesAssign(mongeElement: ElemWrapper)
+
+    public abstract override fun clone(): ElemWrapper
+
+    abstract override fun equals(other: Any?): Boolean
+
+    abstract override fun hashCode(): Int
+
+    abstract operator fun compareTo(elemWrapper: ElemWrapper): Int
+
+
     fun min(other: ElemWrapper): ElemWrapper = if (this <= other) this else other
+
     fun max(other: ElemWrapper): ElemWrapper = if (this >= other) this else other
+
 }
 
+/**
+ * Wrapper class for Int elements
+ */
 class IntWrapper(var number: Int) : ElemWrapper() {
-    override fun plus(mongeElement: ElemWrapper): ElemWrapper =
+    override val positiveInfinity: IntWrapper
+        get() = IntWrapper(Int.MAX_VALUE)
+    override val negativeInfinity: IntWrapper
+        get() = IntWrapper(Int.MIN_VALUE)
+    override val neutralElement: IntWrapper
+        get() = IntWrapper(0)
+
+
+    override fun printable(): String = number.toString()
+
+    override fun plus(mongeElement: ElemWrapper): IntWrapper =
         IntWrapper((mongeElement as IntWrapper).number + number)
 
-    override fun times(mongeElement: ElemWrapper): ElemWrapper =
+    override fun times(mongeElement: ElemWrapper): IntWrapper =
         IntWrapper((mongeElement as IntWrapper).number * number)
 
     override fun plusAssign(mongeElement: ElemWrapper) {
@@ -45,38 +80,44 @@ class IntWrapper(var number: Int) : ElemWrapper() {
         return number.compareTo(other.number)
     }
 
-    override fun copy(): ElemWrapper {
+    override fun clone(): ElemWrapper {
         return IntWrapper(number)
     }
-
-    override val positiveInfinity: ElemWrapper
-        get() = IntWrapper(Int.MAX_VALUE)
-    override val negativeInfinity: ElemWrapper
-        get() = IntWrapper(Int.MIN_VALUE)
-    override val neutralElement: ElemWrapper
-        get() = IntWrapper(0)
 }
 
 
-abstract class Matrix<T : ElemWrapper> {
-    abstract operator fun times(mongeMatrix: Matrix<T>): Matrix<T>
-    abstract operator fun plus(mongeMatrix: Matrix<T>): Matrix<T>
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * Class of Matrices that satisifed monge property (aka totally monotone)
+ */
+abstract class MongeMatrix<T : ElemWrapper> : Cloneable {
+    /**
+     * Slice of row or column by specified position
+     */
+    abstract operator fun get(position: Int, isRow: Boolean): List<T>
+
+    abstract operator fun times(mongeMatrix: MongeMatrix<T>): MongeMatrix<T>
+
+    abstract operator fun plus(mongeMatrix: MongeMatrix<T>): MongeMatrix<T>
+
     abstract operator fun get(i: Int, j: Int): T
+
     abstract operator fun set(i: Int, j: Int, elem: T)
+
     abstract fun height(): Int
+
     abstract fun width(): Int
+
+    abstract override fun clone(): MongeMatrix<T>
 
     fun printMatrix() {
         for (rowNum in 0 until height()) {
             for (colNum in 0 until width()) {
-                print("${this[rowNum, colNum]} ")
+                print("${(this[rowNum, colNum]).printable()} ")
             }
             println()
         }
     }
-}
-
-abstract class MongeMatrix<T : ElemWrapper> : Matrix<T>() {
 
     /**
      * Checking that monge property is satisfied.
@@ -106,6 +147,7 @@ abstract class MongeMatrix<T : ElemWrapper> : Matrix<T>() {
      */
     fun rowMinima(): List<Int> {
         val result = MutableList(this.height()) { -1 }
+
         fun smawk(rows: List<Int>, cols: List<Int>) {
             if (rows.isEmpty()) return
 
@@ -152,131 +194,224 @@ abstract class MongeMatrix<T : ElemWrapper> : Matrix<T>() {
         smawk((0 until height()).toList(), (0 until width()).toList())
         return result.toList()
     }
+
+    /**
+     * //TODO check asymptotic
+     * Matrix-vector multiplication A*b = c
+     * Note that c could be obtained by following:
+     * <code>
+     *     vectorIndices =
+     *     val indices = A.matrixVectorMult(vector)
+     *     val c = indices.forEachIndexed{row,col ->
+     *        A[row,col] + vector[col]
+     *     }
+     *     c[row] = A[row, indices]  + vector[j]
+     * </code>
+     * smawk algorithm implementation. O(n*queryTimeForMatrixElementAccess)
+     * @return Indexes of position in a row for each row in matrix
+     */
+    fun matrixVectorMult(vector: List<T>): MutableList<Int> {
+        val result = MutableList(this.height()) { -1 }
+
+        fun smawk(rows: List<Int>, cols: List<Int>) {
+            if (rows.isEmpty()) return
+
+            val stack = Stack<Int>()
+            for (col in cols) {
+                while (true) {
+                    if (stack.size == 0) break
+                    val row = rows[stack.size - 1]
+                    if (get(row, col) + vector[col] >= get(row, stack.peek()) + vector[stack.peek()]) break
+                    stack.pop()
+                }
+
+                if (stack.size < rows.size) stack.push(col)
+            }
+
+
+            val oddRows = rows.filterIndexed { i, _ -> i % 2 == 1 }
+            smawk(oddRows, stack)
+
+            val colToIndex = HashMap<Int, Int>()
+            stack.forEachIndexed { index, value -> colToIndex[value] = index }
+
+            var begin = 0
+            val optimizedAccess = stack.toIntArray()
+            for (i in 0 until rows.size step 2) {
+                val row = rows[i]
+                var stop = optimizedAccess.size - 1
+                if (i < rows.size - 1) stop = colToIndex[result[rows[i + 1]]]!!
+                var argmin = optimizedAccess[begin]
+                var min = get(row, argmin) + vector[argmin]
+                for (c in begin + 1..stop) {
+                    val value = get(row, optimizedAccess[c]) + vector[optimizedAccess[c]]
+                    if (c == begin || value < min) {
+                        argmin = optimizedAccess[c]
+                        min = value
+                    }
+                }
+
+                result[row] = argmin
+                begin = stop
+            }
+        }
+
+        smawk((0 until height()).toList(), (0 until width()).toList())
+        return result
+    }
+
+
+}
+
+/**
+ * Explicit Monge Matrix with O(n*m) space complexity aka lower bound for multiplication algorithms
+ */
+class ExplicitMonge<T : ElemWrapper> private constructor() : MongeMatrix<T>() {
+    lateinit var matrix: MutableList<MutableList<T>>
+    private var height: Int = 0
+    private var width: Int = 0
+
+
+    /**
+     * Note Pass by reference
+     */
+    constructor(init: MutableList<MutableList<T>>) : this() {
+        this.height = init.size
+        this.width = init[0].size
+        matrix = init
+    }
+
+    constructor(height: Int, width: Int, initFunc: ((Int, Int) -> T)) : this() {
+        this.height = height
+        this.width = width
+        matrix = MutableList(height) { i -> MutableList(width) { j -> initFunc(i, j) } }
+    }
+
+
+    /**
+     * for row returns reference
+     * for column return newly created list
+     */
+    override fun get(position: Int, isRow: Boolean): List<T> {
+        // TODO by ref?
+        return if (isRow) {
+            matrix[position]
+        } else {
+            (0 until height).map { i -> get(i, position) }
+        }
+    }
+
+    override fun plus(mongeMatrix: MongeMatrix<T>): MongeMatrix<T> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun clone(): ExplicitMonge<T> = ExplicitMonge(height,width) { i, j -> get(i,j).clone() } as ExplicitMonge<T>
+
+
+    /**
+     * // TODO check asymptotic
+     * (Min,+) matrix multiplication over Monge Matrices with running time O(width * height) using smawk
+     */
+    override fun times(B: MongeMatrix<T>): ExplicitMonge<T> {
+        val element = get(0, 0).positiveInfinity // bad code
+        val res = ExplicitMonge(height, B.width()) { _, _ -> element }
+
+        //O(n)* smawk
+        for (col in 0 until B.width()) {
+            val b = B[col, false]
+            val c = matrixVectorMult(b)
+            c.forEachIndexed { row, j ->
+                res[row, col] = get(row, j) + b[j]
+            }
+        }
+        return res as ExplicitMonge<T>
+    }
+
+
+    override fun get(i: Int, j: Int): T = matrix[i][j]
+
+    override fun set(i: Int, j: Int, elem: T) {
+        matrix[i][j] = elem
+    }
+
+    override fun height(): Int = height
+
+    override fun width(): Int = width
+
+}
+
+
+/**
+ * Naive Monge matrix. Space complexity (n*m) with multiplication complexity O(n^3) aka naive
+ * Use only for testing purposes
+ */
+class NaiveMonge<T : ElemWrapper> private constructor() : MongeMatrix<T>() {
+    lateinit var matrix: MutableList<MutableList<T>>
+    private var height: Int = 0
+    private var width: Int = 0
+
+    constructor(init: MutableList<MutableList<T>>) : this() {
+        this.height = init.size
+        this.width = init[0].size
+        matrix = init
+    }
+
+    constructor(height: Int, width: Int, initFunc: ((Int, Int) -> T)) : this() {
+        this.height = height
+        this.width = width
+        matrix = MutableList(height) { i -> MutableList(width) { j -> initFunc(i, j) } }
+    }
+
+    override fun get(position: Int, isRow: Boolean): List<T> {
+        // TODO by ref?
+        return if (isRow) {
+            matrix[position]
+        } else {
+            (0 until height).map { i -> get(i, position) }
+        }
+    }
+
+    override fun times(B: MongeMatrix<T>): NaiveMonge<T> {
+        val element = get(0, 0).positiveInfinity // bad code
+        val res = NaiveMonge(height, B.width()) { _, _ -> element }
+        for (i in 0 until height) {
+            for (k in 0 until B.width()) {
+                var tmp = element.positiveInfinity
+                for (j in 0 until width) {
+                    tmp = tmp.min(this[i, j] + B[j, k])
+                }
+                res[i, k] = tmp
+            }
+        }
+
+        return res as NaiveMonge<T>
+
+    }
+
+    override fun plus(mongeMatrix: MongeMatrix<T>): MongeMatrix<T> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun get(i: Int, j: Int): T = matrix[i][j]
+
+    override fun set(i: Int, j: Int, elem: T) {
+        matrix[i][j] = elem
+    }
+
+    override fun height(): Int = height
+
+    override fun width(): Int = width
+
+    override fun clone(): NaiveMonge<T> = NaiveMonge(matrix)
 }
 
 
 //
-//
-//class NaiveMongeMatrix<T : ElemWrapper>(private var height: Int, private var width: Int,
-//                                        initializer: (Int) -> T, initValue:T ) :
-//    MongeMatrix<T>() {
-//
-////TODO check
-//    private val negativeInfinity  = initValue.negativeInfinity
-//    private val positiveInfinity  = initValue.positiveInfinity
-//    private var matrix: MutableList<MutableList<T>> = MutableList(height) { MutableList(width, initializer) }
-//
-//    override fun times(mongeMatrix: Matrix<T>): Matrix<T> {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun plus(mongeMatrix: Matrix<T>): Matrix<T> {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun get(i: Int, j: Int): T = matrix[i][j]
-//
-//    override fun set(i: Int, j: Int, elem:T) {
-//       matrix[i][j] = elem
-//    }
-//
-//
-//    override fun height(): Int = this.height
-//
-//    override fun width(): Int = this.width
-//
-//    private fun getZeroMatrixInstance(height: Int, width: Int): MutableList<MutableList<T>> {
-//        return MutableList(height) { _ -> MutableList<T>(width) { _ -> negativeInfinity.copy() as T } }
-//    }
-//
-//
-//
-//
-//
-//     fun dotProduct(other: NaiveMongeMatrix<T>): Matrix<Double> {
-//
-//        if (width != other.height()) {
-//            throw NotImplementedError("Implement errors")
-//        }
-//
-//         val result = NaiveMongeMatrix(height,other.width(),{ i->  })
-//
-//
-//        for (i in 0 until height) {
-//            for (k in 0 until other.width()) {
-//                var tmp = negativeInfinity
-//                for (j in 0 until width) {
-//                    tmp = this[i,j] + other[j,k]
-//                    tmp = tmp.min(matrix[i,j] + other[j,k])
-//                    tmp = min(tmp, (mongeArray[i][j] + other.getElem(j, k)))
-//                }
-//                result.setElem(i, k, tmp)
-//            }
-//        }
-//
-//        return result
-//    }
-//}
-//
-//// O(n^2) for dot multiplication via searching row minima
-//
-//class SmartExplicitMongeMatrixDouble(height: Int, width: Int) : MongeMatrix<Double>(height, width) {
-//
-//    inline override fun plus(a: Double, b: Double): Double =
-//        min(a, b) //To change body of created functions use File | Settings | File Templates.
-//
-//    inline override fun mul(a: Double, b: Double): Double = a + b
-//
-//    override fun plus(a: Double, b: Double): Double {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun mul(a: Double, b: Double): Double {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun setElem(rowNum: Int, colNum: Int, elem: Double) {
-//
-//
-//    }
-//
-//    override fun getElem(rowNum: Int, colNum: Int): Double {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun dotProduct(other: Matrix<Double>): Matrix<Double> {
-//        /**
-//         *     Aggarwal, A., Klawe, M., Moran, S., Shor, P., & Wilber, R. (1986).
-//         *     Geometric applications of a matrix searching algorithm. Proceedings of
-//         *     for arbitrary there restriction of worst case O(nlogn)
-//         *     Linear asymptotic for totallymonotone monge
-//         */
-//
-//        //TODO fast concatenation in O(1) need to implmeennt custom iterator
-//        fun rowMinima(vectorNum: Int, rowIndices: Sequence<Double>, colIndices: Sequence<Double>) {
-//            // search row minima in A' where A'[i,j] = A[i,j] + other[:,j][j] for all i,j
-//
-//            //base case
-//            if (rowIndices.size == 0) {
-//                return to
-//            }
-//
-//
-//            // Reduce step
-//
-//            // Interpolate step
-//
-//
-//        }
-//
-//        fun reduce(vectorNum: Int) {
-//
-//        }
-//
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
+//class ImplicitMonge<T:ElemWrapper>:MongeMatrix<T>{
 //
 //}
+
+
 
 //
 ///** Totally monotonne matrix

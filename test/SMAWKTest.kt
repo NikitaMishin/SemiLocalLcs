@@ -8,6 +8,21 @@ internal class SMAWKTest {
         private var width: Int,
         arr: Array<Array<IntWrapper>>? = null
     ) : MongeMatrix<IntWrapper>() {
+        override fun get(position: Int, isRow: Boolean): List<IntWrapper> {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun times(mongeMatrix: MongeMatrix<IntWrapper>): MongeMatrix<IntWrapper> {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun plus(mongeMatrix: MongeMatrix<IntWrapper>): MongeMatrix<IntWrapper> {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun clone(): MongeMatrix<IntWrapper> {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
 
         var matrix = Array(height) { i -> Array(width) { IntWrapper(Int.MAX_VALUE) } }
 
@@ -16,13 +31,7 @@ internal class SMAWKTest {
         }
 
 
-        override fun times(mongeMatrix: Matrix<IntWrapper>): Matrix<IntWrapper> {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
 
-        override fun plus(mongeMatrix: Matrix<IntWrapper>): Matrix<IntWrapper> {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
 
         override fun get(i: Int, j: Int): IntWrapper = matrix[i][j]
         override fun set(i: Int, j: Int, elem: IntWrapper) {
