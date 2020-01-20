@@ -74,7 +74,7 @@ data class SortedArray<T : Comparable<T>>(val sortedPointsByY: List<T>) {
 }
 
 
-data class Point2D<T : Comparable<T>>(val x: T, val y: T) {
+data class Point2D<T : Comparable<T>>(var x: T, var y: T) {
     inline fun isInside(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Boolean =
         (x >= intervalX.leftInclusive && x <= intervalX.rightInclusive)
                 && (y >= intervalY.leftInclusive && y <= intervalY.rightInclusive)
