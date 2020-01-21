@@ -82,7 +82,7 @@ class B:A() {
 
 
 fun main() {
-    val points = listOf(Point2D(1,2),Point2D(1,2),Point2D(1,2),Point2D(1,2),Point2D(1,2),Point2D(1,2),Point2D(2,3),Point2D(3,5),Point2D(4,7),Point2D(5,4),Point2D(6,1))
+    val points = listOf(Point2D(1,2),Point2D(2,3),Point2D(3,5),Point2D(4,7),Point2D(5,4),Point2D(6,1))
     val tree = RangeTree2D(points)
     print(tree.ortoghonalQuery(IntervalQuery(1,50),IntervalQuery(1,80)))
 
