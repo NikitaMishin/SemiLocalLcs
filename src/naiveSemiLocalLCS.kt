@@ -1,44 +1,5 @@
 import kotlin.math.max
 
-/**
- *
- */
-enum class SymbolType {
-    AlphabetSymbol,
-    WildCardSymbol,// ? - symbol not presented in alphabet
-    //...
-}
-
-/**
- *
- */
-data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>
-
-
-/**
- *
- */
-interface ISemiLocalLCS {
-    /**
-     *
-     */
-    fun stringSubstringLCS(i: Int, j: Int): Int
-
-    /**
-     *
-     */
-    fun prefixSuffixLCS(k: Int, j: Int): Int
-
-    /**
-     *
-     */
-    fun suffixPrefixLCS(l: Int, i: Int): Int
-
-    /**
-     *
-     */
-    fun substringStringLCS(k: Int, l: Int): Int
-}
 
 data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>) :
     ISemiLocalLCS where Element : Comparable<Element> {
@@ -53,18 +14,19 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
                 b.map { Symbol(it, SymbolType.AlphabetSymbol) } +
                 a.map { Symbol(it, SymbolType.WildCardSymbol) }
 
-    // H_{a,b}\[-m:n|0:m+n \] i.e i from -m to n and j from 0 to m+n
+    /**
+     * Explicit semiLocal LCS matrix H. THe full definition see on page 53
+     *  H_{a,b}\[-m : n | 0 : m + n \] i.e i from -m to n and j from 0 to m + n
+     */
     internal var semiLocalLCSMatrix: Array<Array<Int>> = Array(a.size + b.size + 1)
     { i ->
         Array(a.size + b.size + 1)
         { j ->
-            //            println("$i $j")
             if (j <= (i - m)) {
                 j - i + m
             } else {
                 lcs(i, j + m)
             }
-
         }
     }
 
@@ -90,20 +52,20 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
     }
 
     /**
-     *
-     *
-     *
-     * @param i \in [-]
-     * @param n [0,m+n]
+     * Asks for lcs score between @aSymbolString and substring bSymbolString[i,j].
+     * Note that WildCardSymbol matches any other symbol.
+     *dummy implementation of lcs
+     * @param i start index inclusive
+     * @param j end index exclusive
      */
     private fun lcs(i: Int, j: Int): Int {
-        val n = a.size + 1
+        val m = a.size + 1
         val bSub = bSymbolString.subList(i, j)
-        val m = bSub.size + 1
+        val n = bSub.size + 1
 
-        val lcsMatrix = Array(n) { _ -> IntArray(m) { _ -> 0 } }
-        for (rowNum in 1 until n) {
-            for (colNum in 1 until m) {
+        val lcsMatrix = Array(m) { _ -> IntArray(n) { _ -> 0 } }
+        for (rowNum in 1 until m) {
+            for (colNum in 1 until n) {
                 if ((bSub[colNum - 1].type == SymbolType.WildCardSymbol) ||
                     (bSub[colNum - 1].type == SymbolType.AlphabetSymbol && aSymbolString[rowNum - 1].symbol == bSub[colNum - 1].symbol)
                 )
@@ -113,7 +75,7 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
                 }
             }
         }
-        return lcsMatrix[n - 1][m - 1]
+        return lcsMatrix[m - 1][n - 1]
     }
 
     /**

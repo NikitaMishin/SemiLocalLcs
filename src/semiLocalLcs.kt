@@ -1,3 +1,48 @@
+
+
+/**
+ *Symbol type refer to Symbol
+ */
+enum class SymbolType {
+    AlphabetSymbol,
+    WildCardSymbol,// '?' - symbol not presented in alphabet
+    //...
+}
+
+/**
+ * Symbol is extended alphabet for semiLocalLCS
+ */
+data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>
+
+
+/**
+ * Interface for semiLocal LCS problem for the two given lists of comparable elements.
+ * The definition of semiLocal LCS problem see book "The algebra of string comparison: Computing with sticky braids",
+ * page 51
+ */
+interface ISemiLocalLCS {
+    /**
+     *For a given A and B asks for lcs score for A and B[i:j]
+     */
+    fun stringSubstringLCS(i: Int, j: Int): Int
+
+    /**
+     *For a given A and B asks for lcs score for A[k:A.size] and B[0:j]
+     */
+    fun prefixSuffixLCS(k: Int, j: Int): Int
+
+    /**
+     *For a given A and B asks for lcs score for A[0:l] and B[i:B.size]
+     */
+    fun suffixPrefixLCS(l: Int, i: Int): Int
+
+    /**
+     *For a given A and B asks for lcs score for A[k:l] and B
+     */
+    fun substringStringLCS(k: Int, l: Int): Int
+}
+
+
 /////**
 //// *  Semi Local problems
 //// */
