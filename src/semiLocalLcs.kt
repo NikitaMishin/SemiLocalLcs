@@ -1,3 +1,73 @@
+///**
+// *  Semi Local problems
+// */
+//
+//
+///**
+// *
+// */
+//abstract class SemiLocalLCS<E> {
+//    abstract var fragmentA: List<E>
+//    abstract var fragmentB: List<E>
+//    // TODO ideompotence operation
+//    abstract fun solve()
+//
+//    // TODO waht args
+//    abstract fun query(i: Int, j: Int)
+//}
+//
+///**
+// *
+// */
+//class SemiLocalLCSByMonge<E, T : MatrixElem, M : MongeMatrix<T>>(
+//    private var solver: SemiLocalLCSSolveStrategy<T, M>,
+//    override var fragmentA: List<E>,
+//    override var fragmentB: List<E>) : SemiLocalLCS<E>() {
+//    private lateinit var matrix: M
+//    override fun solve() {
+//        //should be ideompotence
+//        matrix = solver.solve(fragmentA, fragmentB)
+//    }
+//
+//    fun getMatrix(): M = matrix
+//
+//    fun setSolver(newSolver: SemiLocalLCSSolveStrategy<T, M>) {
+//        solver = newSolver
+//    }
+//
+//    override fun query(i: Int, j: Int) {
+//        //matrix.get()
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//
+//}
+//
+//
+///**TODO K constraint comparable and hash
+// * or move him to class declaration
+// *
+// */
+//abstract class SemiLocalLCSSolveStrategy<T : MatrixElem, M : MongeMatrix<T>>() {
+//    abstract fun <K> solve(a: List<K>, b: List<K>): M
+//}
+//
+///**
+// *
+// */
+//class SemiLocalLCSSolveStrategyRecursive<T : MatrixElem, M : MongeMatrix<T>>() : SemiLocalLCSSolveStrategy<T, M>() {
+//    override fun <K> solve(a: List<K>, b: List<K>): M {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//}
+//
+///**
+// *
+// */
+//class SemiLocalLCSSolveStrategyIterative<T : MatrixElem, M : MongeMatrix<T>>() : SemiLocalLCSSolveStrategy<T, M>() {
+//    override fun <K> solve(a: List<K>, b: List<K>): M {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//}
 
 
 /**
@@ -42,372 +112,404 @@ interface ISemiLocalLCS {
     fun substringStringLCS(k: Int, l: Int): Int
 }
 
+/**
+ *
+ */
+abstract class AbstractPermutationMatrix {
+    /**
+     *
+     */
+    enum class GetType {
+        ROW,
+        COLUMN
+    }
 
-/////**
-//// *  Semi Local problems
-//// */
-////
-////
-/////**
-//// *
-//// */
-////abstract class SemiLocalLCS<E> {
-////    abstract var fragmentA: List<E>
-////    abstract var fragmentB: List<E>
-////    // TODO ideompotence operation
-////    abstract fun solve()
-////
-////    // TODO waht args
-////    abstract fun query(i: Int, j: Int)
-////}
-////
-/////**
-//// *
-//// */
-////class SemiLocalLCSByMonge<E, T : MatrixElem, M : MongeMatrix<T>>(
-////    private var solver: SemiLocalLCSSolveStrategy<T, M>,
-////    override var fragmentA: List<E>,
-////    override var fragmentB: List<E>) : SemiLocalLCS<E>() {
-////    private lateinit var matrix: M
-////    override fun solve() {
-////        //should be ideompotence
-////        matrix = solver.solve(fragmentA, fragmentB)
-////    }
-////
-////    fun getMatrix(): M = matrix
-////
-////    fun setSolver(newSolver: SemiLocalLCSSolveStrategy<T, M>) {
-////        solver = newSolver
-////    }
-////
-////    override fun query(i: Int, j: Int) {
-////        //matrix.get()
-////        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-////    }
-////
-////}
-////
-////
-/////**TODO K constraint comparable and hash
-//// * or move him to class declaration
-//// *
-//// */
-////abstract class SemiLocalLCSSolveStrategy<T : MatrixElem, M : MongeMatrix<T>>() {
-////    abstract fun <K> solve(a: List<K>, b: List<K>): M
-////}
-////
-/////**
-//// *
-//// */
-////class SemiLocalLCSSolveStrategyRecursive<T : MatrixElem, M : MongeMatrix<T>>() : SemiLocalLCSSolveStrategy<T, M>() {
-////    override fun <K> solve(a: List<K>, b: List<K>): M {
-////        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-////    }
-////}
-////
-/////**
-//// *
-//// */
-////class SemiLocalLCSSolveStrategyIterative<T : MatrixElem, M : MongeMatrix<T>>() : SemiLocalLCSSolveStrategy<T, M>() {
-////    override fun <K> solve(a: List<K>, b: List<K>): M {
-////        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-////    }
-////}
-//
-//
-///**
-// * Also sub permutation
-// * // 0 in lists mean that no in row element
-// * Format
-// * X - rows in form  X -> Y , if X -> NOPOINT => no points at all in row x
-// * Y - cols in form Y -> X , if Y ->  NOPOINT => no point at all in col y
-// */
-//data class PermutationMatrix(var X: MutableList<Int>, var Y: MutableList<Int>) {
-//
-//    val NO_POINT = -1
-//
-//    fun height() = X.size
-//    fun width() = Y.size
-//
-//    /**
-//     * Make all elements in column zero (at most 1) due to sub permutation property
-//     * @param col indexed starting with zero!
-//     */
-//    inline fun resetInCol(col: Int) {
-//        val x = Y[col]
-//        Y[col] = NO_POINT
-//        if (x != NO_POINT) X[x] = NO_POINT
-//    }
-//
-//    /**
-//     * Make all elements in column zero (at most 1) due to sub permutation property
-//     * @param row indexed starting with zero
-//     */
-//    inline fun resetInRow(row: Int) {
-//        val y = X[row]
-//        X[row] = NO_POINT
-//        if (y != NO_POINT) Y[y] = NO_POINT
-//    }
-//
-//    /**
-//     * @param row indexed starting with zero
-//     * @param col indexed starting with zero
-//     * @param value Boolean
-//     */
-//    inline operator fun set(row: Int, col: Int, value: Boolean) {
-//        if (value) {
-//            X[row] = col
-//            Y[col] = row
-//        } else {
-//            X[row] = NO_POINT
-//            Y[col] = NO_POINT
-//        }
-//    }
-//
-//    /**
-//     * Split by colExclusive current matrix to two matrix i.e A[n, m] ->  A[n, colExclusive], A[n, m - colExclusive]
-//     * @return  Pair of matricres with hasnmap for mapping back x coordinates
-//     */
-//    fun splitOnByColumn(colExclusive: Int): Pair<Pair<PermutationMatrix, MutableMap<Int, Int>>, Pair<PermutationMatrix, MutableMap<Int, Int>>> {
-//        if (colExclusive >= width() || colExclusive<=0)
-//            throw java.lang.IllegalArgumentException("colExclusive is $colExclusive whereas width is ${width()}")
-//
-//        fun getFirst(): Pair<PermutationMatrix, MutableMap<Int, Int>> {
-//            val newToOldX = mutableMapOf<Int, Int>()
-//            val oldToNew = mutableMapOf<Int, Int>()
-//            val newXPoints = mutableListOf<Int>()
-//
-//            for (x in 0 until X.size) {
-//                val y = X[x]
-//
-//                // mapping with removing of zero rows
-//                //TODO checking of NO_Point ?
-//                if (y  < colExclusive && y != NO_POINT) {
-//                    newToOldX[newXPoints.size] = x
-//                    oldToNew[x] = newXPoints.size
-//                    newXPoints.add(y)
-//                }
-//            }
-//
-//            val nextYPoints = mutableListOf<Int>()
-//            for (y in 0 until Y.size) {
-//                val oldX = Y[y]
-//                // TODO checking of NO_Point ?
-//                if (y < colExclusive) {
-//                    nextYPoints.add(oldToNew.getOrDefault(oldX, NO_POINT) )
-//                } else break
-//            }
-//
-//            return Pair(PermutationMatrix(newXPoints, nextYPoints), newToOldX)
-//        }
-//
-//        fun getSecond(): Pair<PermutationMatrix, MutableMap<Int, Int>> {
-//            val newToOldX = mutableMapOf<Int, Int>()
-//            val oldToNew = mutableMapOf<Int, Int>()
-//            val nextXPoints = mutableListOf<Int>()
-//
-//            for (x in 0 until X.size) {
-//                val y = X[x]
-//                if (y  >= colExclusive) {
-//                    // y== 0 also removed
-//                    newToOldX[nextXPoints.size] = x
-//                    oldToNew[x] = nextXPoints.size
-//                    val shifted = if(y == NO_POINT) NO_POINT else  y - colExclusive
-//                    nextXPoints.add(shifted)
-//                }
-//            }
-//
-//            val nextYPoints = mutableListOf<Int>()
-//            for (y in 0 until Y.size) {
-//                val oldX = Y[y]
-//                if (y >= colExclusive)
-//                    nextYPoints.add(oldToNew.getOrDefault(oldX, NO_POINT) )
-//            }
-//
-//            return Pair(PermutationMatrix(nextXPoints, nextYPoints), newToOldX)
-//
-//
-//        }
-//
-//        return Pair(getFirst(), getSecond())
-//    }
-//
-//    fun splitOnByRow(rowExclusive: Int): Pair<Pair<PermutationMatrix, MutableMap<Int, Int>>, Pair<PermutationMatrix, MutableMap<Int, Int>>> {
-//        if (rowExclusive >= height() || rowExclusive<=0)
-//            throw java.lang.IllegalArgumentException("rowExclusive is $rowExclusive whereas height is ${height()}")
-//
-//        fun getFirst(): Pair<PermutationMatrix, MutableMap<Int, Int>> {
-//            val newToOldY = mutableMapOf<Int, Int>()
-//            val oldToNewY = mutableMapOf<Int, Int>()
-//            val nextYPoints = mutableListOf<Int>()
-//
-//            for (y in 0 until Y.size) {
-//                val x = Y[y]
-//                //TODO SAME QS
-//                if (x  < rowExclusive && x != NO_POINT) {
-//                    newToOldY[nextYPoints.size] = y
-//                    oldToNewY[y] = nextYPoints.size
-//                    nextYPoints.add(x)
-//                }
-//            }
-//
-//            val nextXPoints = mutableListOf<Int>()
-//            for (x in 0 until X.size) {
-//                val oldY = X[x]
-//                if (x < rowExclusive) {
-//                    nextXPoints.add(oldToNewY.getOrDefault(oldY, NO_POINT))
-//                }
-//            }
-//
-//            return Pair(PermutationMatrix(nextXPoints, nextYPoints), newToOldY)
-//
-//        }
-//
-//        fun getSecond(): Pair<PermutationMatrix, MutableMap<Int, Int>> {
-//            val newToOldY = mutableMapOf<Int, Int>()
-//            val oldToNewY = mutableMapOf<Int, Int>()
-//            val nextYPoints = mutableListOf<Int>()
-//
-//            for (y in 0 until Y.size) {
-//                val x = Y[y]
-//                if (x >= rowExclusive) {
-//                    newToOldY[nextYPoints.size] = y
-//                    oldToNewY[y] = nextYPoints.size
-//                    val offset = if (x!=NO_POINT) x - rowExclusive else NO_POINT
-//                    nextYPoints.add(offset)
-//                }
-//            }
-//
-//            val nextXPoint = mutableListOf<Int>()
-//            for (x in 0 until X.size) {
-//                val oldY = X[x]
-//                if (x >= rowExclusive) nextXPoint.add(oldToNewY.getOrDefault(oldY, NO_POINT))
-//            }
-//
-//            return Pair(PermutationMatrix(nextXPoint, nextYPoints), newToOldY)
-//
-//
-//        }
-//        return Pair(getFirst(), getSecond())
-//
-//    }
-//
-//    fun restoreMatrixByMapping(
-//        newToOldX: MutableMap<Int, Int>,
-//        newToOldY: MutableMap<Int, Int>,
-//        width: Int,
-//        height: Int
-//    ):
-//            PermutationMatrix {
-//        val newX = MutableList(height) { -1 }
-//        val newY = MutableList(width) { -1 }
-//        this.X.forEachIndexed { xNew, y ->
-//            val yOld = y - 1
-//            newX[newToOldX[xNew]!!] = newToOldY.getOrDefault(yOld, -1) + 1
-//        }
-//        this.Y.forEachIndexed { yNew, x ->
-//            val xOLd = x - 1
-//            newY[newToOldY[yNew]!!] = newToOldX.getOrDefault(xOLd, -1) + 1
-//        }
-//
-//        return PermutationMatrix(newX, newY)
-//
-//    }
-//
-//}
-//
-//// a1  * a2
-//// a1 of n1Xm
-//// a2 mXn2
-//// c result = n1Xn2
-//fun steadyAnt(P: PermutationMatrix, Q: PermutationMatrix): PermutationMatrix {
-//    if (P.width() == 1) return Q
-//    val widthP1 = P.width() / 2
-//
-//    val (firstP, secondP) = P.splitOnByColumn(widthP1)
-//    val (firstQ, secondQ) = Q.splitOnByRow(widthP1)
-//
-//    val R1 = steadyAnt(firstP.first, firstQ.first).restoreMatrixByMapping(
-//        firstP.second,
-//        firstQ.second,
-//        P.width(),
-//        P.height()
-//    )
-//
-//    val R2 = steadyAnt(secondP.first, secondQ.first).restoreMatrixByMapping(
-//        secondP.second,
-//        secondQ.second,
-//        P.width(),
-//        P.height()
-//    )
-//
-//    // we draw border to n+1 x  m + 1 grid , not kernel
-//    val leftBorder = Point2D(P.height(), 0)
-//    val rightBorder = Point2D(P.height(), 0)
-//    //draw left
-//    var currentHi = 0
-//    var currentLo = 0
-//
-//
-//    val leftBorderPath = hashMapOf<Point2D<Int>, Boolean>()
-//    while (leftBorder != Point2D(0, P.width())) {
-//        // choouse step
-//        if (leftBorder.x == 0) break
-//        val topCellHi = 1
-//        val rightCellHi = 1
-//        val topRightCellHi = 1
-//        val topCellLo = 1
-//        val rightCellLo = 1
-//        val topRightCellLo = 1
-//        val delta = topRightCellHi - topRightCellLo
-//        leftBorderPath[Point2D(leftBorder.x, leftBorder.y)] = true
-//        if (delta == 0) {
-//            leftBorder.x -= 1
-//            currentHi = topCellHi
-//            currentLo = topCellLo
-//        } else if (delta < 0) {
-//            leftBorder.y += 1
-//            currentHi = rightCellHi
-//            currentLo = rightCellLo
-//        } else {
-//            throw NotImplementedError("THIS IS IMPOSSIBLE")
-//        }
-//    }
-//    val rightBorderPath = hashMapOf<Point2D<Int>, Boolean>()
-//    val goodPoints = mutableListOf<Point2D<Int>>()
-//
-//    // TODO стартуем с -1?
-//    while (rightBorder != Point2D(0, P.width())) {
-//        val topCellHi = 1
-//        val rightCellHi = 1
-//        val topRightCellHi = 1
-//        val topCellLo = 1
-//        val rightCellLo = 1
-//        val topRightCellLo = 1
-//        val delta = topRightCellHi - topRightCellLo
-//        // move to if and else if
-//        if (rightBorder in leftBorderPath) {
-//            goodPoints.add(Point2D(rightBorder.x - 1, +rightBorder.y + 1))
-//        }
-//        if (delta == 0) {
-//            rightBorder.y += 1
-//            currentHi = rightCellHi
-//            currentLo = rightCellLo
-//        } else if (delta > 0) {
-//            rightBorder.x -= 1
-//            currentHi = topCellHi
-//            currentLo = topCellLo
-//        } else {
-//            throw NotImplementedError("THIS IS IMPOSSIBLE")
-//        }
-//    }
-//
-//    // filter R1 and R2
+    /**
+     *
+     */
+    val NOPOINT = -1
+
+    /**
+     *
+     */
+    abstract fun height(): Int
+
+    /**
+     *
+     */
+    abstract fun width(): Int
+
+    /**
+     *
+     */
+    abstract operator fun get(row: Int, col: Int): Boolean
+
+    /**
+     *
+     */
+    abstract operator fun set(row: Int, col: Int, value: Boolean)
+
+    /**
+     *
+     */
+    abstract operator fun get(pos: Int, getType: GetType): Int
+
+    /**
+     *
+     */
+    abstract fun resetInRow(row: Int)
+
+    /**
+     *
+     */
+    abstract fun resetInColumn(column: Int)
+
+    /**
+     *
+     */
+    abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
+}
+
+/**
+ *
+ */
+class CountingQuery() {
+
+    /**
+     *
+     */
+    inline fun dominanceSumTopLeftUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        val iCap = i - 1
+        val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
+        if (jCap == permMatrix.NOPOINT) return sum
+        return sum - if (jCap < j) -1 else 0
+    }
+
+    /**
+     *
+     */
+    inline fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        val jCap = j + 1
+        val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        if (iCap == permMatrix.NOPOINT) return sum
+        return sum + if (iCap < i) 1 else 0
+    }
+
+    /**
+     *
+     */
+    inline fun dominanceSumBottomRightUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        val iCap = i - 1
+        val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
+        if (jCap == permMatrix.NOPOINT) return sum
+        return sum + if (jCap < j) 0 else 1
+    }
+
+    /**
+     *
+     */
+    inline fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        val jCap = j + 1
+        val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        if (iCap == permMatrix.NOPOINT) return sum
+        return sum - if (iCap < i) 0 else 1
+    }
+
+
+}
+
+/**
+ * Also sub permutation matrices
+ * Format:
+ * ROWS in form  row -> col , if ROW -> NOPOINT => no points at all in row.
+ * COLS in form col -> row , if COL ->  NOPOINT => no point at all in col.
+ * Standart indexation from 0 to n - 1
+ */
+data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private var cols: MutableList<Int>) :
+    AbstractPermutationMatrix() {
+
+    override fun height() = rows.size
+
+    override fun width() = cols.size
+
+    override fun set(row: Int, col: Int, value: Boolean) = when (value) {
+        true -> {
+            rows[row] = col
+            cols[col] = row
+        }
+        false -> {
+            rows[row] = NOPOINT
+            cols[col] = NOPOINT
+        }
+    }
+
+
+    override fun get(pos: Int, getType: GetType): Int = when (getType) {
+        GetType.ROW -> rows[pos]
+        GetType.COLUMN -> cols[pos]
+    }
+
+    override fun get(row: Int, col: Int): Boolean = rows[row] == col
+
+    override fun resetInRow(row: Int) {
+        val column = rows[row]
+        rows[row] = NOPOINT
+        if (column != NOPOINT) cols[column] = NOPOINT
+    }
+
+    override fun resetInColumn(column: Int) {
+        val row = cols[column]
+        cols[column] = NOPOINT
+        if (row != NOPOINT) rows[row] = NOPOINT
+    }
+
+    override fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix = PermutationMatrixTwoLists(
+        (0 until height).map { NOPOINT }.toMutableList(), (0 until width).map { NOPOINT }.toMutableList()
+    )
+
+
+}
+
+internal enum class Step {
+    UP,
+    RIGHT
+}
+
+/**
+ * Fast multiplication for permutation and subpermutation matrices each with at most n nonzeros.
+ * The product is obtained in O(nlogn) time.
+ * The details see on page 30.
+ */
+fun steadyAnt(
+    P: AbstractPermutationMatrix,
+    Q: AbstractPermutationMatrix
+):
+        AbstractPermutationMatrix {
+
+    fun getP1(colExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldRows = mutableMapOf<Int, Int>()
+        val oldToNewRows = mutableMapOf<Int, Int>()
+        val newRowPoints = mutableListOf<Int>()
+
+        for (row in 0 until P.height()) {
+            val col = P[row, AbstractPermutationMatrix.GetType.ROW]
+            if (col < colExclusive && col != P.NOPOINT) {
+                newToOldRows[newRowPoints.size] = row
+                oldToNewRows[row] = newRowPoints.size
+                newRowPoints.add(col)
+            }
+        }
+
+        //zero matrix get
+        if (newRowPoints.size == 0) return Pair(false, null)
+
+        val nextColPoints = mutableListOf<Int>()
+        for (col in 0 until colExclusive) {
+            val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
+            nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
+        }
+        //TODO  is really needed?
+        //if (newRowPoints.size == 0) return Pair(false,null)
+
+        val matrix = P.createZeroMatrix(height = newRowPoints.size, width = nextColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            newRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            nextColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+
+        return Pair(true, Pair(matrix, newToOldRows))
+    }
+
+    fun getP2(colExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldRows = mutableMapOf<Int, Int>()
+        val oldToNewRows = mutableMapOf<Int, Int>()
+        val newRowPoints = mutableListOf<Int>()
+
+        for (row in 0 until P.height()) {
+            val col = P[row, AbstractPermutationMatrix.GetType.ROW]
+            if (col >= colExclusive && col != P.NOPOINT) {
+                newToOldRows[newRowPoints.size] = row
+                oldToNewRows[row] = newRowPoints.size
+                newRowPoints.add(col - colExclusive)
+            }
+        }
+
+        //zero matrix get
+        if (newRowPoints.size == 0) return Pair(false, null)
+
+        val nextColPoints = mutableListOf<Int>()
+
+        for (col in colExclusive until P.width()) {
+            val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
+            nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
+        }
+
+        //TODO  is really needed?
+        //if (newRowPoints.size == 0) return Pair(false,null)
+
+        val matrix = P.createZeroMatrix(height = newRowPoints.size, width = nextColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            newRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            nextColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+
+        return Pair(true, Pair(matrix, newToOldRows))
+    }
+
+    fun getQ1(rowExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldCol = mutableMapOf<Int, Int>()
+        val oldToNewCol = mutableMapOf<Int, Int>()
+        val newColPoints = mutableListOf<Int>()
+
+        for (col in 0 until Q.width()) {
+            val row = Q[col, AbstractPermutationMatrix.GetType.COLUMN]
+
+            if (row != Q.NOPOINT && row < rowExclusive) {
+                newToOldCol[newColPoints.size] = col
+                oldToNewCol[col] = newColPoints.size
+                newColPoints.add(row)
+            }
+        }
+        if (newColPoints.size == 0) return Pair(false, null)
+
+        val nexRowPoints = mutableListOf<Int>()
+        for (row in 0 until rowExclusive) {
+            val oldCol = Q[row, AbstractPermutationMatrix.GetType.ROW]
+            nexRowPoints.add(oldToNewCol.getOrDefault(oldCol, Q.NOPOINT))
+        }
+
+        val matrix = P.createZeroMatrix(height = nexRowPoints.size, width = newColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            nexRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            newColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+
+        return Pair(true, Pair(matrix, newToOldCol))
+
+    }
+
+    fun getQ2(rowExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldCol = mutableMapOf<Int, Int>()
+        val oldToNewCol = mutableMapOf<Int, Int>()
+        val newColPoints = mutableListOf<Int>()
+
+        for (col in 0 until Q.width()) {
+            val row = Q[col, AbstractPermutationMatrix.GetType.COLUMN]
+
+            if (row != Q.NOPOINT && row >= rowExclusive) {
+                newToOldCol[newColPoints.size] = col
+                oldToNewCol[col] = newColPoints.size
+                newColPoints.add(row - rowExclusive)
+            }
+        }
+
+        if (newColPoints.size == 0) return Pair(false, null)
+
+        val nexRowPoints = mutableListOf<Int>()
+
+        for (row in rowExclusive until Q.height()) {
+            val oldCol = Q[row, AbstractPermutationMatrix.GetType.ROW]
+            nexRowPoints.add(oldToNewCol.getOrDefault(oldCol, Q.NOPOINT))
+        }
+
+        val matrix = P.createZeroMatrix(height = nexRowPoints.size, width = newColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            nexRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            newColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+
+        return Pair(true, Pair(matrix, newToOldCol))
+    }
+
+    fun inverseMapping(
+        newToOldX: MutableMap<Int, Int>, newToOldY: MutableMap<Int, Int>, height: Int, width: Int,
+        shrinkMatrix: AbstractPermutationMatrix
+    ): AbstractPermutationMatrix {
+
+        val matrix = P.createZeroMatrix(height, width)
+
+        for (row in 0 until shrinkMatrix.height()) {
+            val col = shrinkMatrix[row, AbstractPermutationMatrix.GetType.ROW]
+            if (col != shrinkMatrix.NOPOINT) matrix[newToOldX[row]!!, newToOldY[col]!!] = true
+        }
+        return matrix
+    }
+
+
+//    if (P.width() == 1) return Q base case
+    val widthP1 = P.width() / 2
+    val widthP2 = P.width() - widthP1
+    val (P1IsZero, P1) = getP1(widthP1)
+    val (P2IsZero, P2) = getP2(widthP1)
+    val (Q1IsZero, Q1) = getQ1(widthP1)
+    val (Q2IsZero, Q2) = getQ2(widthP1)
+    //CASE WHEN P1 OR Q1 IS ZERO
+
+
+    // R1 same dimension as R2
+    val R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
+    val R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+
+
+// size of grid bigger in each dimension on one
+    //start from <n^+,0^-> to  <0^-,n^+>
+    val endPos = Position2D(-1, R1.width() + 1) // или +2?
+    val currentPos = Position2D(R1.height() + 1, -1)//?? or 0
+    var delta = 0
+    var RHi = 0 // now at point <n^+,0^->
+    var RLo = 0 // now at point <n^+,0^->
+    var RHiNext = 0
+    var RLoNext = 0
+
+    var step = Step.UP
+    while (currentPos != endPos) {
+        if (currentPos.i == 0) {
+            // could terminate
+            step = Step.RIGHT
+            currentPos.j += 1
+            continue
+        }
+        // go
+        val posExtendedMatrix = Position2D(currentPos.i - 1, currentPos.j + 1)
+
+        //obtain Rhi a rLo for current point
+        if (step == Step.RIGHT) {
+
+//            RHiNext = RHi - if () 0 else 1
+
+        } else {
+            //step up
+        }
+
+        // check conditions for step
+
+
+        //check is good point
+        // delta[\bar{i}^{-},\bar{j}^{-}] < 0 and delta[\bar{i}^{+},\bar{j}^{+}] > 0
+//        val deltaMinusMinus =
+
+
+//            delta =
+//                RHiNext = RHi
+//        delta =
+
+
+    }
+
+    // filter R1 and R2
 //    goodPoints.forEach { p ->
-//        R1.resetInCol(p.y)
-//        R1.resetInRow(p.x)
-//        R2.resetInCol(p.y)
-//        R2.resetInRow(p.x)
+//        R1.resetInCol(p.j)
+//        R1.resetInRow(p.i)
+//        R2.resetInCol(p.j)
+//        R2.resetInRow(p.i)
 //    }
 //
 //
@@ -417,18 +519,19 @@ interface ISemiLocalLCS {
 //    }
 //    //add good points to R1
 //    goodPoints.forEach {
-//        R1[it.x, it.y] = true
+//        R1[it.i, it.j] = true
 //    }
 //
 //    return R1
-//}
-//
-//
-//fun semiLocalLcs(a: String, b: String, n: Int, m: Int): List<Point2D<Int>> = when {
+    TODO()
+}
+
+
+//fun semiLocalLcs(a: String, b: String, n: Int, m: Int): List<Position2D<Int>> = when {
 //    n == 1 && m == 1 -> {
 //        // a[n-1] == b[m-1]
-//        if (a == b) listOf(Point2D(0, 0), Point2D(1, 1))
-//        else listOf(Point2D(1, 0), Point2D(0, 1))
+//        if (a == b) listOf(Position2D(0, 0), Position2D(1, 1))
+//        else listOf(Position2D(1, 0), Position2D(0, 1))
 //    }
 //
 //    m == 1 && n > 1 -> {

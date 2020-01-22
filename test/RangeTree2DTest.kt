@@ -1,8 +1,6 @@
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import kotlin.random.Random
 
 /**
@@ -12,8 +10,8 @@ import kotlin.random.Random
 internal class RangeTree2DTest {
 
     private val presetPoints = listOf(
-        Point2D(1, 2), Point2D(2, 3), Point2D(3, 5),
-        Point2D(4, 7), Point2D(5, 4), Point2D(6, 1)
+        Position2D(1, 2), Position2D(2, 3), Position2D(3, 5),
+        Position2D(4, 7), Position2D(5, 4), Position2D(6, 1)
     )
     private val preSetTree = RangeTree2D(presetPoints)
 
@@ -78,7 +76,7 @@ internal class RangeTree2DTest {
             val random2 = Random(testRun - i)
             val x = (generateSequence { random.nextInt() }.distinct()).take(size)
             val y = (generateSequence { random2.nextInt() }.distinct()).take(size)
-            val points = x.zip(y).map { Point2D(it.first, it.second) }.toList()
+            val points = x.zip(y).map { Position2D(it.first, it.second) }.toList()
             val tree = RangeTree2D(points)
             val queries = generateSequence {
                 var l1 = random.nextInt()

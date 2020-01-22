@@ -74,10 +74,10 @@ data class SortedArray<T : Comparable<T>>(val sortedPointsByY: List<T>) {
 }
 
 
-data class Point2D<T : Comparable<T>>(var x: T, var y: T) {
+data class Position2D<T : Comparable<T>>(var i: T, var j: T) {
     inline fun isInside(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Boolean =
-        (x >= intervalX.leftInclusive && x <= intervalX.rightInclusive)
-                && (y >= intervalY.leftInclusive && y <= intervalY.rightInclusive)
+        (i >= intervalX.leftInclusive && i <= intervalX.rightInclusive)
+                && (j >= intervalY.leftInclusive && j <= intervalY.rightInclusive)
 }
 
 data class IntervalQuery<T : Comparable<T>>(val leftInclusive: T, val rightInclusive: T)
@@ -86,11 +86,11 @@ data class IntervalQuery<T : Comparable<T>>(val leftInclusive: T, val rightInclu
  * For for unique points
  * TODO do we need ununique points,
  */
-class RangeTree2D<T : Comparable<T>>(points: List<Point2D<T>>) {
+class RangeTree2D<T : Comparable<T>>(points: List<Position2D<T>>) {
     private var rangeTree: RangeTreeNode<T>? = null
 
     private data class RangeTreeNode<T : Comparable<T>>(
-        var value: Point2D<T>, var size: Int,
+        var value: Position2D<T>, var size: Int,
         internal var leftSubtree: RangeTreeNode<T>?,
         internal var rightSubtree: RangeTreeNode<T>?,
         internal var rangeTree1D: SortedArray<T>
@@ -99,26 +99,26 @@ class RangeTree2D<T : Comparable<T>>(points: List<Point2D<T>>) {
     }
 
     init {
-        val xPointsSorted = points.sortedBy { it.x } // O(nlogn)
-        val yPointsSorted = points.sortedBy { it.y } // O(nlogn)
+        val xPointsSorted = points.sortedBy { it.i } // O(nlogn)
+        val yPointsSorted = points.sortedBy { it.j } // O(nlogn)
         rangeTree = build2DTree(xPointsSorted, yPointsSorted)
     }
 
-    private fun build2DTree(xPoints: List<Point2D<T>>, yPoints: List<Point2D<T>>): RangeTreeNode<T>? {
+    private fun build2DTree(xPoints: List<Position2D<T>>, yPoints: List<Position2D<T>>): RangeTreeNode<T>? {
         val size = xPoints.size
         if (xPoints.isEmpty()) {
             return null
         }
-        if (size == 1) return RangeTreeNode(xPoints[0], 1, null, null, SortedArray(listOf(yPoints[0].y)))
+        if (size == 1) return RangeTreeNode(xPoints[0], 1, null, null, SortedArray(listOf(yPoints[0].j)))
 
         val median = ceil(xPoints.size.toDouble() / 2).toInt() - 1
 
         val medianPoint = xPoints[median]
         val leftSubtree =
-            build2DTree(xPoints.slice(IntRange(0, median)), yPoints.filter { it.x <= medianPoint.x })
+            build2DTree(xPoints.slice(IntRange(0, median)), yPoints.filter { it.i <= medianPoint.i })
         val rightSubtree =
-            build2DTree(xPoints.slice(IntRange(median + 1, size - 1)), yPoints.filter { it.x > medianPoint.x })
-        return RangeTreeNode(medianPoint, size, leftSubtree, rightSubtree, SortedArray(yPoints.map { it.y }))
+            build2DTree(xPoints.slice(IntRange(median + 1, size - 1)), yPoints.filter { it.i > medianPoint.i })
+        return RangeTreeNode(medianPoint, size, leftSubtree, rightSubtree, SortedArray(yPoints.map { it.j }))
     }
 
     fun ortoghonalQuery(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Int {
@@ -130,9 +130,9 @@ class RangeTree2D<T : Comparable<T>>(points: List<Point2D<T>>) {
         loop@ while (true) {
             when {
                 lcs == null -> return 0
-                intervalX.leftInclusive <= lcs.value.x && intervalX.rightInclusive <= lcs.value.x ->
+                intervalX.leftInclusive <= lcs.value.i && intervalX.rightInclusive <= lcs.value.i ->
                     lcs = lcs.leftSubtree
-                intervalX.leftInclusive > lcs.value.x && intervalX.rightInclusive > lcs.value.x ->
+                intervalX.leftInclusive > lcs.value.i && intervalX.rightInclusive > lcs.value.i ->
                     lcs = lcs.rightSubtree
                 else -> break@loop //
             }
@@ -146,7 +146,7 @@ class RangeTree2D<T : Comparable<T>>(points: List<Point2D<T>>) {
             if (left.isLeaf()) {
                 result += if (left.value.isInside(intervalX, intervalY)) 1 else 0
                 left = null
-            } else if (intervalX.leftInclusive <= left.value.x) {
+            } else if (intervalX.leftInclusive <= left.value.i) {
                 val queryOnY = if (left.rightSubtree != null)
                     left.rightSubtree!!.rangeTree1D.countElementsBetween(intervalY) else 0
                 result += queryOnY
@@ -160,7 +160,7 @@ class RangeTree2D<T : Comparable<T>>(points: List<Point2D<T>>) {
             if (right.isLeaf()) {
                 result += if (right.value.isInside(intervalX, intervalY)) 1 else 0
                 right = null
-            } else if (intervalX.rightInclusive > right.value.x) {
+            } else if (intervalX.rightInclusive > right.value.i) {
                 val queryOnY = if (right.leftSubtree != null)
                     right.leftSubtree!!.rangeTree1D.countElementsBetween(intervalY) else 0
                 result += queryOnY
