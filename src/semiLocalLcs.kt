@@ -320,6 +320,7 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
         val dominanceMatrix = Array(height()) { Array(width()) { 0 } }
         for (pos in this) dominanceMatrix[pos.i][pos.j] = 1
 
+
         for (i in dominanceMatrix.indices) {
             for (j in dominanceMatrix[0].indices) {
                 print("${dominanceMatrix[i][j]} ")
@@ -346,6 +347,9 @@ internal enum class Step {
  */
 fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): AbstractPermutationMatrix {
 
+    /**
+     *
+     */
     fun getP1(colExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
         val newToOldRows = mutableMapOf<Int, Int>()
         val oldToNewRows = mutableMapOf<Int, Int>()
@@ -368,8 +372,6 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
             nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
         }
-        //TODO  is really needed?
-        //if (newRowPoints.size == 0) return Pair(false,null)
 
         val matrix = P.createZeroMatrix(height = newRowPoints.size, width = nextColPoints.size)
         // for speedup
@@ -382,6 +384,9 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         return Pair(true, Pair(matrix, newToOldRows))
     }
 
+    /**
+     *
+     */
     fun getP2(colExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
         val newToOldRows = mutableMapOf<Int, Int>()
         val oldToNewRows = mutableMapOf<Int, Int>()
@@ -406,9 +411,6 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
         }
 
-        //TODO  is really needed?
-        //if (newRowPoints.size == 0) return Pair(false,null)
-
         val matrix = P.createZeroMatrix(height = newRowPoints.size, width = nextColPoints.size)
         // for speedup
         if (matrix.height() < matrix.width()) {
@@ -420,6 +422,9 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         return Pair(true, Pair(matrix, newToOldRows))
     }
 
+    /**
+     *
+     */
     fun getQ1(rowExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
         val newToOldCol = mutableMapOf<Int, Int>()
         val oldToNewCol = mutableMapOf<Int, Int>()
@@ -454,6 +459,9 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
     }
 
+    /**
+     *
+     */
     fun getQ2(rowExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
         val newToOldCol = mutableMapOf<Int, Int>()
         val oldToNewCol = mutableMapOf<Int, Int>()
@@ -489,6 +497,9 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         return Pair(true, Pair(matrix, newToOldCol))
     }
 
+    /**
+     *
+     */
     fun inverseMapping(
         newToOldX: MutableMap<Int, Int>, newToOldY: MutableMap<Int, Int>, height: Int, width: Int,
         shrinkMatrix: AbstractPermutationMatrix

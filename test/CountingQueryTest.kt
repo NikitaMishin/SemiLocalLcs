@@ -20,6 +20,10 @@ internal class CountingQueryTest {
     val bottomRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
         { pos, row, col -> pos.i >= row && pos.j >= col }
 
+    val topRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
+        { pos, row, col -> pos.i >= row && pos.j < col }
+
+
     fun generatePermutationMatrix(height: Int, width: Int, nonZerosCount: Int, seed: Int): AbstractPermutationMatrix {
         if (nonZerosCount > kotlin.math.min(height, width)) throw Exception("")
         val randomizer = Random(seed)
