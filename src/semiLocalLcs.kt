@@ -173,6 +173,8 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
      * Create zero matrix with NOPOINT at each position in created matrix
      */
     abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
+
+    abstract fun print()
 }
 
 /**
@@ -180,7 +182,7 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
  * Given the sum in position i,j each function returns sum in adjacent position for differnet type of dominance sum.
  * The prefix (SUM......) determines type of dominance sum whereas prefix (...Move)  determines adjacent posititon
  */
-class CountingQuery() {
+class CountingQuery {
 
     /**
      * see class definition
@@ -189,14 +191,14 @@ class CountingQuery() {
         val iCap = i - 1
         val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
         if (jCap == permMatrix.NOPOINT) return sum
-        return sum - if (jCap < j) -1 else 0
+        return sum + if (jCap < j) -1 else 0
     }
 
     /**
      * see class definition
      */
     inline fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val jCap = j + 1
+        val jCap = j //+ 1
         val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
         return sum + if (iCap < i) 1 else 0
@@ -216,10 +218,10 @@ class CountingQuery() {
      * see class definition
      */
     inline fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val jCap = j + 1
+        val jCap = j
         val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
-        return sum - if (iCap < i) 0 else 1
+        return sum + if (iCap < i) 0 else -1
     }
 
 
@@ -232,8 +234,19 @@ class CountingQuery() {
  * COLS in form col -> row , if COL ->  NOPOINT => no point at all in col.
  * Standart indexation from 0 to n - 1
  */
-data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private var cols: MutableList<Int>) :
+class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, width: Int) :
     AbstractPermutationMatrix() {
+
+    private var rows: MutableList<Int> = MutableList(height) { NOPOINT }
+    private var cols: MutableList<Int> = MutableList(width) { NOPOINT }
+
+    init {
+        for (p in positions) {
+            rows[p.i] = p.j
+            cols[p.j] = p.i
+        }
+
+    }
 
     override fun height() = rows.size
 
@@ -270,9 +283,8 @@ data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private
         if (row != NOPOINT) rows[row] = NOPOINT
     }
 
-    override fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix = PermutationMatrixTwoLists(
-        (0 until height).map { NOPOINT }.toMutableList(), (0 until width).map { NOPOINT }.toMutableList()
-    )
+    override fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix =
+        PermutationMatrixTwoLists(mutableListOf(), height, width)
 
     /**
      * iterator over non zero elements in permutation matrix
@@ -303,6 +315,19 @@ data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private
             }
         }
     }
+
+    override fun print() {
+        val dominanceMatrix = Array(height()) { Array(width()) { 0 } }
+        for (pos in this) dominanceMatrix[pos.i][pos.j] = 1
+
+        for (i in dominanceMatrix.indices) {
+            for (j in dominanceMatrix[0].indices) {
+                print("${dominanceMatrix[i][j]} ")
+            }
+            println()
+        }
+    }
+
 }
 
 
@@ -494,7 +519,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     val (P2IsZero, P2) = getP2(widthP1)
     val (Q1IsZero, Q1) = getQ1(widthP1)
     val (Q2IsZero, Q2) = getQ2(widthP1)
-    var R1: AbstractPermutationMatrix?
+    val R1: AbstractPermutationMatrix?
     var R2: AbstractPermutationMatrix?
 
     //CASE WHEN P1 OR Q1 IS ZERO
@@ -519,7 +544,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
     // R1 and R2 of size mXn
     // indexation on dominance on bigger in each dimension
-    // also for grid over domamnce on one bigger so +2 overall
+    // also for grid over dominance on one bigger so +2 overall
 
 
 // size of grid bigger in each dimension on one
