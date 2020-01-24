@@ -274,15 +274,23 @@ data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private
         (0 until height).map { NOPOINT }.toMutableList(), (0 until width).map { NOPOINT }.toMutableList()
     )
 
-
+    /**
+     * iterator over non zero elements in permutation matrix
+     */
     override fun iterator(): Iterator<Position2D<Int>> {
 
-        return object :Iterator<Position2D<Int>> {
-            private var nonZeroPositions:MutableList<Position2D<Int>> =  TODO()
-//                if (this@PermutationMatrixTwoLists.height() > this@PermutationMatrixTwoLists.width())
-//
-//                    this@PermutationMatrixTwoLists.cols.filter { TODO() }.toMutableList() else
-//                    this@PermutationMatrixTwoLists.rows.filter { TODO() }.toMutableList()
+
+        return object : Iterator<Position2D<Int>> {
+
+            private val nonZeroPositions =
+                if (this@PermutationMatrixTwoLists.height() > this@PermutationMatrixTwoLists.width())
+                    this@PermutationMatrixTwoLists.cols
+                        .mapIndexed { col, row -> Position2D(row, col) }
+                        .filter { it.i != NOPOINT }
+                else this@PermutationMatrixTwoLists.rows
+                    .mapIndexed { row, col -> Position2D(row, col) }
+                    .filter { it.j != NOPOINT }
+
             private var cur = 0
 
             override fun hasNext(): Boolean = cur < nonZeroPositions.size
@@ -311,11 +319,7 @@ internal enum class Step {
  * The product is obtained in O(nlogn) time.
  * The details see on page 30.
  */
-fun steadyAnt(
-    P: AbstractPermutationMatrix,
-    Q: AbstractPermutationMatrix
-):
-        AbstractPermutationMatrix {
+fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): AbstractPermutationMatrix {
 
     fun getP1(colExclusive: Int): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
         val newToOldRows = mutableMapOf<Int, Int>()
