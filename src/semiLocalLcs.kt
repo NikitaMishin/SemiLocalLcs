@@ -1,3 +1,5 @@
+import java.lang.Exception
+
 ///**
 // *  Semi Local problems
 // */
@@ -113,11 +115,12 @@ interface ISemiLocalLCS {
 }
 
 /**
- *
+ * Class that reprsents permutation and subpermutation matrices
  */
-abstract class AbstractPermutationMatrix {
+abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
+
     /**
-     *
+     * The type of query for get queries such as matrix[i,type]
      */
     enum class GetType {
         ROW,
@@ -125,58 +128,62 @@ abstract class AbstractPermutationMatrix {
     }
 
     /**
-     *
+     * variable that state that noPoint at some position in a row
      */
     val NOPOINT = -1
 
     /**
-     *
+     * height of permutation matrix
      */
     abstract fun height(): Int
 
     /**
-     *
+     * width of permutation matrix
      */
     abstract fun width(): Int
 
     /**
-     *
+     * Returns the value in position [row,col] in matrix
      */
     abstract operator fun get(row: Int, col: Int): Boolean
 
     /**
-     *
+     * Sets the value in position [row,col] in matrix
      */
     abstract operator fun set(row: Int, col: Int, value: Boolean)
 
     /**
-     *
+     * Returns the  position of non zero elemenet in a row(col) given positon in a col(row)
+     * @param getType deterimines the type of query. For example matrix[col_i,,ColTYpe]
+     * @return NOPOINT if no point in a row(col) or position in a row(col)
      */
     abstract operator fun get(pos: Int, getType: GetType): Int
 
     /**
-     *
+     * Resets nonzero element in a row
      */
     abstract fun resetInRow(row: Int)
 
     /**
-     *
+     * Resets nonzero element in a col
      */
     abstract fun resetInColumn(column: Int)
 
     /**
-     *
+     * Create zero matrix with NOPOINT at each position in created matrix
      */
     abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
 }
 
 /**
- *
+ * Class for dominance sum counting queries with O(1) for permutation and subpermutation matrices.
+ * Given the sum in position i,j each function returns sum in adjacent position for differnet type of dominance sum.
+ * The prefix (SUM......) determines type of dominance sum whereas prefix (...Move)  determines adjacent posititon
  */
 class CountingQuery() {
 
     /**
-     *
+     * see class definition
      */
     inline fun dominanceSumTopLeftUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
         val iCap = i - 1
@@ -186,7 +193,7 @@ class CountingQuery() {
     }
 
     /**
-     *
+     * see class definition
      */
     inline fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
         val jCap = j + 1
@@ -196,7 +203,7 @@ class CountingQuery() {
     }
 
     /**
-     *
+     * see class definition
      */
     inline fun dominanceSumBottomRightUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
         val iCap = i - 1
@@ -206,7 +213,7 @@ class CountingQuery() {
     }
 
     /**
-     *
+     * see class definition
      */
     inline fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
         val jCap = j + 1
@@ -268,8 +275,32 @@ data class PermutationMatrixTwoLists(private var rows: MutableList<Int>, private
     )
 
 
+    override fun iterator(): Iterator<Position2D<Int>> {
+
+        return object :Iterator<Position2D<Int>> {
+            private var nonZeroPositions:MutableList<Position2D<Int>> =  TODO()
+//                if (this@PermutationMatrixTwoLists.height() > this@PermutationMatrixTwoLists.width())
+//
+//                    this@PermutationMatrixTwoLists.cols.filter { TODO() }.toMutableList() else
+//                    this@PermutationMatrixTwoLists.rows.filter { TODO() }.toMutableList()
+            private var cur = 0
+
+            override fun hasNext(): Boolean = cur < nonZeroPositions.size
+
+            override fun next(): Position2D<Int> {
+                val elem = nonZeroPositions[cur]
+                cur++
+                return elem
+
+            }
+        }
+    }
 }
 
+
+/**
+ * Step for function steady and for path restoring
+ */
 internal enum class Step {
     UP,
     RIGHT
@@ -443,31 +474,58 @@ fun steadyAnt(
         return matrix
     }
 
+    //base case
+    if (P.width() == 1) {
+        val m = P.createZeroMatrix(P.height(), Q.width())
+        val row = P[0, AbstractPermutationMatrix.GetType.COLUMN]
+        val col = Q[0, AbstractPermutationMatrix.GetType.ROW]
+        m[row, col] = row != P.NOPOINT && col != Q.NOPOINT
+        return m
+    }
 
-//    if (P.width() == 1) return Q base case
+
     val widthP1 = P.width() / 2
     val widthP2 = P.width() - widthP1
     val (P1IsZero, P1) = getP1(widthP1)
     val (P2IsZero, P2) = getP2(widthP1)
     val (Q1IsZero, Q1) = getQ1(widthP1)
     val (Q2IsZero, Q2) = getQ2(widthP1)
+    var R1: AbstractPermutationMatrix?
+    var R2: AbstractPermutationMatrix?
+
     //CASE WHEN P1 OR Q1 IS ZERO
+    when {
+        (P1IsZero || Q1IsZero) && (P2IsZero || Q2IsZero) -> return P.createZeroMatrix(P.height(), Q.width())
+        (P1IsZero || Q1IsZero) -> {
+            //then R1 is zero
+            //TODO can we return R2???
+            R1 = P.createZeroMatrix(P.height(), Q.width())
+            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+        }
+        (P2IsZero || Q2IsZero) -> {
+            R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
+            R2 = P.createZeroMatrix(P.height(), Q.width())
+        }
+        // all non zero products
+        else -> {
+            R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
+            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+        }
+    }
 
-
-    // R1 same dimension as R2
-    val R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
-    val R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+    // R1 and R2 of size mXn
+    // indexation on dominance on bigger in each dimension
+    // also for grid over domamnce on one bigger so +2 overall
 
 
 // size of grid bigger in each dimension on one
     //start from <n^+,0^-> to  <0^-,n^+>
     val endPos = Position2D(-1, R1.width() + 1) // или +2?
     val currentPos = Position2D(R1.height() + 1, -1)//?? or 0
-    var delta = 0
     var RHi = 0 // now at point <n^+,0^->
     var RLo = 0 // now at point <n^+,0^->
-    var RHiNext = 0
-    var RLoNext = 0
+    val countingQuery = CountingQuery()
+    val goodPoints = mutableListOf<Position2D<Int>>()
 
     var step = Step.UP
     while (currentPos != endPos) {
@@ -478,52 +536,65 @@ fun steadyAnt(
             continue
         }
         // go
-        val posExtendedMatrix = Position2D(currentPos.i - 1, currentPos.j + 1)
-
-        //obtain Rhi a rLo for current point
+        val posDominanceMatrix = Position2D(currentPos.i - 1, currentPos.j + 1)
         if (step == Step.RIGHT) {
-
-//            RHiNext = RHi - if () 0 else 1
-
+            RHi = countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+            RLo = countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
         } else {
-            //step up
+            RHi = countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+            RLo = countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
         }
 
-        // check conditions for step
+        when {
+            RHi - RLo < 0 -> {
+                // go right
+                step = Step.RIGHT
+                currentPos.j++
+            }
+            RHi - RLo == 0 -> {
+                step = Step.UP
+                currentPos.i--;
+            }
+            else -> {
+                throw Exception("Impossible case")
+            }
+        }
 
+        //check if points is a good one
+        // in cur point Rhi and Rlo
+        val deltaAboveLeft =
+            countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+        -countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+        val deltaBelowRight =
+            countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+        -countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+
+        // -1 ????
+        if (deltaAboveLeft < 0 && deltaBelowRight > 0)
+            goodPoints.add(Position2D(posDominanceMatrix.i - 1, posDominanceMatrix.j - 1))
 
         //check is good point
         // delta[\bar{i}^{-},\bar{j}^{-}] < 0 and delta[\bar{i}^{+},\bar{j}^{+}] > 0
-//        val deltaMinusMinus =
-
-
-//            delta =
-//                RHiNext = RHi
-//        delta =
 
 
     }
 
-    // filter R1 and R2
-//    goodPoints.forEach { p ->
-//        R1.resetInCol(p.j)
-//        R1.resetInRow(p.i)
-//        R2.resetInCol(p.j)
-//        R2.resetInRow(p.i)
-//    }
-//
-//
-//    //add R2 points to R1
-//    R2.X.forEachIndexed { x, y ->
-//        R1[x, y] = true
-//    }
-//    //add good points to R1
-//    goodPoints.forEach {
-//        R1[it.i, it.j] = true
-//    }
-//
-//    return R1
-    TODO()
+    //filter in R1 and R2
+    goodPoints.forEach { p ->
+        R1.resetInColumn(p.j)
+        R1.resetInRow(p.i)
+        R2.resetInColumn(p.j)
+        R2.resetInRow(p.i)
+    }
+
+    // make better
+    for (nonzeroPointsPosR1 in R2) {
+        R1[nonzeroPointsPosR1.i, nonzeroPointsPosR1.j] = true
+    }
+    goodPoints.forEach {
+        R1[it.i, it.j] = true
+    }
+    return R1
 }
 
 
