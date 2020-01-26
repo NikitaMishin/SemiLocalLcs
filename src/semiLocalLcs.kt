@@ -245,7 +245,6 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
             rows[p.i] = p.j
             cols[p.j] = p.i
         }
-
     }
 
     override fun height() = rows.size
@@ -257,10 +256,13 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
             rows[row] = col
             cols[col] = row
         }
-        false -> {
-            rows[row] = NOPOINT
-            cols[col] = NOPOINT
-        }
+        false ->
+            if (this[row, col]) {
+                rows[row] = NOPOINT
+                cols[col] = NOPOINT
+            } else {
+            }
+
     }
 
 
@@ -286,22 +288,24 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
     override fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix =
         PermutationMatrixTwoLists(mutableListOf(), height, width)
 
+
     /**
      * iterator over non zero elements in permutation matrix
      */
     override fun iterator(): Iterator<Position2D<Int>> {
+        val height = height()
+        val width = width()
+        val cols = cols
+        val rows = rows
 
 
         return object : Iterator<Position2D<Int>> {
 
             private val nonZeroPositions =
-                if (this@PermutationMatrixTwoLists.height() > this@PermutationMatrixTwoLists.width())
-                    this@PermutationMatrixTwoLists.cols
-                        .mapIndexed { col, row -> Position2D(row, col) }
-                        .filter { it.i != NOPOINT }
-                else this@PermutationMatrixTwoLists.rows
-                    .mapIndexed { row, col -> Position2D(row, col) }
-                    .filter { it.j != NOPOINT }
+                if (height > width) cols.mapIndexed { col, row -> Position2D(row, col) }
+                    .filter { it.i != NOPOINT }.toList()
+                else rows.mapIndexed { row, col -> Position2D(row, col) }
+                    .filter { it.j != NOPOINT }.toList()
 
             private var cur = 0
 

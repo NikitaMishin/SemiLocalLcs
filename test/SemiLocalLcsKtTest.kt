@@ -22,6 +22,7 @@ internal class SemiLocalLcsKtTest {
         }
         return PermutationMatrixTwoLists(positions2D, height, width)
     }
+
     val topRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
         { pos, row, col -> pos.i >= row && pos.j < col }
 
@@ -44,52 +45,31 @@ internal class SemiLocalLcsKtTest {
         val aDominance = dominanceMatrix(a, topRightSummator)
         val bDominance = dominanceMatrix(b, topRightSummator)
         val cDominance: Array<Array<Int>> = Array(a.height() + 1) { Array(b.width() + 1) { 0 } }
-        a.print()
-        println()
-        b.print()
-        println()
 
-//        for(i in 0 until aDominance.size){
-//            for (j in  0 until aDominance[0].size){
-//                print("${aDominance[i][j]} ")
-//            }
-//            println();
-//        }
-//        println()
-//        for(i in 0 until bDominance.size){
-//            for (j in  0 until bDominance[0].size){
-//                print("${bDominance[i][j]} ")
-//            }
-//            println();
-//        }
-//        println()
+
         for (i in 0 until a.height() + 1) {
             for (k in 0 until b.width() + 1) {
                 var tmp = Int.MAX_VALUE
-                for (j in 0 until a.width()+1) {
-                    tmp = min(aDominance[i][j]+bDominance[j][k],tmp)
+                for (j in 0 until a.width() + 1) {
+                    tmp = min(aDominance[i][j] + bDominance[j][k], tmp)
 
                 }
                 cDominance[i][k] = tmp
             }
         }
 
-        val c =a.createZeroMatrix(a.height(),b.width())
+        val c = a.createZeroMatrix(a.height(), b.width())
 
-
-        for (i in 0 until  a.height()){
-            for(j in 0 until  b.width()){
-                val v = cDominance[i][j+1] + cDominance[i+1][j]  - cDominance[i][j] - cDominance[i+1][j+1]
-                c[i,j] = v == 1
-                println(c[i,j])
+        for (i in 0 until a.height()) {
+            for (j in 0 until b.width()) {
+                c[i, j] = (cDominance[i][j + 1] + cDominance[i + 1][j] - cDominance[i][j] - cDominance[i + 1][j + 1]) == 1
             }
         }
-        //TODO fix problem with stragne behaviour of for
+
 
 
 //        println("matrix")
         c.print()
-
 
 
     }
@@ -97,6 +77,6 @@ internal class SemiLocalLcsKtTest {
     @Test
     fun steadyAnt() {
 
-        naiveMultiplicationBraids(generatePermutationMatrix(2,5,2,0),generatePermutationMatrix(5,4,4,1))
+        naiveMultiplicationBraids(generatePermutationMatrix(2, 5, 2, 0), generatePermutationMatrix(5, 4, 4, 1))
     }
 }
