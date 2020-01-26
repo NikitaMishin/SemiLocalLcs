@@ -1,4 +1,5 @@
 import java.lang.Exception
+import kotlin.random.Random
 
 ///**
 // *  Semi Local problems
@@ -175,6 +176,32 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
     abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
 
     abstract fun print()
+
+    companion object {
+
+        fun generatePermutationMatrix(
+            height: Int,
+            width: Int,
+            nonZerosCount: Int,
+            seed: Int
+        ): AbstractPermutationMatrix {
+            if (nonZerosCount > kotlin.math.min(height, width)) throw Exception("")
+            val randomizer = Random(seed)
+            var positions2D = mutableListOf<Position2D<Int>>()
+            var remainingCount = nonZerosCount
+            while (remainingCount > 0) {
+                val randI = Math.abs(randomizer.nextInt()) % height
+                val randJ = Math.abs(randomizer.nextInt()) % width
+                if (positions2D.none { it.i == randI || it.j == randJ }) {
+                    positions2D.add(Position2D(randI, randJ))
+                    remainingCount--;
+                }
+            }
+            return PermutationMatrixTwoLists(positions2D, height, width)
+        }
+    }
+
+
 }
 
 /**
@@ -188,30 +215,46 @@ class CountingQuery {
      * see class definition
      */
     inline fun dominanceSumTopLeftUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val iCap = i - 1
+        var iCap = i
+        if (iCap == 0) {
+            return sum
+        }
+
+        iCap -= 1
+
         val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
         if (jCap == permMatrix.NOPOINT) return sum
-        return sum + if (jCap < j) -1 else 0
+        return sum + if (jCap >= j) 1 else 0
     }
 
     /**
      * see class definition
      */
     inline fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val jCap = j //+ 1
+
+        val jCap = j
+        if (jCap >= permMatrix.width()) return 0
+
         val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
-        return sum + if (iCap < i) 1 else 0
+        return sum + if (iCap < i) 0 else -1
     }
 
     /**
      * see class definition
      */
     inline fun dominanceSumBottomRightUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val iCap = i - 1
+        var iCap = i
+
+        if (iCap == 0) {
+            return sum
+        }
+        iCap -= 1
+
         val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
         if (jCap == permMatrix.NOPOINT) return sum
-        return sum + if (jCap < j) 0 else 1
+
+        return sum + if (jCap >= j) 0 else -1
     }
 
     /**
@@ -219,9 +262,39 @@ class CountingQuery {
      */
     inline fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
         val jCap = j
+        if (jCap >= permMatrix.width()) return 0
+
         val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
-        return sum + if (iCap < i) 0 else -1
+        return sum + if (iCap < i) 1 else 0
+    }
+
+    companion object {
+        val topRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
+            { pos, row, col -> pos.i >= row && pos.j < col }
+
+        val topLeftSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
+            { pos, row, col -> pos.i >= row && pos.j >= col } // below-right
+
+        val bottomRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
+            { pos, row, col -> pos.i < row && pos.j < col } //above-left
+
+
+        fun dominanceMatrix(matrix: AbstractPermutationMatrix, func: (Position2D<Int>, Int, Int) -> Boolean)
+                : Array<Array<Int>> {
+            //half sizes for permutation matrix
+            // and for croos is integer
+            val dominanceMatrix = Array(matrix.height() + 1) { Array(matrix.width() + 1) { 0 } }
+            for (row in dominanceMatrix.indices) {
+                for (col in dominanceMatrix[0].indices) {
+                    for (pos in matrix) {
+                        if (func(pos, row, col)) dominanceMatrix[row][col]++
+                    }
+                }
+            }
+            return dominanceMatrix
+        }
+
     }
 
 
@@ -369,7 +442,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         }
 
         //zero matrix get
-        if (newRowPoints.size == 0) return Pair(false, null)
+        if (newRowPoints.size == 0) return Pair(true, null)
 
         val nextColPoints = mutableListOf<Int>()
         for (col in 0 until colExclusive) {
@@ -385,7 +458,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             nextColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
         }
 
-        return Pair(true, Pair(matrix, newToOldRows))
+        return Pair(false, Pair(matrix, newToOldRows))
     }
 
     /**
@@ -406,7 +479,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         }
 
         //zero matrix get
-        if (newRowPoints.size == 0) return Pair(false, null)
+        if (newRowPoints.size == 0) return Pair(true, null)
 
         val nextColPoints = mutableListOf<Int>()
 
@@ -423,7 +496,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             nextColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
         }
 
-        return Pair(true, Pair(matrix, newToOldRows))
+        return Pair(false, Pair(matrix, newToOldRows))
     }
 
     /**
@@ -443,7 +516,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
                 newColPoints.add(row)
             }
         }
-        if (newColPoints.size == 0) return Pair(false, null)
+        if (newColPoints.size == 0) return Pair(true, null)
 
         val nexRowPoints = mutableListOf<Int>()
         for (row in 0 until rowExclusive) {
@@ -459,7 +532,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             newColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
         }
 
-        return Pair(true, Pair(matrix, newToOldCol))
+        return Pair(false, Pair(matrix, newToOldCol))
 
     }
 
@@ -481,7 +554,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             }
         }
 
-        if (newColPoints.size == 0) return Pair(false, null)
+        if (newColPoints.size == 0) return Pair(true, null)
 
         val nexRowPoints = mutableListOf<Int>()
 
@@ -498,7 +571,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             newColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
         }
 
-        return Pair(true, Pair(matrix, newToOldCol))
+        return Pair(false, Pair(matrix, newToOldCol))
     }
 
     /**
@@ -529,7 +602,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
 
     val widthP1 = P.width() / 2
-    val widthP2 = P.width() - widthP1
+    //val widthP2 = P.width() - widthP1
     val (P1IsZero, P1) = getP1(widthP1)
     val (P2IsZero, P2) = getP2(widthP1)
     val (Q1IsZero, Q1) = getQ1(widthP1)
@@ -564,10 +637,13 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
 // size of grid bigger in each dimension on one
     //start from <n^+,0^-> to  <0^-,n^+>
-    val endPos = Position2D(-1, R1.width() + 1) // или +2?
-    val currentPos = Position2D(R1.height() + 1, -1)//?? or 0
+    val endPos = Position2D(-1, R1.width() + 1)
+
+    val currentPos = Position2D(R1.height() + 1, -1)
     var RHi = 0 // now at point <n^+,0^->
     var RLo = 0 // now at point <n^+,0^->
+
+    // queries goes to extende matrix i.e (m+1)x(n+1)
     val countingQuery = CountingQuery()
     val goodPoints = mutableListOf<Position2D<Int>>()
 
@@ -600,7 +676,27 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
                 currentPos.i--;
             }
             else -> {
-                throw Exception("Impossible case")
+                R2.print()
+                println()
+                val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
+                val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
+
+
+                println()
+
+                for (i in 0 until hi.size) {
+                    for (j in hi[0].indices) {
+                        //      hi[i][j] -= lo[i][j]
+                        print(" ${hi[i][j]}")
+                    }
+                    println()
+                }
+                println()
+                R2.print()
+                println()
+                naiveMultiplicationBraids(P, Q).print()
+
+                throw Exception("Impossible case:${R1.width()} ${R1.height()}")
             }
         }
 
@@ -641,6 +737,33 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     return R1
 }
 
+fun naiveMultiplicationBraids(a: AbstractPermutationMatrix, b: AbstractPermutationMatrix)
+        : AbstractPermutationMatrix {
+    val aDominance = CountingQuery.dominanceMatrix(a, CountingQuery.topRightSummator)
+    val bDominance = CountingQuery.dominanceMatrix(b, CountingQuery.topRightSummator)
+    val cDominance: Array<Array<Int>> = Array(a.height() + 1) { Array(b.width() + 1) { 0 } }
+    for (i in 0 until a.height() + 1) {
+        for (k in 0 until b.width() + 1) {
+            var tmp = Int.MAX_VALUE
+            for (j in 0 until a.width() + 1) {
+                tmp = Integer.min(aDominance[i][j] + bDominance[j][k], tmp)
+
+            }
+            cDominance[i][k] = tmp
+        }
+    }
+
+    val c = a.createZeroMatrix(a.height(), b.width())
+
+    for (i in 0 until a.height()) {
+        for (j in 0 until b.width()) {
+            c[i, j] =
+                (cDominance[i][j + 1] + cDominance[i + 1][j] - cDominance[i][j] - cDominance[i + 1][j + 1]) == 1
+        }
+    }
+
+    return c
+}
 
 //fun semiLocalLcs(a: String, b: String, n: Int, m: Int): List<Position2D<Int>> = when {
 //    n == 1 && m == 1 -> {

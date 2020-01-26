@@ -1,11 +1,12 @@
+import AbstractPermutationMatrix.Companion.generatePermutationMatrix
+import CountingQuery.Companion.bottomRightSummator
+import CountingQuery.Companion.dominanceMatrix
+import CountingQuery.Companion.topLeftSummator
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
-import java.lang.Exception
 import java.lang.Math.abs
 import java.lang.Math.min
-import java.sql.Time
-import kotlin.concurrent.timer
+import java.util.zip.CheckedOutputStream
 import kotlin.random.Random
 
 internal class CountingQueryTest {
@@ -15,45 +16,9 @@ internal class CountingQueryTest {
     )
     val countingQuery = CountingQuery()
 
-    val topLeftSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
-        { pos, row, col -> pos.i < row && pos.j < col }
-    val bottomRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
-        { pos, row, col -> pos.i >= row && pos.j >= col }
-
-    val topRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
-        { pos, row, col -> pos.i >= row && pos.j < col }
 
 
-    fun generatePermutationMatrix(height: Int, width: Int, nonZerosCount: Int, seed: Int): AbstractPermutationMatrix {
-        if (nonZerosCount > kotlin.math.min(height, width)) throw Exception("")
-        val randomizer = Random(seed)
-        var positions2D = mutableListOf<Position2D<Int>>()
-        var remainingCount = nonZerosCount
-        while (remainingCount > 0) {
-            val randI = abs(randomizer.nextInt()) % height
-            val randJ = abs(randomizer.nextInt()) % width
-            if (positions2D.none { it.i == randI || it.j == randJ }) {
-                positions2D.add(Position2D(randI, randJ))
-                remainingCount--;
-            }
-        }
-        return PermutationMatrixTwoLists(positions2D, height, width)
-    }
 
-    private fun dominanceMatrix(matrix: AbstractPermutationMatrix, func: (Position2D<Int>, Int, Int) -> Boolean)
-            : Array<Array<Int>> {
-        //half sizes for permutation matrix
-        // and for croos is integer
-        val dominanceMatrix = Array(matrix.height() + 1) { Array(matrix.width() + 1) { 0 } }
-        for (row in dominanceMatrix.indices) {
-            for (col in dominanceMatrix[0].indices) {
-                for (pos in matrix) {
-                    if (func(pos, row, col)) dominanceMatrix[row][col]++
-                }
-            }
-        }
-        return dominanceMatrix
-    }
 
 
     fun dominanceSumTest(
@@ -95,6 +60,18 @@ internal class CountingQueryTest {
                 countingQuery.dominanceSumTopLeftUpMove(i1, j, dominanceMatrix[i1][j], genMatrix)
             )
         })
+
+    }
+
+    fun printMat(matrix:Array<Array<Int>>){
+        for(i in matrix.indices){
+            for (j in matrix[0].indices)
+            {
+                print("${matrix[i][j]}  ")
+
+            }
+            println()
+        }
     }
 
 
@@ -103,7 +80,7 @@ internal class CountingQueryTest {
         dominanceSumTest(topLeftSummator, { i, j, dominanceMatrix, genMatrix ->
             var j1 = j
             if (j == dominanceMatrix[0].size - 1) j1--
-//            println(j1)
+
             assertEquals(
                 dominanceMatrix[i][j1 + 1],
                 countingQuery.dominanceSumTopLeftRightMove(i, j1, dominanceMatrix[i][j1], genMatrix)
@@ -115,6 +92,20 @@ internal class CountingQueryTest {
     @Test
     fun dominanceSumBottomRightUpMove() {
         dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
+//            val f = PermutationMatrixTwoLists(listOf(Position2D(0,1)),2,2)
+//            f.print()
+//            val matrix = CountingQuery.dominanceMatrix(f,CountingQuery.bottomRightSummator)
+
+//            for(i in matrix.indices){
+//                for (j in matrix[0].indices)
+//                {
+//                    print("${matrix[i][j]}  ")
+//
+//                }
+//                println()
+//            }
+
+
             var i1 = i
             if (i1 == 0) i1++
             assertEquals(
@@ -122,8 +113,9 @@ internal class CountingQueryTest {
                 countingQuery.dominanceSumBottomRightUpMove(i1, j, dominanceMatrix[i1][j], genMatrix)
             )
         })
-    }
 
+    }
+//
     @Test
     fun dominanceSumBottomRightRightMove() {
         dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
