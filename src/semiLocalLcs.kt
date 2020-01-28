@@ -689,7 +689,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
 // size of grid bigger in each dimension on one
     //start from <n^+,0^-> to  <0^-,n^+>
-    val endPos = Position2D(-1, R1.width() + 1)
+    val endPos = Position2D(0, R1.width() + 1)
 
     val currentPos = Position2D(R1.height(), -1)
     var RHi = 0 // now at point <n^+,0^->
@@ -721,6 +721,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
     var step = Step.UP
     while (currentPos != endPos) {
+        println(currentPos)
         if (currentPos.i == 0) {
             // could terminate
             step = Step.RIGHT
@@ -735,9 +736,11 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             RHi =
                 countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RHi, R2)
             RLo = countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RLo, R1)
+            posDominanceMatrix.j--;
         } else {
             RHi = countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RHi, R2)
             RLo = countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RLo, R1)
+            posDominanceMatrix.i++
         }
 
         when {
@@ -781,11 +784,11 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         // in cur point Rhi and Rlo
         /// check errorrs
         val deltaAboveLeft =
-            countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-        -countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+            countingQuery.dominanceSumBottomRightLeftMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+        -countingQuery.dominanceSumTopLeftLeftMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
         val deltaBelowRight =
-            countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-        -countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+            countingQuery.dominanceSumBottomRightDownMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
+        -countingQuery.dominanceSumTopLeftDownMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
 
         // -1 ????
         if (deltaAboveLeft < 0 && deltaBelowRight > 0)
@@ -812,6 +815,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     goodPoints.forEach {
         R1[it.i, it.j] = true
     }
+    R1.print()
     return R1
 }
 
