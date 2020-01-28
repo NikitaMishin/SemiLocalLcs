@@ -210,6 +210,32 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
  * The prefix (SUM......) determines type of dominance sum whereas prefix (...Move)  determines adjacent posititon
  */
 class CountingQuery {
+    /**
+     * see class definition
+     */
+    inline fun dominanceSumTopLeftLeftMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        var jCap = j
+        if (jCap == 0) return sum
+        jCap--
+
+        var iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        if (iCap == permMatrix.NOPOINT) return sum
+        return sum + if (iCap >= i) 1 else 0
+    }
+
+    /**
+     * see class definition
+     */
+    inline fun dominanceSumTopLeftDownMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        var iCap = i
+        if (iCap >= permMatrix.height()) {
+            return 0
+        }
+        val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
+        if (jCap == permMatrix.NOPOINT) return sum
+        return sum + if (jCap >= j) -1 else 0
+    }
+
 
     /**
      * see class definition
@@ -238,6 +264,32 @@ class CountingQuery {
         val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
         return sum + if (iCap < i) 0 else -1
+    }
+
+    /**
+     * see class definition
+     */
+    inline fun dominanceSumBottomRightLeftMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        var jCap = j
+        if (jCap == 0) return sum
+        jCap--
+
+        var iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        if (iCap == permMatrix.NOPOINT) return sum
+        return sum + if (iCap < i) -1 else 0
+    }
+
+    /**
+     * see class definition
+     */
+    inline fun dominanceSumBottomRightDownMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+        var iCap = i
+        if (iCap >= permMatrix.height()) {
+            return 0
+        }
+        val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
+        if (jCap == permMatrix.NOPOINT) return sum
+        return sum + if (jCap < j) 1 else 0
     }
 
     /**
@@ -639,13 +691,33 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     //start from <n^+,0^-> to  <0^-,n^+>
     val endPos = Position2D(-1, R1.width() + 1)
 
-    val currentPos = Position2D(R1.height() + 1, -1)
+    val currentPos = Position2D(R1.height(), -1)
     var RHi = 0 // now at point <n^+,0^->
     var RLo = 0 // now at point <n^+,0^->
 
     // queries goes to extende matrix i.e (m+1)x(n+1)
     val countingQuery = CountingQuery()
     val goodPoints = mutableListOf<Position2D<Int>>()
+    println("hi")
+    R2.print()
+    println()
+    println("lo")
+    R1.print()
+    println()
+
+    val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
+    val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
+
+
+    println()
+
+    for (i in 0 until hi.size) {
+        for (j in hi[0].indices) {
+            hi[i][j] -= lo[i][j]
+            print(" ${hi[i][j]}")
+        }
+        println()
+    }
 
     var step = Step.UP
     while (currentPos != endPos) {
@@ -657,12 +729,15 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         }
         // go
         val posDominanceMatrix = Position2D(currentPos.i - 1, currentPos.j + 1)
+
         if (step == Step.RIGHT) {
-            RHi = countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-            RLo = countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+
+            RHi =
+                countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RHi, R2)
+            RLo = countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RLo, R1)
         } else {
-            RHi = countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-            RLo = countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+            RHi = countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RHi, R2)
+            RLo = countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RLo, R1)
         }
 
         when {
@@ -686,7 +761,7 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
                 for (i in 0 until hi.size) {
                     for (j in hi[0].indices) {
-                        //      hi[i][j] -= lo[i][j]
+                        hi[i][j] -= lo[i][j]
                         print(" ${hi[i][j]}")
                     }
                     println()
@@ -700,8 +775,11 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             }
         }
 
+
+//TODO add edge cases when out of matrix
         //check if points is a good one
         // in cur point Rhi and Rlo
+        /// check errorrs
         val deltaAboveLeft =
             countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
         -countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)

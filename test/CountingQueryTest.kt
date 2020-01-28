@@ -17,19 +17,15 @@ internal class CountingQueryTest {
     val countingQuery = CountingQuery()
 
 
-
-
-
-
     fun dominanceSumTest(
         summatorType: (Position2D<Int>, Int, Int) -> Boolean,
         evaluator: (Int, Int, Array<Array<Int>>, AbstractPermutationMatrix) -> Unit
     ) {
 
         val randomizer = Random(0)
-        val queriesCount = 1000
-        val heights = 15
-        val widths = 15
+        val queriesCount = 5000
+        val heights = 25
+        val widths = 25
 
 
         for (height in 1 until heights) {
@@ -63,10 +59,9 @@ internal class CountingQueryTest {
 
     }
 
-    fun printMat(matrix:Array<Array<Int>>){
-        for(i in matrix.indices){
-            for (j in matrix[0].indices)
-            {
+    fun printMat(matrix: Array<Array<Int>>) {
+        for (i in matrix.indices) {
+            for (j in matrix[0].indices) {
                 print("${matrix[i][j]}  ")
 
             }
@@ -92,7 +87,7 @@ internal class CountingQueryTest {
     @Test
     fun dominanceSumBottomRightUpMove() {
         dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
-//            val f = PermutationMatrixTwoLists(listOf(Position2D(0,1)),2,2)
+            //            val f = PermutationMatrixTwoLists(listOf(Position2D(0,1)),2,2)
 //            f.print()
 //            val matrix = CountingQuery.dominanceMatrix(f,CountingQuery.bottomRightSummator)
 
@@ -115,7 +110,8 @@ internal class CountingQueryTest {
         })
 
     }
-//
+
+    //
     @Test
     fun dominanceSumBottomRightRightMove() {
         dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
@@ -127,4 +123,77 @@ internal class CountingQueryTest {
             )
         })
     }
+
+    @Test
+    fun dominanceSumTopLeftLeftMove() {
+        dominanceSumTest(topLeftSummator, { i, j, dominanceMatrix, genMatrix ->
+            var j1 = j
+            if (j == 0) j1++
+
+            assertEquals(
+                dominanceMatrix[i][j1 - 1],
+                countingQuery.dominanceSumTopLeftLeftMove(i, j1, dominanceMatrix[i][j1], genMatrix)
+            )
+        })
+    }
+
+    @Test
+    fun dominanceSumTopLeftDownMove() {
+        dominanceSumTest(topLeftSummator, { i, j, dominanceMatrix, genMatrix ->
+            var i1 = i
+            if (i == dominanceMatrix.size - 1) i1--
+
+            assertEquals(
+                dominanceMatrix[i1 + 1][j],
+                countingQuery.dominanceSumTopLeftDownMove(i1, j, dominanceMatrix[i1][j], genMatrix)
+            )
+        })
+    }
+
+
+    @Test
+    fun dominanceSumBottomRightLeftMove() {
+        dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
+            var j1 = j
+            if (j == 0) j1++
+
+
+
+            assertEquals(
+                dominanceMatrix[i][j1 - 1],
+                countingQuery.dominanceSumBottomRightLeftMove(i, j1, dominanceMatrix[i][j1], genMatrix)
+            )
+        })
+    }
+
+    @Test
+    fun dominanceSumBottomRightDownMove() {
+        dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
+            var i1 = i
+            if (i == dominanceMatrix.size - 1) i1--
+//            genMatrix.print()
+//            println()
+//
+//            val matrix = CountingQuery.dominanceMatrix(genMatrix,CountingQuery.bottomRightSummator)
+//
+//            for(i in matrix.indices){
+//                for (j in matrix[0].indices)
+//                {
+//                    print("${matrix[i][j]}  ")
+//
+//                }
+//                println()
+//            }
+//            println("query=${i1},${j},sum=${dominanceMatrix[i1][j]}")
+
+            assertEquals(
+                dominanceMatrix[i1 + 1][j],
+                countingQuery.dominanceSumBottomRightDownMove(i1, j, dominanceMatrix[i1][j], genMatrix)
+            )
+        })
+    }
+
+
+//    dominanceSumBottomRightLeftMove
+
 }
