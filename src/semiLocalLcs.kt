@@ -201,8 +201,18 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
         }
     }
 
-
 }
+
+fun AbstractPermutationMatrix.IsEquals(b: AbstractPermutationMatrix): Boolean {
+    if (b.height() != this.height() || this.width() != b.width()) return false
+    for (i in 0 until this.height()) {
+        for (j in 0 until this.width()) {
+            if (this[i, j] != b[i, j]) return false
+        }
+    }
+    return true
+}
+
 
 /**
  * Class for dominance sum counting queries with O(1) for permutation and subpermutation matrices.
@@ -643,6 +653,14 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
         return matrix
     }
 
+
+//    if( P.height()==1 || Q.width()==1){
+//
+//
+//    }
+
+
+    //1xK * KxM =  1XM
     //base case
     if (P.width() == 1) {
         val m = P.createZeroMatrix(P.height(), Q.width())
@@ -654,7 +672,6 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
 
 
     val widthP1 = P.width() / 2
-    //val widthP2 = P.width() - widthP1
     val (P1IsZero, P1) = getP1(widthP1)
     val (P2IsZero, P2) = getP2(widthP1)
     val (Q1IsZero, Q1) = getQ1(widthP1)
@@ -669,78 +686,92 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
             //then R1 is zero
             //TODO can we return R2???
             R1 = P.createZeroMatrix(P.height(), Q.width())
-            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), Q.width(), steadyAnt(P2.first, Q2.first))
+            //debug info
+            val r = naiveMultiplicationBraids(P, Q)
+            if (!r.IsEquals(R2)) {
+                println("EXPECTED")
+                r.print()
+                println()
+                println("ACRTUAL")
+                R2.print()
+            }
+            return R2
+
         }
         (P2IsZero || Q2IsZero) -> {
             R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
             R2 = P.createZeroMatrix(P.height(), Q.width())
+            //debug info
+            val r = naiveMultiplicationBraids(P, Q)
+            if (!r.IsEquals(R1)) {
+                println("EXPECTED")
+                r.print()
+                println()
+                println("ACRTUAL")
+                R1.print()
+            }
+            return R1
         }
         // all non zero products
         else -> {
             R1 = inverseMapping(P1!!.second, Q1!!.second, P.height(), Q.width(), steadyAnt(P1.first, Q1.first))
-            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), P.width(), steadyAnt(P2.first, Q2.first))
+            R2 = inverseMapping(P2!!.second, Q2!!.second, P.height(), Q.width(), steadyAnt(P2.first, Q2.first))
         }
     }
 
-    // R1 and R2 of size mXn
-    // indexation on dominance on bigger in each dimension
-    // also for grid over dominance on one bigger so +2 overall
 
+    val endPos = Position2D(-1, R1.width() + 1)
 
-// size of grid bigger in each dimension on one
-    //start from <n^+,0^-> to  <0^-,n^+>
-    val endPos = Position2D(0, R1.width() + 1)
+    //-1 to n+1 and we alredy went from down
+    val currentPos = Position2D(R1.height() + 1 - 1, -1)
 
-    val currentPos = Position2D(R1.height(), -1)
     var RHi = 0 // now at point <n^+,0^->
     var RLo = 0 // now at point <n^+,0^->
 
     // queries goes to extende matrix i.e (m+1)x(n+1)
     val countingQuery = CountingQuery()
     val goodPoints = mutableListOf<Position2D<Int>>()
-    println("hi")
-    R2.print()
-    println()
-    println("lo")
-    R1.print()
-    println()
 
+    //debug info
     val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
     val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
-
-
-    println()
-
+    println("delta")
     for (i in 0 until hi.size) {
         for (j in hi[0].indices) {
             hi[i][j] -= lo[i][j]
-            print(" ${hi[i][j]}")
+            if (hi[i][j] < 0) {
+                print(" ${hi[i][j]}")
+            } else {
+                print("  ${hi[i][j]}")
+
+            }
+
         }
         println()
     }
 
     var step = Step.UP
     while (currentPos != endPos) {
-        println(currentPos)
+
         if (currentPos.i == 0) {
-            // could terminate
-            step = Step.RIGHT
+//            step = Step.RIGHT
             currentPos.j += 1
-            continue
+            break
         }
+
         // go
         val posDominanceMatrix = Position2D(currentPos.i - 1, currentPos.j + 1)
 
+        //prev step
         if (step == Step.RIGHT) {
 
             RHi =
                 countingQuery.dominanceSumBottomRightRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RHi, R2)
             RLo = countingQuery.dominanceSumTopLeftRightMove(posDominanceMatrix.i, posDominanceMatrix.j - 1, RLo, R1)
-            posDominanceMatrix.j--;
         } else {
             RHi = countingQuery.dominanceSumBottomRightUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RHi, R2)
             RLo = countingQuery.dominanceSumTopLeftUpMove(posDominanceMatrix.i + 1, posDominanceMatrix.j, RLo, R1)
-            posDominanceMatrix.i++
         }
 
         when {
@@ -754,51 +785,36 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
                 currentPos.i--;
             }
             else -> {
-                R2.print()
-                println()
-                val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
-                val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
-
-
-                println()
-
-                for (i in 0 until hi.size) {
-                    for (j in hi[0].indices) {
-                        hi[i][j] -= lo[i][j]
-                        print(" ${hi[i][j]}")
-                    }
-                    println()
-                }
-                println()
-                R2.print()
-                println()
-                naiveMultiplicationBraids(P, Q).print()
-
                 throw Exception("Impossible case:${R1.width()} ${R1.height()}")
             }
         }
 
 
-//TODO add edge cases when out of matrix
-        //check if points is a good one
-        // in cur point Rhi and Rlo
-        /// check errorrs
-        val deltaAboveLeft =
-            countingQuery.dominanceSumBottomRightLeftMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-        -countingQuery.dominanceSumTopLeftLeftMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
-        val deltaBelowRight =
-            countingQuery.dominanceSumBottomRightDownMove(posDominanceMatrix.i, posDominanceMatrix.j, RHi, R2)
-        -countingQuery.dominanceSumTopLeftDownMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+        if (posDominanceMatrix.j > 0) {
+            //check todo
+            val deltaAboveLeft =
+                countingQuery.dominanceSumBottomRightLeftMove(
+                    posDominanceMatrix.i,
+                    posDominanceMatrix.j,
+                    RHi,
+                    R2
+                ) - countingQuery.dominanceSumTopLeftLeftMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
+            val deltaBelowRight =
+                countingQuery.dominanceSumBottomRightDownMove(
+                    posDominanceMatrix.i,
+                    posDominanceMatrix.j,
+                    RHi,
+                    R2
+                ) - countingQuery.dominanceSumTopLeftDownMove(posDominanceMatrix.i, posDominanceMatrix.j, RLo, R1)
 
-        // -1 ????
-        if (deltaAboveLeft < 0 && deltaBelowRight > 0)
-            goodPoints.add(Position2D(posDominanceMatrix.i - 1, posDominanceMatrix.j - 1))
 
-        //check is good point
-        // delta[\bar{i}^{-},\bar{j}^{-}] < 0 and delta[\bar{i}^{+},\bar{j}^{+}] > 0
-
+            if (deltaAboveLeft < 0 && deltaBelowRight > 0) {
+                goodPoints.add(Position2D(posDominanceMatrix.i, posDominanceMatrix.j - 1))
+            }
+        }
 
     }
+
 
     //filter in R1 and R2
     goodPoints.forEach { p ->
@@ -815,7 +831,18 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     goodPoints.forEach {
         R1[it.i, it.j] = true
     }
-    R1.print()
+
+    //debug info
+    val r = naiveMultiplicationBraids(P, Q)
+    if (!r.IsEquals(R1)) {
+        println("EXPECTED")
+        r.print()
+        println()
+        println("ACRTUAL")
+        R1.print()
+    }
+
+
     return R1
 }
 

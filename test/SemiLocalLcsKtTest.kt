@@ -76,34 +76,56 @@ internal class SemiLocalLcsKtTest {
     )
 
 
-    fun AbstractPermutationMatrix.IsEquals(b: AbstractPermutationMatrix): Boolean {
-        if (b.height() != this.height() || this.width() != b.width()) return false
-        for (i in 0 until this.height()) {
-            for (j in 0 until this.width()) {
-                if (this[i, j] != b[i, j]) return false
-            }
-        }
-        return true
+        //uncomment to see
+    @Test
+    fun steadyAntRandomTest(){
+            //also bad for non square
+        val a = AbstractPermutationMatrix.generatePermutationMatrix(3,3,2,1)
+        val b= AbstractPermutationMatrix.generatePermutationMatrix(3,3,2,2)
+        val naiveRes = naiveMultiplicationBraids(a,b)
+        val res = steadyAnt(a,b)
+        assertTrue(res.IsEquals(naiveRes))
     }
-
-
-
 
     @Test
-    fun steadyAntBookExample() {
+    fun steadyAntRandomSquareProductPermutationTest(){
+        val tries = 10
+        val maxSize = 100
+        val random = Random(0)
+        for( n in 1 .. maxSize) {
 
+            for(i in 1.. tries){
+                val a = AbstractPermutationMatrix.generatePermutationMatrix(n,n,n,random.nextInt())
+                val b= AbstractPermutationMatrix.generatePermutationMatrix(n,n,n,random.nextInt())
+                val naiveRes = naiveMultiplicationBraids(a,b)
+                val res = steadyAnt(a,b)
+                assertTrue(res.IsEquals(naiveRes))
 
-        val matrixP = PermutationMatrixTwoLists(bookP,20,20)
-        val matrixQ = PermutationMatrixTwoLists(bookQ,20,20)
-        val matrixR = steadyAnt(matrixP,matrixQ)
-        val naiveRes = mutableListOf<Position2D<Int>>()
+            }
 
-        for(p in matrixR){
-            naiveRes.add(p)
         }
-
-        assertEquals(bookR,naiveRes)
-
-
+            // strange speed when increase size
     }
+
+
+
+
+
+//    @Test
+//    fun steadyAntBookExample() {
+//
+//
+//        val matrixP = PermutationMatrixTwoLists(bookP,20,20)
+//        val matrixQ = PermutationMatrixTwoLists(bookQ,20,20)
+//        val matrixR = steadyAnt(matrixP,matrixQ)
+//        val naiveRes = mutableListOf<Position2D<Int>>()
+//
+//        for(p in matrixR){
+//            naiveRes.add(p)
+//        }
+//
+//        assertEquals(bookR,naiveRes)
+//
+//
+//    }
 }
