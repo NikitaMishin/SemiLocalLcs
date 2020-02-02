@@ -540,9 +540,11 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
             var extraDiagP = n - max(requiredExtraColsP + P.height(), requiredExtraRowsP + P.width())  //TODO
             var extraDiagQ = n - max(requiredExtraColsQ + Q.height(), requiredExtraRowsQ + Q.width())
 
-            extraDiagP++
-            extraDiagQ++
-            n++
+            //TODO not clear when to add see example wihen running test --- fail when [1,0] x [1] - its works when added +=1 but the other fails
+            //                                                                                [0]
+            extraDiagP+=0
+            extraDiagQ+=0
+            n+=0
 
 
             val PCap = P.createZeroMatrix(n, n)
@@ -605,6 +607,22 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
             for (p in resCap) {
                 if (p.j < Q.width() && p.i >= n - P.height()) res[p.i - n + P.height(), p.j] = true
             }
+
+            // 1
+            // 0
+
+            // 1 0 0
+            // 0 1 0
+            // 0 0 1
+            //
+            // 0 1 0
+            // 1 0 0
+            // 0 0 1
+
+            // 1 0
+
+            // 0 1
+            // 1 0
 
             println("resulta square")
             resCap.print()
@@ -872,24 +890,24 @@ fun steadyAnt(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): Abstr
     // queries goes to extende matrix i.e (m+1)x(n+1)
     val countingQuery = CountingQuery()
     val goodPoints = mutableListOf<Position2D<Int>>()
-
-    //debug info
-    val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
-    val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
-    println("delta")
-    for (i in 0 until hi.size) {
-        for (j in hi[0].indices) {
-            hi[i][j] -= lo[i][j]
-            if (hi[i][j] < 0) {
-                print(" ${hi[i][j]}")
-            } else {
-                print("  ${hi[i][j]}")
-
-            }
-
-        }
-        println()
-    }
+//
+//    //debug info
+//    val hi = CountingQuery.dominanceMatrix(R2, CountingQuery.bottomRightSummator)
+//    val lo = CountingQuery.dominanceMatrix(R1, CountingQuery.topLeftSummator)
+//    println("delta")
+//    for (i in 0 until hi.size) {
+//        for (j in hi[0].indices) {
+//            hi[i][j] -= lo[i][j]
+//            if (hi[i][j] < 0) {
+//                print(" ${hi[i][j]}")
+//            } else {
+//                print("  ${hi[i][j]}")
+//
+//            }
+//
+//        }
+//        println()
+//    }
 
     var step = Step.UP
     while (currentPos != endPos) {

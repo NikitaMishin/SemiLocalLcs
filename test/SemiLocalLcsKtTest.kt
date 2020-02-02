@@ -76,6 +76,8 @@ internal class SemiLocalLcsKtTest {
     )
 
 
+
+
 //    @Test
 //    fun steadyAddntRandomTest() {
 //        //also bad for non square
@@ -104,40 +106,40 @@ internal class SemiLocalLcsKtTest {
 //
 //    }
 
-//    @Test
-//    fun debug() {
-//        val a = listOf<Position2D<Int>>(
-//            Position2D(0, 2),
-//            Position2D(1, 1),
-//            Position2D(2, 0),
+    @Test
+    fun debug() {
+        val a = listOf<Position2D<Int>>(
+            Position2D(0, 0),
+            Position2D(1, 1),
+            Position2D(2, 2)
 //            Position2D(3, 3)
-//        )
-//        val b = listOf(
-//            Position2D(0, 1),
-//            Position2D(1, 3),
-//            Position2D(2, 0),
+        )
+        val b = listOf(
+            Position2D(0, 1),
+            Position2D(1, 0),
+            Position2D(2, 2)
 //            Position2D(3, 2)
-//        )
-//        val A = PermutationMatrixTwoLists(a, 4, 4)
-//        val B = PermutationMatrixTwoLists(b, 4, 4)
-//
-//        assertTrue(naiveMultiplicationBraids(A, B).IsEquals(steadyAntWrapper(A, B)))
-//
-//
-//        println()
-//        println("devug")
-//
-//        naiveMultiplicationBraids(A, B).print()
-//    }
+        )
+        val A = PermutationMatrixTwoLists(a, 3, 3)
+        val B = PermutationMatrixTwoLists(b, 3, 3)
+
+        assertTrue(naiveMultiplicationBraids(A, B).IsEquals(steadyAntWrapper(A, B)))
+
+
+        println()
+        println("devug")
+
+        naiveMultiplicationBraids(A, B).print()
+    }
 
 
     //uncomment to see
     @Test
     fun steadyAntRandomTest() {
 
-        val widthsQ = 50
-        val widths = 50
-        val heightsP = 50
+        val widthsQ = 20
+        val widths = 20
+        val heightsP = 25
 
 
 
@@ -146,8 +148,8 @@ internal class SemiLocalLcsKtTest {
                 for (widthQ in 1 until widthsQ)
                     for (nonZeroesP in 1..Math.min(heightP, widthQ)) {
                         for (nonzeroesQ in 1..Math.min(widtdP, widthQ)) {
-                            val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP,1)
-                            val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ,2)
+                            val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP,0)
+                            val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ,1)
                             val naiveRes = naiveMultiplicationBraids(P, Q)
                             val res = steadyAntWrapper(P, Q)
                             if(!res.IsEquals(naiveRes)){
