@@ -106,47 +106,62 @@ internal class SemiLocalLcsKtTest {
 //
 //    }
 
-    @Test
-    fun debug() {
-        val a = listOf<Position2D<Int>>(
-            Position2D(0, 0),
-            Position2D(1, 1),
-            Position2D(2, 2)
-//            Position2D(3, 3)
-        )
-        val b = listOf(
-            Position2D(0, 1),
-            Position2D(1, 0),
-            Position2D(2, 2)
-//            Position2D(3, 2)
-        )
-        val A = PermutationMatrixTwoLists(a, 3, 3)
-        val B = PermutationMatrixTwoLists(b, 3, 3)
 
-        assertTrue(naiveMultiplicationBraids(A, B).IsEquals(steadyAntWrapper(A, B)))
+//    1 0 0
+//    0 1 0
+//    0 0 1
+//
+//    1 0 0
+//    0 0 1
+//    0 1 0
 
-
-        println()
-        println("devug")
-
-        naiveMultiplicationBraids(A, B).print()
-    }
+//    @Test
+//    fun debug() {
+//        val a = listOf<Position2D<Int>>(
+//            Position2D(0, 0),
+//            Position2D(1, 1),
+//            Position2D(2, 2),
+//            Position2D(3,3)
+////            Position2D(3, 3)
+//        )
+//        val b = listOf(
+//            Position2D(0, 0),
+//            Position2D(1, 2),
+//            Position2D(2, 1),
+//            Position2D(3,3)
+////            Position2D(3, 3)
+////            Position2D(2, 2)
+////            Position2D(3, 2)
+//        )
+//        val A = PermutationMatrixTwoLists(a, 4, 4)
+//        val B = PermutationMatrixTwoLists(b, 4, 4)
+//
+//        assertTrue(naiveMultiplicationBraids(A, B).IsEquals(steadyAnt(A, B)))
+////        Expected
+////        0 1 0
+////        0 0 0
+//
+//        println()
+//        println("devug")
+//
+//        naiveMultiplicationBraids(A, B).print()
+//    }
 
 
     //uncomment to see
     @Test
     fun steadyAntRandomTest() {
 
-        val widthsQ = 20
-        val widths = 20
-        val heightsP = 25
+        val widthsQ = 15
+        val widths = 15
+        val heightsP = 15
 
 
 
         for (heightP in 1 until heightsP) {
             for (widtdP in 1 until widths) {
                 for (widthQ in 1 until widthsQ)
-                    for (nonZeroesP in 1..Math.min(heightP, widthQ)) {
+                    for (nonZeroesP in 1..Math.min(heightP, widtdP)) {
                         for (nonzeroesQ in 1..Math.min(widtdP, widthQ)) {
                             val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP,0)
                             val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ,1)
@@ -165,6 +180,10 @@ internal class SemiLocalLcsKtTest {
                     }
             }
         }
+        //
+        // 1  ->  1 0
+        //        0 1
+        // 0
 
 
     }

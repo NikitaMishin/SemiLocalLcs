@@ -1,5 +1,6 @@
 import java.lang.Exception
 import java.lang.IllegalArgumentException
+import java.util.function.Predicate
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -498,30 +499,129 @@ internal enum class Step {
  */
 fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix): AbstractPermutationMatrix {
 
+    fun getPReduced(): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldRows = mutableMapOf<Int, Int>()
+        val oldToNewRows = mutableMapOf<Int, Int>()
+        val newRowPoints = mutableListOf<Int>()
+
+        for (row in 0 until P.height()) {
+            val col = P[row, AbstractPermutationMatrix.GetType.ROW]
+            if (col != P.NOPOINT) {
+                newToOldRows[newRowPoints.size] = row
+                oldToNewRows[row] = newRowPoints.size
+                newRowPoints.add(col)
+            }
+        }
+
+        //zero matrix get
+        if (newRowPoints.size == 0) return Pair(true, null)
+
+        val nextColPoints = mutableListOf<Int>()
+        for (col in 0 until P.width()) {
+            val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
+            nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
+        }
+
+        val matrix = P.createZeroMatrix(height = newRowPoints.size, width = nextColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            newRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            nextColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+
+        return Pair(false, Pair(matrix, newToOldRows))
+    }
+
+
+    fun getQReduced(): Pair<Boolean, Pair<AbstractPermutationMatrix, MutableMap<Int, Int>>?> {
+        val newToOldCol = mutableMapOf<Int, Int>()
+        val oldToNewCol = mutableMapOf<Int, Int>()
+        val newColPoints = mutableListOf<Int>()
+
+        for (col in 0 until Q.width()) {
+            val row = Q[col, AbstractPermutationMatrix.GetType.COLUMN]
+
+            if (row != Q.NOPOINT) {
+                newToOldCol[newColPoints.size] = col
+                oldToNewCol[col] = newColPoints.size
+                newColPoints.add(row)
+            }
+        }
+        if (newColPoints.size == 0) return Pair(true, null)
+
+        val nexRowPoints = mutableListOf<Int>()
+        for (row in 0 until Q.height()) {
+            val oldCol = Q[row, AbstractPermutationMatrix.GetType.ROW]
+            nexRowPoints.add(oldToNewCol.getOrDefault(oldCol, Q.NOPOINT))
+        }
+
+        val matrix = P.createZeroMatrix(height = nexRowPoints.size, width = newColPoints.size)
+        // for speedup
+        if (matrix.height() < matrix.width()) {
+            nexRowPoints.forEachIndexed { row, col -> matrix[row, col] = col != P.NOPOINT }
+        } else {
+            newColPoints.forEachIndexed { col, row -> matrix[row, col] = row != P.NOPOINT }
+        }
+        return Pair(false, Pair(matrix, newToOldCol))
+    }
+
+
     if (P.width() != Q.height()) {
         throw  IllegalArgumentException("Wrong dimensions: P width is ${P.width()} and Q height is ${Q.height()}")
     }
 
 
+
+
     when {
         (P.IsStochastic() && Q.IsStochastic()) -> return steadyAnt(P, Q) // if both stochastic then both squared
         else -> {
+
+
+            var (isPZero, PReduced) = getPReduced()
+            var (isQZero, QReduced) = getQReduced()
+
+
+            if(isPZero || isQZero ) return  P.createZeroMatrix(P.height(), Q.width())
+            var PRed = PReduced!!.first
+            var QRed = QReduced!!.first
+//
+//
+//
+//            var result:AbstractPermutationMatrix = null
+//            if(P.IsStochastic() && Q.IsStochastic() -> return steadyAnt(P, Q))
+
+
+
+
+
+
+
+
             var rowIndicesP = mutableListOf<Int>()
             val colIndicesP = mutableListOf<Int>()
             var rowIndicesQ = mutableListOf<Int>()
             val colIndicesQ = mutableListOf<Int>()
 
-            for (row in 0 until P.height()) {
-                if (P[row, AbstractPermutationMatrix.GetType.ROW] == P.NOPOINT) rowIndicesP.add(row)
+            for (row in 0 until PRed.height()) {
+                if (PRed[row, AbstractPermutationMatrix.GetType.ROW] == PRed.NOPOINT) rowIndicesP.add(row)
             }
 
-            for (pos in 0 until P.width()) {
-                if (Q[pos, AbstractPermutationMatrix.GetType.ROW] == P.NOPOINT) rowIndicesQ.add(pos)
-                if (P[pos, AbstractPermutationMatrix.GetType.COLUMN] == P.NOPOINT) colIndicesP.add(pos)
+            for (pos in 0 until PRed.width()) {
+              //  if (QRed[pos, AbstractPermutationMatrix.GetType.ROW] == P.NOPOINT) rowIndicesQ.add(pos)
+                if (PRed[pos, AbstractPermutationMatrix.GetType.COLUMN] == P.NOPOINT) colIndicesP.add(pos)
             }
 
-            for (col in 0 until Q.width()) {
-                if (Q[col, AbstractPermutationMatrix.GetType.COLUMN] == P.NOPOINT) colIndicesQ.add(col)
+
+            for (pos in 0 until QRed.height()) {
+                if (QRed[pos, AbstractPermutationMatrix.GetType.ROW] == P.NOPOINT) rowIndicesQ.add(pos)
+
+            }
+
+
+            for (col in 0 until QRed.width()) {
+                if (QRed[col, AbstractPermutationMatrix.GetType.COLUMN] == P.NOPOINT) colIndicesQ.add(col)
             }
 
             var requiredExtraRowsP = rowIndicesP.size
@@ -529,22 +629,29 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
 
             var requiredExtraRowsQ = rowIndicesQ.size
             var requiredExtraColsQ = colIndicesQ.size
-
+//
             var n = max(
-                max(requiredExtraColsP + P.height(), requiredExtraColsQ + Q.height()),
-                max(requiredExtraRowsP + P.width(), requiredExtraRowsQ + Q.width())
+                max(requiredExtraColsP + PRed.height(), requiredExtraColsQ + QRed.height()),
+                max(requiredExtraRowsP + PRed.width(), requiredExtraRowsQ + QRed.width())
             )
-            //extend P
 
             //extra diagonal
-            var extraDiagP = n - max(requiredExtraColsP + P.height(), requiredExtraRowsP + P.width())  //TODO
-            var extraDiagQ = n - max(requiredExtraColsQ + Q.height(), requiredExtraRowsQ + Q.width())
-
+            var extraDiagP = n - max(requiredExtraColsP + PRed.height(), requiredExtraRowsP + PRed.width())  //TODO
+            var extraDiagQ = n - max(requiredExtraColsQ + QRed.height(), requiredExtraRowsQ + QRed.width())
+//zeroes in two
             //TODO not clear when to add see example wihen running test --- fail when [1,0] x [1] - its works when added +=1 but the other fails
+            //
             //                                                                                [0]
-            extraDiagP+=0
-            extraDiagQ+=0
-            n+=0
+
+
+//            println()
+//            println("PRED and QRED")
+//            PRed.print()
+//
+//            println()
+//            QRed.print()
+//            println()
+
 
 
             val PCap = P.createZeroMatrix(n, n)
@@ -558,9 +665,9 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
                 PCap[extraDiagP + shift, cols + extraDiagP] = true
 
             for ((shift, rows) in rowIndicesP.withIndex())
-                PCap[rows + extraDiagP + colIndicesP.size, extraDiagP + P.width() + shift] = true
+                PCap[rows + extraDiagP + colIndicesP.size, extraDiagP + PRed.width() + shift] = true
 
-            for (pos in P)
+            for (pos in PRed)
                 PCap[pos.i + extraDiagP + colIndicesP.size, pos.j + extraDiagP] = true
 
 
@@ -572,12 +679,12 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
                 QCap[shift, cols] = true
 
 
-            for (pos in Q)
+            for (pos in QRed)
                 QCap[pos.i + colIndicesQ.size, pos.j] = true
 
 
             for ((shift, rows) in rowIndicesQ.withIndex())
-                QCap[rows + colIndicesQ.size, Q.width() + shift] = true
+                QCap[rows + colIndicesQ.size, QRed.width() + shift] = true
 
 
             for (i in 0 until extraDiagQ) {
@@ -589,47 +696,39 @@ fun steadyAntWrapper(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix)
             val res = P.createZeroMatrix(P.height(), Q.width())
 
 
-            println("Initial matrices")
-            println()
-            P.print()
-
-            println()
-            Q.print()
-            println()
-
-            println("Extended matrices")
-            println()
-            PCap.print()
-
-            println()
-            QCap.print()
-            println()
+//            println("Initial matrices")
+//            println()
+//            P.print()
+//
+//            println()
+//            Q.print()
+//            println()
+//
+//            println("Extended matrices")
+//            println()
+//            PCap.print()
+//
+//            println()
+//            QCap.print()
+//            println()
             for (p in resCap) {
-                if (p.j < Q.width() && p.i >= n - P.height()) res[p.i - n + P.height(), p.j] = true
+                if (p.j < QRed.width() && p.i >= n - PRed.height()) {
+                    //todo kinda tricky
+                    res[PReduced!!.second[p.i - n + PRed.height()]!!,QReduced!!.second[p.j]!!] = true
+//                    res[p.i - n + PRed.height(), p.j] = true
+                }
             }
 
-            // 1
-            // 0
 
-            // 1 0 0
-            // 0 1 0
-            // 0 0 1
-            //
-            // 0 1 0
-            // 1 0 0
-            // 0 0 1
 
-            // 1 0
 
-            // 0 1
-            // 1 0
 
-            println("resulta square")
-            resCap.print()
-            println("naive squeare")
-            naiveMultiplicationBraids(PCap, QCap).print()
-
-            println()
+//            println("resulta square")
+//            resCap.print()
+//            println("naive squeare")
+//            naiveMultiplicationBraids(PCap, QCap).print()
+//
+         //   println()
 
 
 
