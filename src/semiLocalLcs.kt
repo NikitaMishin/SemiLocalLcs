@@ -1,8 +1,5 @@
-import java.lang.Exception
 import java.lang.IllegalArgumentException
-import java.util.function.Predicate
-import kotlin.math.max
-import kotlin.random.Random
+import kotlin.math.min
 
 ///**
 // *  Semi Local problems
@@ -119,37 +116,85 @@ interface ISemiLocalLCS {
 }
 
 
+/**
+ * page 60
+ * the product dimension should be (P.height +   Q.height - k) X (P.width +   Q.width - k)
+ * see TODO
+ *
+ */
+fun staggeredStickyMultiplication(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix, k: Int): AbstractPermutationMatrix {
+    if (k < 0 || k > min(P.width(), Q.height())) throw IllegalArgumentException("0<=k<=${P.width()},${Q.height()}")
+    val PIdentitySize = Q.height() - k
+    val QIdentitySize = P.width() - k
+    when {
+        k == 0 -> {
+            val res = P.createZeroMatrix(P.height() + Q.height(), P.width() + Q.width())
+            for (p in P) res[p.i + Q.height(), p.j + Q.width()] = true
+            for (q in Q) res[q.i, q.j] = true
+            return res
+        }
+        k == P.width() && k == Q.height() -> return steadyAntWrapper(P, Q)
+        else -> {
+            // TODO not optimal ask Tiskin or discuss with Danya
+            val PExt = P.createZeroMatrix(P.height() + Q.height() - k, PIdentitySize + P.width())
+            for (i in 0 until PIdentitySize) PExt[i, i] = true
+            for (p in P) PExt[p.i + PIdentitySize, p.j + PIdentitySize] = true
+
+            val QExt = Q.createZeroMatrix(Q.height() + QIdentitySize, P.width() + Q.width() - k)
+            for (i in 0 until PIdentitySize) QExt[Q.height() + i, Q.width() + i] = true
+            for (q in Q) QExt[q.i, q.j] = true
+            return steadyAntWrapper(PExt, QExt)
+        }
+    }
 
 
+}
 
 
+/**
+ * see theorem 5.21
+ */
+fun getPermBA(A: AbstractPermutationMatrix, m: Int, n: Int): AbstractPermutationMatrix {
+    val B = A.createZeroMatrix(A.height(), A.width())
+    for (a in A) B[n - a.i, m + n - a.j] = true
+    return B
+}
 
+fun semiLocalLCSRecursive(
+    a: String,
+    b: String,
+    m: Int,
+    n: Int,
+    resMatrix: AbstractPermutationMatrix
+): AbstractPermutationMatrix {
+    if (n == 1 && m == 1) {
+        val identityMatrix = resMatrix.createZeroMatrix(2, 2)
+        identityMatrix[0, 0] = true
+        identityMatrix[1, 1] = true
+        return identityMatrix
+    }
 
+    if (n > m) {
+        val n1 = n / 2
+        val n2 = n - n / 2
+        val b1 = b.substring(0, n1)
+        val b2 = b.substring(n1, n)
+        val res = staggeredStickyMultiplication(
+            getPermBA(semiLocalLCSRecursive(b1, a, n1, m, resMatrix),m,n1),
+            getPermBA(semiLocalLCSRecursive(b2, a, n2, m, resMatrix),m,n2),
+            m
+        )
+        return res
+    } else {
+        val m1 = m / 2
+        val m2 = m - m / 2
+        val a1 = a.substring(0, m1)
+        val a2 = a.substring(m1, m)
+        return staggeredStickyMultiplication(
+            semiLocalLCSRecursive(a1, b, m1, n, resMatrix),
+            semiLocalLCSRecursive(a2, b, m2, n, resMatrix),
+            n
+        )
+    }
 
-//fun semiLocalLcs(a: String, b: String, n: Int, m: Int): List<Position2D<Int>> = when {
-//    n == 1 && m == 1 -> {
-//        // a[n-1] == b[m-1]
-//        if (a == b) listOf(Position2D(0, 0), Position2D(1, 1))
-//        else listOf(Position2D(1, 0), Position2D(0, 1))
-//    }
-//
-//    m == 1 && n > 1 -> {
-//        val n1 = n / 2
-//        val n2 = n - n / 2
-//        val a1 = a.substring(0, n1)
-//        val a2 = a.substring(n1, n)
-//        steadyAnt(semiLocalLcs(a1, b, n1, m), semiLocalLcs(a2, b, n2, m), n1, n2, m)
-//    }
-//
-//    n == 1 && m > 1 -> {
-//        TODO()
-//    }
-//    n > 1 && m > 1 -> {
-//        TODO()
-//
-//    }
-//
-//    else -> throw IllegalArgumentException("SemiLocalLcs:n=$n,m=$m")
-//
-//
-//}
+}

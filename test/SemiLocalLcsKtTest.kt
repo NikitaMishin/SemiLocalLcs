@@ -75,17 +75,17 @@ internal class SemiLocalLcsKtTest {
     @Test
     fun steadyAntRandomTest() {
 
-        val widthsQ = 20
-        val widths = 20
-        val heightsP = 20
+        val widthsQ = 30
+        val widths = 39
+        val heightsP = 15
 
         for (heightP in 1 until heightsP) {
             for (widtdP in 1 until widths) {
                 for (widthQ in 1 until widthsQ)
                     for (nonZeroesP in 1..Math.min(heightP, widtdP)) {
                         for (nonzeroesQ in 0..Math.min(widtdP, widthQ)) {
-                            val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP, 4)
-                            val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ, 99)
+                            val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP, -101)
+                            val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ, 101)
                             val naiveRes = naiveMultiplicationBraids(P, Q)
                             val res = steadyAntWrapper(P, Q)
                             if (!res.IsEquals(naiveRes)) {
@@ -118,6 +118,15 @@ internal class SemiLocalLcsKtTest {
 
         assertEquals(bookR, naiveRes)
 
+    }
+
+    @Test
+    fun debug() {
+        val P = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 1)), 2, 2)
+        val Q = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 2)), 2, 4)
+        val p = "aaaaa"
+        val q = "aaaaa"
+        semiLocalLCSRecursive(p,q,p.length,q.length,P).print()
 
     }
 }
