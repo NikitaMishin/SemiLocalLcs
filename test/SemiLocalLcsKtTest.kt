@@ -124,9 +124,9 @@ internal class SemiLocalLcsKtTest {
     fun debug() {
         val P = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 1)), 2, 2)
         val Q = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 2)), 2, 4)
-        val p = "aaaaa"
-        val q = "aaaaa"
-        semiLocalLCSRecursive(p,q,p.length,q.length,P).print()
+        val p = "ab"
+        val q = "b"
+        semiLocalLCSRecursive(p,q,P).print()
 
     }
 }

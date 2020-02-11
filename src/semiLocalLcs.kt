@@ -116,13 +116,35 @@ interface ISemiLocalLCS {
 }
 
 
+//data class ImplicitSemiLocalLCS<Element,PermMatrixType:AbstractPermutationMatrix>(val a: List<Element>, val b: List<Element>) :
+//    ISemiLocalLCS where Element : Comparable<Element> {
+//    val m = a.size
+//    val n = b.size
+//
+//    private var permutationMatrix:PermMatrixType? = null
+//    private var rangeTree2D:RangeTree2D<Position2D<Int>>? = null
+//
+//    private fun CanonicalDecomposition(i:Int,j:Int){
+//        return j - (m+n-i) - rangeTree2D.ortoghonalQuery()
+//
+//    }
+//
+//
+//
+//}
+
+
 /**
  * page 60
  * the product dimension should be (P.height +   Q.height - k) X (P.width +   Q.width - k)
  * see TODO
  *
  */
-fun staggeredStickyMultiplication(P: AbstractPermutationMatrix, Q: AbstractPermutationMatrix, k: Int): AbstractPermutationMatrix {
+fun staggeredStickyMultiplication(
+    P: AbstractPermutationMatrix,
+    Q: AbstractPermutationMatrix,
+    k: Int
+): AbstractPermutationMatrix {
     if (k < 0 || k > min(P.width(), Q.height())) throw IllegalArgumentException("0<=k<=${P.width()},${Q.height()}")
     val PIdentitySize = Q.height() - k
     val QIdentitySize = P.width() - k
@@ -141,7 +163,10 @@ fun staggeredStickyMultiplication(P: AbstractPermutationMatrix, Q: AbstractPermu
             for (p in P) PExt[p.i + PIdentitySize, p.j + PIdentitySize] = true
 
             val QExt = Q.createZeroMatrix(Q.height() + QIdentitySize, P.width() + Q.width() - k)
-            for (i in 0 until PIdentitySize) QExt[Q.height() + i, Q.width() + i] = true
+
+            for (i in 0 until QIdentitySize) {
+                QExt[Q.height() + i, Q.width() + i] = true
+            }
             for (q in Q) QExt[q.i, q.j] = true
             return steadyAntWrapper(PExt, QExt)
         }
@@ -153,47 +178,57 @@ fun staggeredStickyMultiplication(P: AbstractPermutationMatrix, Q: AbstractPermu
 
 /**
  * see theorem 5.21
+ * Allows get P_{a,b} when you have P_{b,a}
  */
 fun getPermBA(A: AbstractPermutationMatrix, m: Int, n: Int): AbstractPermutationMatrix {
     val B = A.createZeroMatrix(A.height(), A.width())
-    for (a in A) B[n - a.i, m + n - a.j] = true
+    for (a in A)
+        //TODO seems like this
+        B[n + m - 1 - a.i, m + n - 1 - a.j] = true
+
     return B
 }
 
-fun semiLocalLCSRecursive(
-    a: String,
-    b: String,
-    m: Int,
-    n: Int,
-    resMatrix: AbstractPermutationMatrix
-): AbstractPermutationMatrix {
-    if (n == 1 && m == 1) {
+/**
+ * The recursive algorithm based on steady ant braid multiplication.
+ * See page 64
+ * @param a string of size m
+ * @param b string of size n
+ * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
+ * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
+ */
+fun semiLocalLCSRecursive(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+    if (a.length == 1 && b.length == 1) {
         val identityMatrix = resMatrix.createZeroMatrix(2, 2)
-        identityMatrix[0, 0] = true
-        identityMatrix[1, 1] = true
+        if (a == b) {
+            identityMatrix[0, 0] = true
+            identityMatrix[1, 1] = true
+        } else {
+            identityMatrix[1, 0] = true
+            identityMatrix[0, 1] = true
+        }
         return identityMatrix
     }
 
-    if (n > m) {
-        val n1 = n / 2
-        val n2 = n - n / 2
+    if (b.length > a.length) {
+        val n1 = b.length / 2
         val b1 = b.substring(0, n1)
-        val b2 = b.substring(n1, n)
-        val res = staggeredStickyMultiplication(
-            getPermBA(semiLocalLCSRecursive(b1, a, n1, m, resMatrix),m,n1),
-            getPermBA(semiLocalLCSRecursive(b2, a, n2, m, resMatrix),m,n2),
-            m
+        val b2 = b.substring(n1, b.length)
+        return getPermBA(
+            staggeredStickyMultiplication(
+                semiLocalLCSRecursive(b1, a, resMatrix),
+                semiLocalLCSRecursive(b2, a, resMatrix), a.length
+            ), a.length, b.length
         )
-        return res
     } else {
-        val m1 = m / 2
-        val m2 = m - m / 2
+        val m1 = a.length / 2
         val a1 = a.substring(0, m1)
-        val a2 = a.substring(m1, m)
+        val a2 = a.substring(m1, a.length)
+
         return staggeredStickyMultiplication(
-            semiLocalLCSRecursive(a1, b, m1, n, resMatrix),
-            semiLocalLCSRecursive(a2, b, m2, n, resMatrix),
-            n
+            semiLocalLCSRecursive(a1, b, resMatrix),
+            semiLocalLCSRecursive(a2, b, resMatrix),
+            b.length
         )
     }
 
