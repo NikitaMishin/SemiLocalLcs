@@ -30,6 +30,7 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
         }
     }
 
+    //IS this error TODO
     override fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
         return semiLocalLCSMatrix[i + m][j]

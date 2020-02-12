@@ -3,7 +3,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
-internal class SemiLocalLCSTest:SemiLocalLCSBaseTester(Random(9)) {
+internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
 
     val bookP = listOf(
         Position2D(0, 4),
@@ -85,7 +85,8 @@ internal class SemiLocalLCSTest:SemiLocalLCSBaseTester(Random(9)) {
                 for (widthQ in 1 until widthsQ)
                     for (nonZeroesP in 1..Math.min(heightP, widtdP)) {
                         for (nonzeroesQ in 0..Math.min(widtdP, widthQ)) {
-                            val P = AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP, -101)
+                            val P =
+                                AbstractPermutationMatrix.generatePermutationMatrix(heightP, widtdP, nonZeroesP, -101)
                             val Q = AbstractPermutationMatrix.generatePermutationMatrix(widtdP, widthQ, nonzeroesQ, 101)
                             val naiveRes = naiveMultiplicationBraids(P, Q)
                             val res = steadyAntWrapper(P, Q)
@@ -121,22 +122,118 @@ internal class SemiLocalLCSTest:SemiLocalLCSBaseTester(Random(9)) {
 
     }
 
-    @Test
-    fun testSemiLocalReducingAndRecursiveEqualityRandom() {
-        // odd test?
+//    @Test
+//    fun testSemiLocalReducingAndRecursiveEqualityRandom() {
+//        // odd test?
+//        var aSizeMax = 25
+//        var bSizeMax = 25
+//
+//
+//        for(i in 0 until aSizeMax){
+//            for (j in  0 until bSizeMax ){
+//                val a = getRandomString(1,aSizeMax,alphabet).toString()
+//                val b = getRandomString(9,bSizeMax,alphabet).toString()
+//                val reducingSolution = semiLocalLCSByReducing(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+//                val recursiveSolution = semiLocalLCSRecursive(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+//                assertTrue(recursiveSolution.IsEquals(reducingSolution))
+//            }
+//        }
+//    }
+
+    private fun checkKernelCalculationCorrectnessTest(kernel: (List<Char>, List<Char>) -> AbstractPermutationMatrix) {
         var aSizeMax = 25
         var bSizeMax = 25
+        for (i in 0 until aSizeMax) {
+            for (j in 0 until bSizeMax) {
+                val a = getRandomString(1, aSizeMax, alphabet)
+                val b = getRandomString(9, bSizeMax, alphabet)
+                var implicit = ImplicitSemiLocalLCS(
+                    a, b, kernel
+                )
+                val expectedLCSMatrix = NaiveSemiLocalLCS(a, b).semiLocalLCSMatrix
+                var actualKernel = implicit.permutationMatrix
 
 
-        for(i in 0 until aSizeMax){
-            for (j in  0 until bSizeMax ){
-                val a = getRandomString(1,aSizeMax,alphabet).toString()
-                val b = getRandomString(9,bSizeMax,alphabet).toString()
-                val reducingSolution = semiLocalLCSByReducing(a,b,PermutationMatrixTwoLists(listOf(),0,0))
-                val recursiveSolution = semiLocalLCSRecursive(a,b,PermutationMatrixTwoLists(listOf(),0,0))
-                assertTrue(recursiveSolution.IsEquals(reducingSolution))
+                val exp = actualKernel.createZeroMatrix(actualKernel.height(), actualKernel.width())
+                for (i in 0 until actualKernel.height()) {
+                    for (j in 0 until actualKernel.width()) {
+                        exp[i, j] =
+                            (-(expectedLCSMatrix[i][j + 1] + expectedLCSMatrix[i + 1][j] - expectedLCSMatrix[i][j] - expectedLCSMatrix[i + 1][j + 1])) == 1
+                    }
+                }
+                for (i in 0 until actualKernel.height()) {
+                    for (j in 0 until actualKernel.width()) {
+                        assertEquals(exp[i, j], actualKernel[i, j])
+                    }
+                }
+
             }
         }
     }
+
+    /**
+     * Check via equality kernel = (-H)^{square}.
+     * See page TODO
+     */
+    @Test
+    fun checkKernelRecursiveTest() {
+        checkKernelCalculationCorrectnessTest { a: List<Char>, b: List<Char> ->
+            semiLocalLCSRecursive(
+                a, b, PermutationMatrixTwoLists(
+                    listOf(), 0, 0
+                )
+            )
+        }
+
+    }
+    @Test
+    fun checkKernelReducingTest() {
+        checkKernelCalculationCorrectnessTest { a: List<Char>, b: List<Char> ->
+            semiLocalLCSByReducing(
+                a, b, PermutationMatrixTwoLists(
+                    listOf(), 0, 0
+                )
+            )
+        }
+    }
+
+//                var tree = implicit.rangeTree2D
+//
+//                implicit.permutationMatrix.print()
+//                println()
+//
+//
+//
+//                println(expectedLCSMatrix.size)
+//                println(expectedLCSMatrix[0].size)
+//                println(actualKernel.height())
+//                println(actualKernel.width())
+//                for (i in 0 until actualKernel.height()+1) {
+//                    for (j in 0 until actualKernel.width()+1) {
+//                        println("$i $j")
+//                        if (expectedLCSMatrix[i][j]!=
+//                        j - (i - a.size) - tree.ortoghonalQuery(
+//                                IntervalQuery(i, actualKernel.height() + 1),
+//                                IntervalQuery(-1, j-1)
+//                            )) {
+//                            implicit.permutationMatrix.print()
+//                            println()
+//                            println(tree.ortoghonalQuery(
+//                                IntervalQuery(i, actualKernel.height() + 1),
+//                                IntervalQuery(-1, j-1)
+//                            ))
+//
+//                        }
+//                        assertEquals(
+//                            expectedLCSMatrix[i][j],
+//                            j - (i - a.size) - tree.ortoghonalQuery(
+//                                IntervalQuery(i, actualKernel.height() + 1),
+//                                IntervalQuery(-1, j-1)
+//                            )
+//                        )
+//                    }
+//                }
+
+
 
 }

@@ -1,3 +1,4 @@
+import org.w3c.dom.ranges.Range
 import java.lang.IllegalArgumentException
 import kotlin.math.min
 
@@ -115,45 +116,62 @@ interface ISemiLocalLCS {
     fun substringStringLCS(k: Int, l: Int): Int
 }
 
-//interface IImplicitSemiLocalLCS:ISemiLocalLCS{
-//
-//    fun stringSubstringLCS(i: Int, j: Int,): Int
-//
-//    /**
-//     *For a given A and B asks for lcs score for A[k:A.size] and B[0:j]
-//     *
-//     */
-//    fun prefixSuffixLCS(k: Int, j: Int): Int
-//
-//    /**
-//     *For a given A and B asks for lcs score for A[0:l] and B[i:B.size]
-//     */
-//    fun suffixPrefixLCS(l: Int, i: Int): Int
-//
-//    /**
-//     *For a given A and B asks for lcs score for A[k:l] and B
-//     */
-//    fun substringStringLCS(k: Int, l: Int): Int
-//
-//}
+//TODO add semilocalLCS with fast query
+interface IImplicitSemiLocalLCS:ISemiLocalLCS
 
 
-//data class ImplicitSemiLocalLCS<Element,PermMatrixType:AbstractPermutationMatrix>(val a: List<Element>, val b: List<Element>) :
-//    ISemiLocalLCS where Element : Comparable<Element> {
-//    val m = a.size
-//    val n = b.size
-//
-//    private var permutationMatrix:PermMatrixType? = null
-//    private var rangeTree2D:RangeTree2D<Position2D<Int>>? = null
-//
-//    private fun CanonicalDecomposition(i:Int,j:Int){
-//        return j - (m+n-i) - rangeTree2D.ortoghonalQuery()
-//
-//    }
-//
-//
-//
-//}
+
+
+class ImplicitSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>,var kernelEvaluator:(List<Element>,List<Element>)->AbstractPermutationMatrix) :
+    ISemiLocalLCS where Element : Comparable<Element> {
+
+    val m = a.size
+    val n = b.size
+
+    internal var permutationMatrix:AbstractPermutationMatrix = kernelEvaluator(a,b)
+    internal var rangeTree2D:RangeTree2D<Int>
+
+    init {
+        val mutableList = mutableListOf<Position2D<Int>>()
+        for (p in  permutationMatrix) mutableList.add(p)
+        rangeTree2D = RangeTree2D(mutableList)
+
+    }
+
+    /**
+     * i from 0 to m + n
+     */
+    private fun canonicalDecomposition(i:Int,j:Int):Int{
+
+        permutationMatrix.print()
+        println()
+        println("$m $n $i")
+        println("query IntervalQuery($i,${m+n-1}),IntervalQuery(${0},${j-1}) = ${rangeTree2D.ortoghonalQuery(IntervalQuery(i,m+n-1),IntervalQuery(0,j-1)) } ")
+        return j - ( i - m ) - rangeTree2D.ortoghonalQuery(IntervalQuery(i,m+n-1),IntervalQuery(0,j-1))
+
+    }
+
+
+    override fun prefixSuffixLCS(k: Int, j: Int): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun stringSubstringLCS(i: Int, j: Int): Int {
+        if (i < 0 || i > n || j < 0 || j > n || i>=j) return 0
+        return canonicalDecomposition(i+m ,j)
+    }
+
+    override fun substringStringLCS(k: Int, l: Int): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun suffixPrefixLCS(l: Int, i: Int): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
+
+}
 
 
 /**
@@ -220,8 +238,8 @@ fun getPermBA(A: AbstractPermutationMatrix, m: Int, n: Int): AbstractPermutation
  * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
  * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
  */
-fun semiLocalLCSRecursive(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
-    if (a.length == 1 && b.length == 1) {
+fun <Elem:Comparable<Elem>>semiLocalLCSRecursive(a: List<Elem>, b: List<Elem>, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+    if (a.size == 1 && b.size == 1) {
         val identityMatrix = resMatrix.createZeroMatrix(2, 2)
         if (a == b) {
             identityMatrix[0, 0] = true
@@ -233,25 +251,25 @@ fun semiLocalLCSRecursive(a: String, b: String, resMatrix: AbstractPermutationMa
         return identityMatrix
     }
 
-    if (b.length > a.length) {
-        val n1 = b.length / 2
-        val b1 = b.substring(0, n1)
-        val b2 = b.substring(n1, b.length)
+    if (b.size > a.size) {
+        val n1 = b.size / 2
+        val b1 = b.subList(0, n1)
+        val b2 = b.subList(n1, b.size)
         return getPermBA(
             staggeredStickyMultiplication(
                 semiLocalLCSRecursive(b1, a, resMatrix),
-                semiLocalLCSRecursive(b2, a, resMatrix), a.length
-            ), a.length, b.length
+                semiLocalLCSRecursive(b2, a, resMatrix), a.size
+            ), a.size, b.size
         )
     } else {
-        val m1 = a.length / 2
-        val a1 = a.substring(0, m1)
-        val a2 = a.substring(m1, a.length)
+        val m1 = a.size / 2
+        val a1 = a.subList(0, m1)
+        val a2 = a.subList(m1, a.size)
 
         return staggeredStickyMultiplication(
             semiLocalLCSRecursive(a1, b, resMatrix),
             semiLocalLCSRecursive(a2, b, resMatrix),
-            b.length
+            b.size
         )
     }
 
@@ -266,21 +284,21 @@ fun semiLocalLCSRecursive(a: String, b: String, resMatrix: AbstractPermutationMa
  * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
  * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
  */
-fun semiLocalLCSByReducing(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+fun <Elem:Comparable<Elem>>semiLocalLCSByReducing(a: List<Elem>, b: List<Elem>, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
 
 //    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
 //        //странд слева > странд сверху
 //        strandLeft > strandTop
 
 
-    val solution = resMatrix.createZeroMatrix(a.length + b.length, a.length + b.length)
+    val solution = resMatrix.createZeroMatrix(a.size + b.size, a.size + b.size)
     val strandMap = hashMapOf<Int, Int>()// what strand is now at left and top edge of current cell strand
-    for (i in 0 until a.length + b.length) strandMap[i] = i
+    for (i in 0 until a.size + b.size) strandMap[i] = i
 
     for (i in a.indices) {
         for (j in b.indices) {
-            val leftEdge = a.length - 1 - i
-            val topEdge = a.length + j
+            val leftEdge = a.size - 1 - i
+            val topEdge = a.size + j
             val leftStrand = strandMap[leftEdge]!!
             val rightStrand = strandMap[topEdge]!!
 
@@ -289,14 +307,14 @@ fun semiLocalLCSByReducing(a: String, b: String, resMatrix: AbstractPermutationM
                 strandMap[topEdge] = leftStrand
             }
 
-            if (j == b.length - 1) {
-                val strandEnd = leftEdge + b.length
+            if (j == b.size - 1) {
+                val strandEnd = leftEdge + b.size
                 val strandStart = strandMap[leftEdge]!!
                 solution[strandStart, strandEnd] = true
             }
 
-            if (i == a.length - 1) {
-                val strandEnd = topEdge - a.length
+            if (i == a.size - 1) {
+                val strandEnd = topEdge - a.size
                 val strandStart = strandMap[topEdge]!!
                 solution[strandStart, strandEnd] = true
             }
