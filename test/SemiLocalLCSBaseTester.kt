@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.Assertions
+import kotlin.random.Random
 
-internal open class SemiLocalLCSTester {
+internal open class SemiLocalLCSBaseTester(val random: Random) {
 
     val alphabet = arrayListOf(
         'a',
@@ -30,6 +31,12 @@ internal open class SemiLocalLCSTester {
         'y',
         'z'
     )
+
+
+    fun getRandomString(randToSkip:Int,stringSize:Int,alphabetString:List<Char>): List<Char> {
+        for (i in  0 until randToSkip) random.nextInt()
+        return (0 until stringSize).map { alphabetString[kotlin.math.abs(random.nextInt()) % alphabetString.size]  }
+    }
 
     fun <E : Comparable<E>> checkStringSubstringProblem(A: List<E>, B: List<E>, solution: ISemiLocalLCS) {
         for (j in 0..B.size) {

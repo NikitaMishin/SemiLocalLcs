@@ -1,10 +1,9 @@
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import java.lang.Math.abs
 import kotlin.random.Random
 
-internal class NaiveSemiLocalLCSTest : SemiLocalLCSTester() {
+internal class NaiveSemiLocalLCSTest : SemiLocalLCSBaseTester(Random(0)) {
 
 
     @Test

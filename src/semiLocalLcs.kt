@@ -115,6 +115,28 @@ interface ISemiLocalLCS {
     fun substringStringLCS(k: Int, l: Int): Int
 }
 
+//interface IImplicitSemiLocalLCS:ISemiLocalLCS{
+//
+//    fun stringSubstringLCS(i: Int, j: Int,): Int
+//
+//    /**
+//     *For a given A and B asks for lcs score for A[k:A.size] and B[0:j]
+//     *
+//     */
+//    fun prefixSuffixLCS(k: Int, j: Int): Int
+//
+//    /**
+//     *For a given A and B asks for lcs score for A[0:l] and B[i:B.size]
+//     */
+//    fun suffixPrefixLCS(l: Int, i: Int): Int
+//
+//    /**
+//     *For a given A and B asks for lcs score for A[k:l] and B
+//     */
+//    fun substringStringLCS(k: Int, l: Int): Int
+//
+//}
+
 
 //data class ImplicitSemiLocalLCS<Element,PermMatrixType:AbstractPermutationMatrix>(val a: List<Element>, val b: List<Element>) :
 //    ISemiLocalLCS where Element : Comparable<Element> {
@@ -183,11 +205,12 @@ fun staggeredStickyMultiplication(
 fun getPermBA(A: AbstractPermutationMatrix, m: Int, n: Int): AbstractPermutationMatrix {
     val B = A.createZeroMatrix(A.height(), A.width())
     for (a in A)
-        //TODO seems like this
+    //TODO seems like this
         B[n + m - 1 - a.i, m + n - 1 - a.j] = true
 
     return B
 }
+
 
 /**
  * The recursive algorithm based on steady ant braid multiplication.
@@ -233,3 +256,95 @@ fun semiLocalLCSRecursive(a: String, b: String, resMatrix: AbstractPermutationMa
     }
 
 }
+
+/**
+ * iterative version of semilocalLCS (the second one with idea of unswepen unreduced sticky braid to reduced one
+ * to get semi local lcs kernel).
+ * See page 68.
+ * @param a string of size m
+ * @param b string of size n
+ * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
+ * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
+ */
+fun semiLocalLCSByReducing(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+
+//    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
+//        //странд слева > странд сверху
+//        strandLeft > strandTop
+
+
+    val solution = resMatrix.createZeroMatrix(a.length + b.length, a.length + b.length)
+    val strandMap = hashMapOf<Int, Int>()// what strand is now at left and top edge of current cell strand
+    for (i in 0 until a.length + b.length) strandMap[i] = i
+
+    for (i in a.indices) {
+        for (j in b.indices) {
+            val leftEdge = a.length - 1 - i
+            val topEdge = a.length + j
+            val leftStrand = strandMap[leftEdge]!!
+            val rightStrand = strandMap[topEdge]!!
+
+            if (a[i] == b[j] || (a[i] != b[j] && leftStrand > rightStrand)) {
+                strandMap[leftEdge] = rightStrand
+                strandMap[topEdge] = leftStrand
+            }
+
+            if (j == b.length - 1) {
+                val strandEnd = leftEdge + b.length
+                val strandStart = strandMap[leftEdge]!!
+                solution[strandStart, strandEnd] = true
+            }
+
+            if (i == a.length - 1) {
+                val strandEnd = topEdge - a.length
+                val strandStart = strandMap[topEdge]!!
+                solution[strandStart, strandEnd] = true
+            }
+
+        }
+    }
+    return solution
+}
+
+
+//    /**
+//     * The iterative algorithm for semilocal lcs kernel.
+//     * See page 67
+//     *
+//     */
+//    fun semiLocalLCSIterative(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+//
+//        val P = resMatrix.createZeroMatrix(a.length + b.length, a.length + b.length)
+//        for (i in 0 until a.length + b.length) P[a.length + b.length - 1 - i, i] = true // fully mismatched
+////    for(i in 0 until a.length+b.length) P[i,i] = true // fully mismatched
+//
+//        val PStroke = resMatrix.createZeroMatrix(P.height(), 2)
+//        val cell = resMatrix.createZeroMatrix(2, 2)
+//
+//        for (i in 1 until P.height()) {
+//            for (j in 1 until P.width()) {
+//                //fresh
+//                PStroke.resetInRow(0)
+//                PStroke.resetInRow(1)
+//                PStroke[P[j - 1, AbstractPermutationMatrix.GetType.COLUMN], 0] = true
+//                PStroke[P[j, AbstractPermutationMatrix.GetType.COLUMN], 1] = true
+//                cell.resetInRow(0)
+//                cell.resetInRow(1)
+//                if (a[i] == b[j]) {
+//                    // cell.set(0,0,true)
+//                    //cell.set(1,1,true)
+//                } else {
+//                    cell[1, 0] = true
+//                    cell[0, 1] = true
+//                    P.resetInColumn(j)
+//                    P.resetInColumn(j - 1)
+//                    val product = steadyAntWrapper(PStroke, cell)
+//                    for (p in product) P[p.i, p.j + j - 1] = true
+//                }
+//            }
+//
+//        }
+//        //  P.print()
+//
+//        return P
+//    }

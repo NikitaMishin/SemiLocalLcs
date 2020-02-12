@@ -1,8 +1,9 @@
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.random.Random
 
-internal class SemiLocalLcsKtTest {
+internal class SemiLocalLCSTest:SemiLocalLCSBaseTester(Random(9)) {
 
     val bookP = listOf(
         Position2D(0, 4),
@@ -121,12 +122,21 @@ internal class SemiLocalLcsKtTest {
     }
 
     @Test
-    fun debug() {
-        val P = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 1)), 2, 2)
-        val Q = PermutationMatrixTwoLists(listOf(Position2D(0, 0), Position2D(1, 2)), 2, 4)
-        val p = "ab"
-        val q = "b"
-        semiLocalLCSRecursive(p,q,P).print()
+    fun testSemiLocalReducingAndRecursiveEqualityRandom() {
+        // odd test?
+        var aSizeMax = 25
+        var bSizeMax = 25
 
+
+        for(i in 0 until aSizeMax){
+            for (j in  0 until bSizeMax ){
+                val a = getRandomString(1,aSizeMax,alphabet).toString()
+                val b = getRandomString(9,bSizeMax,alphabet).toString()
+                val reducingSolution = semiLocalLCSByReducing(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+                val recursiveSolution = semiLocalLCSRecursive(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+                assertTrue(recursiveSolution.IsEquals(reducingSolution))
+            }
+        }
     }
+
 }
