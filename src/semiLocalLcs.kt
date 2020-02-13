@@ -117,23 +117,25 @@ interface ISemiLocalLCS {
 }
 
 //TODO add semilocalLCS with fast query
-interface IImplicitSemiLocalLCS:ISemiLocalLCS
+interface IImplicitSemiLocalLCS : ISemiLocalLCS
 
 
-
-
-class ImplicitSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>,var kernelEvaluator:(List<Element>,List<Element>)->AbstractPermutationMatrix) :
+class ImplicitSemiLocalLCS<Element>(
+    val a: List<Element>,
+    val b: List<Element>,
+    var kernelEvaluator: (List<Element>, List<Element>) -> AbstractPermutationMatrix
+) :
     ISemiLocalLCS where Element : Comparable<Element> {
 
     val m = a.size
     val n = b.size
 
-    internal var permutationMatrix:AbstractPermutationMatrix = kernelEvaluator(a,b)
-    internal var rangeTree2D:RangeTree2D<Int>
+    internal var permutationMatrix: AbstractPermutationMatrix = kernelEvaluator(a, b)
+    internal var rangeTree2D: RangeTree2D<Int>
 
     init {
         val mutableList = mutableListOf<Position2D<Int>>()
-        for (p in  permutationMatrix) mutableList.add(p)
+        for (p in permutationMatrix) mutableList.add(p)
         rangeTree2D = RangeTree2D(mutableList)
 
     }
@@ -141,15 +143,8 @@ class ImplicitSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>,v
     /**
      * i from 0 to m + n
      */
-    private fun canonicalDecomposition(i:Int,j:Int):Int{
-
-        permutationMatrix.print()
-        println()
-        println("$m $n $i")
-        println("query IntervalQuery($i,${m+n-1}),IntervalQuery(${0},${j-1}) = ${rangeTree2D.ortoghonalQuery(IntervalQuery(i,m+n-1),IntervalQuery(0,j-1)) } ")
-        return j - ( i - m ) - rangeTree2D.ortoghonalQuery(IntervalQuery(i,m+n-1),IntervalQuery(0,j-1))
-
-    }
+    fun canonicalDecomposition(i: Int, j: Int): Int =
+        j - (i - m) - rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n), IntervalQuery(-1, j - 1))
 
 
     override fun prefixSuffixLCS(k: Int, j: Int): Int {
@@ -157,8 +152,8 @@ class ImplicitSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>,v
     }
 
     override fun stringSubstringLCS(i: Int, j: Int): Int {
-        if (i < 0 || i > n || j < 0 || j > n || i>=j) return 0
-        return canonicalDecomposition(i+m ,j)
+        if (i < 0 || i > n || j < 0 || j > n) return -1
+        return canonicalDecomposition(i + m, j)
     }
 
     override fun substringStringLCS(k: Int, l: Int): Int {
@@ -168,7 +163,6 @@ class ImplicitSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>,v
     override fun suffixPrefixLCS(l: Int, i: Int): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
 
 
 }
@@ -186,8 +180,7 @@ fun staggeredStickyMultiplication(
     k: Int
 ): AbstractPermutationMatrix {
     if (k < 0 || k > min(P.width(), Q.height())) throw IllegalArgumentException("0<=k<=${P.width()},${Q.height()}")
-    val PIdentitySize = Q.height() - k
-    val QIdentitySize = P.width() - k
+
     when {
         k == 0 -> {
             val res = P.createZeroMatrix(P.height() + Q.height(), P.width() + Q.width())
@@ -197,22 +190,34 @@ fun staggeredStickyMultiplication(
         }
         k == P.width() && k == Q.height() -> return steadyAntWrapper(P, Q)
         else -> {
-            // TODO not optimal ask Tiskin or discuss with Danya
-            val PExt = P.createZeroMatrix(P.height() + Q.height() - k, PIdentitySize + P.width())
-            for (i in 0 until PIdentitySize) PExt[i, i] = true
-            for (p in P) PExt[p.i + PIdentitySize, p.j + PIdentitySize] = true
+            // take first k columns from P and last k rows from Q, multiply and to bottom left corner of extended matrix
 
-            val QExt = Q.createZeroMatrix(Q.height() + QIdentitySize, P.width() + Q.width() - k)
-
-            for (i in 0 until QIdentitySize) {
-                QExt[Q.height() + i, Q.width() + i] = true
+            val reducedP = P.createZeroMatrix(P.height(), k)
+            for (column in 0 until k) {
+                val row = P[column, AbstractPermutationMatrix.GetType.COLUMN]
+                if (row != P.NOPOINT) reducedP[row, column] = true
             }
-            for (q in Q) QExt[q.i, q.j] = true
-            return steadyAntWrapper(PExt, QExt)
+            val reducedQ = Q.createZeroMatrix(k, Q.width())
+            for (row in 0 until k) {
+                val column = Q[Q.height() - k + row, AbstractPermutationMatrix.GetType.ROW]
+                if (column != Q.NOPOINT) reducedQ[row, column] = true
+            }
+            val res = P.createZeroMatrix(P.height() + Q.height() - k, P.width() + Q.width() - k)
+            val reducedRes = steadyAntWrapper(reducedP, reducedQ)
+
+
+            for (p in reducedRes) res[Q.height() - k + p.i, p.j] = true
+
+            for (q in Q)
+                if (q.i < Q.height() - k) res[q.i, q.j] = true
+
+
+            for (p in P)
+                if (p.j >= k) res[p.i + Q.height() - k, p.j + Q.width() - k] = true
+
+            return res
         }
     }
-
-
 }
 
 
@@ -238,7 +243,11 @@ fun getPermBA(A: AbstractPermutationMatrix, m: Int, n: Int): AbstractPermutation
  * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
  * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
  */
-fun <Elem:Comparable<Elem>>semiLocalLCSRecursive(a: List<Elem>, b: List<Elem>, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+fun <Elem : Comparable<Elem>> semiLocalLCSRecursive(
+    a: List<Elem>,
+    b: List<Elem>,
+    resMatrix: AbstractPermutationMatrix
+): AbstractPermutationMatrix {
     if (a.size == 1 && b.size == 1) {
         val identityMatrix = resMatrix.createZeroMatrix(2, 2)
         if (a == b) {
@@ -284,7 +293,11 @@ fun <Elem:Comparable<Elem>>semiLocalLCSRecursive(a: List<Elem>, b: List<Elem>, r
  * @param resMatrix is for providing createZeroMatrix function of specified type (bad kotlin)
  * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
  */
-fun <Elem:Comparable<Elem>>semiLocalLCSByReducing(a: List<Elem>, b: List<Elem>, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+fun <Elem : Comparable<Elem>> semiLocalLCSByReducing(
+    a: List<Elem>,
+    b: List<Elem>,
+    resMatrix: AbstractPermutationMatrix
+): AbstractPermutationMatrix {
 
 //    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
 //        //странд слева > странд сверху
