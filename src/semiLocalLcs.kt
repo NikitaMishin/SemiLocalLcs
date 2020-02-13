@@ -144,16 +144,6 @@ class ImplicitSemiLocalLCS<Element>(
      * i from 0 to m + n
      */
     fun canonicalDecomposition(i: Int, j: Int): Int {
-        println()
-        permutationMatrix.print()
-        print("${j} ${i - m} ${IntervalQuery(i, m + n+1)} ${IntervalQuery(0, j - 1)}, " +
-                "${rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n+1), IntervalQuery(0, j - 1))}")
-        println()
-//        for(p in permutationMatrix){
-//            print(p)
-//        }
-        println()
-
         return j - (i - m) - rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n+1), IntervalQuery(0, j - 1))
     }
 
@@ -164,7 +154,6 @@ class ImplicitSemiLocalLCS<Element>(
 
     override fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
-        println("real=$i $j")
         return canonicalDecomposition(i + m, j )
     }
 

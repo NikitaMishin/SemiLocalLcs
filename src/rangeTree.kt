@@ -109,7 +109,8 @@ class RangeTree2D<T : Comparable<T>>(points: List<Position2D<T>>) {
         if (xPoints.isEmpty()) {
             return null
         }
-        if (size == 1) return RangeTreeNode(xPoints[0], 1, null, null, SortedArray(listOf(yPoints[0].j)))
+        if (size == 1)
+            return RangeTreeNode(xPoints[0], 1, null, null, SortedArray(listOf(yPoints[0].j)))
 
         val median = ceil(xPoints.size.toDouble() / 2).toInt() - 1
 
@@ -142,6 +143,10 @@ class RangeTree2D<T : Comparable<T>>(points: List<Position2D<T>>) {
         var left = lcs?.leftSubtree
         var right = lcs?.rightSubtree
 
+        if (lcs?.isLeaf()!! && lcs.value.isInside(intervalX, intervalY)) return lcs.rangeTree1D.countElementsBetween(
+            intervalY
+        )
+
         while (left != null) {
             if (left.isLeaf()) {
                 result += if (left.value.isInside(intervalX, intervalY)) 1 else 0
@@ -163,6 +168,7 @@ class RangeTree2D<T : Comparable<T>>(points: List<Position2D<T>>) {
             } else if (intervalX.rightInclusive > right.value.i) {
                 val queryOnY = if (right.leftSubtree != null)
                     right.leftSubtree!!.rangeTree1D.countElementsBetween(intervalY) else 0
+
                 result += queryOnY
                 right = right.rightSubtree
             } else {

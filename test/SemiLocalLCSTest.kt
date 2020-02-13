@@ -152,8 +152,6 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
                 )
                 val expectedLCSMatrix = NaiveSemiLocalLCS(a, b).semiLocalLCSMatrix
                 val actualKernel = implicit.permutationMatrix
-                checkStringSubstringProblem(a,b,implicit)
-
 
                 val exp = actualKernel.createZeroMatrix(actualKernel.height(), actualKernel.width())
                 for (i in 0 until actualKernel.height()) {
@@ -198,7 +196,7 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
     }
 
     @Test
-    fun blablaTest(){
+    fun ImplicitSemiLocalLCSViaReducingTest(){
          val random = Random(0)
             val sizeA = random.nextInt(100)
             val sizeB = random.nextInt(100)
@@ -206,7 +204,6 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
             for (r in 0 until repeats) {
                 val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
                 val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
-//                var solution = NaiveSemiLocalLCS(A,B)
                 val solution = ImplicitSemiLocalLCS(A, B){ a: List<Char>, b: List<Char> ->
                     semiLocalLCSByReducing(
                         a, b, PermutationMatrixTwoLists(
@@ -214,11 +211,28 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
                         )
                     )
                 }
-
                 checkSemiLocalLCS(A, B, solution)
             }
+    }
 
-
+    @Test
+    fun ImplicitSemiLocalLCSViaRecursiveTest(){
+        val random = Random(0)
+        val sizeA = random.nextInt(100)
+        val sizeB = random.nextInt(100)
+        val repeats = 250
+        for (r in 0 until repeats) {
+            val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
+            val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
+            val solution = ImplicitSemiLocalLCS(A, B){ a: List<Char>, b: List<Char> ->
+                semiLocalLCSRecursive(
+                    a, b, PermutationMatrixTwoLists(
+                        listOf(), 0, 0
+                    )
+                )
+            }
+            checkSemiLocalLCS(A, B, solution)
+        }
     }
 
 
