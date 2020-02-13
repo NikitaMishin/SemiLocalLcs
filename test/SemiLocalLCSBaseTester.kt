@@ -42,6 +42,9 @@ internal open class SemiLocalLCSBaseTester(val random: Random) {
         for (j in 0..B.size) {
             for (i in 0 until j) {
                 val subList = B.subList(i, j)
+                println("${i},${j},${B.size}")
+                println(A)
+                println(subList)
                 Assertions.assertEquals(dummyLcs(A, subList)[A.size][subList.size], solution.stringSubstringLCS(i, j))
             }
         }

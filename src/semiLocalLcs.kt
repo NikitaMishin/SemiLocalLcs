@@ -143,25 +143,39 @@ class ImplicitSemiLocalLCS<Element>(
     /**
      * i from 0 to m + n
      */
-    fun canonicalDecomposition(i: Int, j: Int): Int =
-        j - (i - m) - rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n), IntervalQuery(-1, j - 1))
+    fun canonicalDecomposition(i: Int, j: Int): Int {
+        println()
+        permutationMatrix.print()
+        print("${j} ${i - m} ${IntervalQuery(i, m + n+1)} ${IntervalQuery(0, j - 1)}, " +
+                "${rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n+1), IntervalQuery(0, j - 1))}")
+        println()
+//        for(p in permutationMatrix){
+//            print(p)
+//        }
+        println()
 
+        return j - (i - m) - rangeTree2D.ortoghonalQuery(IntervalQuery(i, m + n+1), IntervalQuery(0, j - 1))
+    }
 
     override fun prefixSuffixLCS(k: Int, j: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (k < 0 || k > m || j < 0 || j > n) return -1
+        return canonicalDecomposition(m - k,j) - k //?TPDP
     }
 
     override fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
-        return canonicalDecomposition(i + m, j)
+        println("real=$i $j")
+        return canonicalDecomposition(i + m, j )
     }
 
     override fun substringStringLCS(k: Int, l: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (k < 0 || k > m || l < 0 || l > m) return -1
+        return canonicalDecomposition(m - k,m + n - l) - m - k + l
     }
 
     override fun suffixPrefixLCS(l: Int, i: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (l < 0 || l > m || i < 0 || i > n) return -1
+        return canonicalDecomposition(i + m,m + n - l) - m + l
     }
 
 

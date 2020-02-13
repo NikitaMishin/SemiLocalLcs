@@ -73,7 +73,7 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
     )
 
 
-    @Test
+//    @Test
     fun steadyAntRandomTest() {
 
         val widthsQ = 30
@@ -106,52 +106,53 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
     }
 
 
-    @Test
-    fun steadyAntBookExample() {
-
-        val matrixP = PermutationMatrixTwoLists(bookP, 20, 20)
-        val matrixQ = PermutationMatrixTwoLists(bookQ, 20, 20)
-        val matrixR = steadyAntWrapper(matrixP, matrixQ)
-        val naiveRes = mutableListOf<Position2D<Int>>()
-
-        for (p in matrixR) {
-            naiveRes.add(p)
-        }
-
-        assertEquals(bookR, naiveRes)
-
-    }
-
 //    @Test
-//    fun testSemiLocalReducingAndRecursiveEqualityRandom() {
-//        // odd test?
-//        var aSizeMax = 25
-//        var bSizeMax = 25
+//    fun steadyAntBookExample() {
 //
+//        val matrixP = PermutationMatrixTwoLists(bookP, 20, 20)
+//        val matrixQ = PermutationMatrixTwoLists(bookQ, 20, 20)
+//        val matrixR = steadyAntWrapper(matrixP, matrixQ)
+//        val naiveRes = mutableListOf<Position2D<Int>>()
 //
-//        for(i in 0 until aSizeMax){
-//            for (j in  0 until bSizeMax ){
-//                val a = getRandomString(1,aSizeMax,alphabet).toString()
-//                val b = getRandomString(9,bSizeMax,alphabet).toString()
-//                val reducingSolution = semiLocalLCSByReducing(a,b,PermutationMatrixTwoLists(listOf(),0,0))
-//                val recursiveSolution = semiLocalLCSRecursive(a,b,PermutationMatrixTwoLists(listOf(),0,0))
-//                assertTrue(recursiveSolution.IsEquals(reducingSolution))
-//            }
+//        for (p in matrixR) {
+//            naiveRes.add(p)
 //        }
+//
+//        assertEquals(bookR, naiveRes)
+//
 //    }
-
+//
+////    @Test
+////    fun testSemiLocalReducingAndRecursiveEqualityRandom() {
+////        // odd test?
+////        var aSizeMax = 25
+////        var bSizeMax = 25
+////
+////
+////        for(i in 0 until aSizeMax){
+////            for (j in  0 until bSizeMax ){
+////                val a = getRandomString(1,aSizeMax,alphabet).toString()
+////                val b = getRandomString(9,bSizeMax,alphabet).toString()
+////                val reducingSolution = semiLocalLCSByReducing(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+////                val recursiveSolution = semiLocalLCSRecursive(a,b,PermutationMatrixTwoLists(listOf(),0,0))
+////                assertTrue(recursiveSolution.IsEquals(reducingSolution))
+////            }
+////        }
+////    }
+//
     private fun checkKernelCalculationCorrectnessTest(kernel: (List<Char>, List<Char>) -> AbstractPermutationMatrix) {
-        var aSizeMax = 25
-        var bSizeMax = 25
+        val aSizeMax = 25
+        val bSizeMax = 25
         for (i in 0 until aSizeMax) {
             for (j in 0 until bSizeMax) {
                 val a = getRandomString(1, aSizeMax, alphabet)
                 val b = getRandomString(9, bSizeMax, alphabet)
-                var implicit = ImplicitSemiLocalLCS(
+                val implicit = ImplicitSemiLocalLCS(
                     a, b, kernel
                 )
                 val expectedLCSMatrix = NaiveSemiLocalLCS(a, b).semiLocalLCSMatrix
-                var actualKernel = implicit.permutationMatrix
+                val actualKernel = implicit.permutationMatrix
+                checkStringSubstringProblem(a,b,implicit)
 
 
                 val exp = actualKernel.createZeroMatrix(actualKernel.height(), actualKernel.width())
@@ -184,7 +185,6 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
                 )
             )
         }
-
     }
     @Test
     fun checkKernelReducingTest() {
@@ -197,42 +197,32 @@ internal class SemiLocalLCSTest : SemiLocalLCSBaseTester(Random(9)) {
         }
     }
 
-//                var tree = implicit.rangeTree2D
-//
-//                implicit.permutationMatrix.print()
-//                println()
-//
-//
-//
-//                println(expectedLCSMatrix.size)
-//                println(expectedLCSMatrix[0].size)
-//                println(actualKernel.height())
-//                println(actualKernel.width())
-//                for (i in 0 until actualKernel.height()+1) {
-//                    for (j in 0 until actualKernel.width()+1) {
-//                        println("$i $j")
-//                        if (expectedLCSMatrix[i][j]!=
-//                        j - (i - a.size) - tree.ortoghonalQuery(
-//                                IntervalQuery(i, actualKernel.height() + 1),
-//                                IntervalQuery(-1, j-1)
-//                            )) {
-//                            implicit.permutationMatrix.print()
-//                            println()
-//                            println(tree.ortoghonalQuery(
-//                                IntervalQuery(i, actualKernel.height() + 1),
-//                                IntervalQuery(-1, j-1)
-//                            ))
-//
-//                        }
-//                        assertEquals(
-//                            expectedLCSMatrix[i][j],
-//                            j - (i - a.size) - tree.ortoghonalQuery(
-//                                IntervalQuery(i, actualKernel.height() + 1),
-//                                IntervalQuery(-1, j-1)
-//                            )
-//                        )
-//                    }
-//                }
+    @Test
+    fun blablaTest(){
+         val random = Random(0)
+            val sizeA = random.nextInt(100)
+            val sizeB = random.nextInt(100)
+            val repeats = 250
+            for (r in 0 until repeats) {
+                val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
+                val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
+//                var solution = NaiveSemiLocalLCS(A,B)
+                val solution = ImplicitSemiLocalLCS(A, B){ a: List<Char>, b: List<Char> ->
+                    semiLocalLCSByReducing(
+                        a, b, PermutationMatrixTwoLists(
+                            listOf(), 0, 0
+                        )
+                    )
+                }
+
+                checkSemiLocalLCS(A, B, solution)
+            }
+
+
+    }
+
+
+
 
 
 
