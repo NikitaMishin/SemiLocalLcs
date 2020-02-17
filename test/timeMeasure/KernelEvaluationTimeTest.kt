@@ -39,7 +39,7 @@ class KernelEvaluationTimeTest {
     private fun getNaiveSemiLocalLCS(A: String, B: String): ISemiLocalLCS = NaiveSemiLocalLCS(A.toList(), B.toList())
 
 
-    private fun timeTest(sizeA: Int, sizeB: Int, tries: Int, evaluator: (A: String, B: String) -> ISemiLocalLCS) {
+    private fun timeTest(sizeA: Int, sizeB: Int, tries: Int, evaluator: (A: String, B: String) -> ISemiLocalLCS,withCheckingCorrectness:Boolean) {
         val random = Random(0)
         var accumulatedTime: Long = 0
         for (i in 0 until tries) {
@@ -48,53 +48,55 @@ class KernelEvaluationTimeTest {
             accumulatedTime += measureTimeMillis {
                 evaluator(a, b)
             }
-            val naiveRes = getNaiveSemiLocalLCS(a, b)
-            val implicitRes = evaluator(a, b)
-            checkSemiLocal(naiveRes, implicitRes, a.length + b.length, a.length + b.length)
+            if(withCheckingCorrectness) {
+                val naiveRes = getNaiveSemiLocalLCS(a, b)
+                val implicitRes = evaluator(a, b)
+                checkSemiLocal(naiveRes, implicitRes, a.length + b.length, a.length + b.length)
+            }
         }
         println("The average running time for multiplication is ${accumulatedTime / tries} millisecond")
     }
 
     @Test
     fun semiLocal100x100Recursive() {
-        timeTest(100, 100, 100, ::getSemiLocalRecursive)
+        timeTest(100, 100, 10, ::getSemiLocalRecursive,true)
     }
 
     @Test
     fun semiLocal100x100Reducing() {
-        timeTest(100, 100, 100, ::getSemiLocalReducing)
+        timeTest(100, 100, 10, ::getSemiLocalReducing,true)
     }
 
 
     @Test
     fun semiLocal500x500Recursive() {
-        timeTest(500, 500, 5, ::getSemiLocalRecursive)
+        timeTest(500, 500, 2, ::getSemiLocalRecursive,false)
     }
 
     @Test
     fun semiLocal500x500Reducing() {
-        timeTest(500, 500, 5, ::getSemiLocalReducing)
+        timeTest(500, 500, 2, ::getSemiLocalReducing,false)
     }
 
     @Test
     fun semiLocal1000x1000Recursive() {
-        timeTest(1000, 1000, 1, ::getSemiLocalRecursive)
+        timeTest(1000, 1000, 1, ::getSemiLocalRecursive,false)
     }
 
     @Test
     fun semiLocal1000x1000Reducing() {
-        timeTest(1000, 1000, 1, ::getSemiLocalReducing)
+        timeTest(1000, 1000, 1, ::getSemiLocalReducing,false)
     }
 
 
     @Test
     fun semiLocal2000x2000Recursive() {
-        timeTest(2000, 2000, 1, ::getSemiLocalRecursive)
+        timeTest(2000, 2000, 1, ::getSemiLocalRecursive,false)
     }
 
     @Test
     fun semiLocal2000x2000Reducing() {
-        timeTest(2000, 2000, 1, ::getSemiLocalReducing)
+        timeTest(2000, 2000, 1, ::getSemiLocalReducing,false)
     }
 
 
