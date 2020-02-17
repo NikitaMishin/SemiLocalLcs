@@ -43,6 +43,7 @@ class KernelEvaluationTimeTest {
         val random = Random(0)
         var accumulatedTime: Long = 0
         for (i in 0 until tries) {
+            println("Processed $i from $tries ")
             val a = ISemiLocalLCS.getRandomString(tries, sizeA, ISemiLocalLCS.alphabet, random).toString()
             val b = ISemiLocalLCS.getRandomString(tries, sizeB, ISemiLocalLCS.alphabet, random).toString()
             accumulatedTime += measureTimeMillis {
@@ -59,12 +60,12 @@ class KernelEvaluationTimeTest {
 
     @Test
     fun semiLocal100x100Recursive() {
-        timeTest(100, 100, 10, ::getSemiLocalRecursive,true)
+        timeTest(100, 100, 5, ::getSemiLocalRecursive,false)
     }
 
     @Test
     fun semiLocal100x100Reducing() {
-        timeTest(100, 100, 10, ::getSemiLocalReducing,true)
+        timeTest(100, 100, 5, ::getSemiLocalReducing,false)
     }
 
 
