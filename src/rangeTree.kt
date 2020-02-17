@@ -1,11 +1,7 @@
 import kotlin.math.ceil
 
 
-//TODO implicit MONGE
-
-// TODO row minima
-
-//TODO exlicit monge
+data class IntervalQuery<T : Comparable<T>>(val leftInclusive: T, val rightInclusive: T)
 
 
 data class SortedArray<T : Comparable<T>>(val sortedPointsByY: List<T>) {
@@ -75,12 +71,11 @@ data class SortedArray<T : Comparable<T>>(val sortedPointsByY: List<T>) {
 
 
 data class Position2D<T : Comparable<T>>(var i: T, var j: T) {
-    inline fun isInside(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Boolean =
+    fun isInside(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Boolean =
         (i >= intervalX.leftInclusive && i <= intervalX.rightInclusive)
                 && (j >= intervalY.leftInclusive && j <= intervalY.rightInclusive)
 }
 
-data class IntervalQuery<T : Comparable<T>>(val leftInclusive: T, val rightInclusive: T)
 
 /**
  * For for unique points

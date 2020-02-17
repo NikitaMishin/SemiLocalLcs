@@ -1,6 +1,8 @@
 import kotlin.math.max
 
-
+/**
+ * Implementation of semi-local LCS via naive approach, i.e the semi-local lcs matrix stored explicitly
+ */
 data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>) :
     ISemiLocalLCS where Element : Comparable<Element> {
     // a of size m
@@ -30,7 +32,6 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
         }
     }
 
-    //IS this error TODO
     override fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
         return semiLocalLCSMatrix[i + m][j]
@@ -38,7 +39,7 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
 
     override fun prefixSuffixLCS(k: Int, j: Int): Int {
         if (k < 0 || k > m || j < 0 || j > n) return -1
-        return semiLocalLCSMatrix[m - k][j] - k //?TPDP
+        return semiLocalLCSMatrix[m - k][j] - k
     }
 
     override fun suffixPrefixLCS(l: Int, i: Int): Int {
@@ -78,6 +79,8 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
         }
         return lcsMatrix[m - 1][n - 1]
     }
+
+    override fun getAtPosition(i: Int, j: Int): Int = semiLocalLCSMatrix[i][j]
 
     /**
      * For testing purposes

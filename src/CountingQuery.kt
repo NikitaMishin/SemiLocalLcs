@@ -1,13 +1,14 @@
 /**
  * Class for dominance sum counting queries with O(1) for permutation and subpermutation matrices.
- * Given the sum in position i,j each function returns sum in adjacent position for differnet type of dominance sum.
- * The prefix (SUM......) determines type of dominance sum whereas prefix (...Move)  determines adjacent posititon
+ * Given the sum in position i,j each function returns sum in adjacent position for different type of dominance sum.
+ * The prefix (SUM......) determines type of dominance sum whereas prefix (...Move)  determines adjacent position.
+ * TODO add all moves for SumTopRight dominance sum
  */
 class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumTopLeftLeftMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumTopLeftLeftMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
         var jCap = j
         if (jCap == 0) return sum
         jCap--
@@ -20,7 +21,7 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumTopLeftDownMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumTopLeftDownMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
         val iCap = i
         if (iCap >= permMatrix.height()) {
             return 0
@@ -34,7 +35,7 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumTopLeftUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumTopLeftUpMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
         var iCap = i
         if (iCap == 0) {
             return sum
@@ -50,12 +51,11 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumTopLeftRightMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
 
-        val jCap = j
-        if (jCap >= permMatrix.width()) return 0
+        if (j >= permMatrix.width()) return 0
 
-        val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        val iCap = permMatrix[j, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
         return sum + if (iCap < i) 0 else -1
     }
@@ -63,7 +63,7 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumBottomRightLeftMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumBottomRightLeftMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
         var jCap = j
         if (jCap == 0) return sum
         jCap--
@@ -76,12 +76,11 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumBottomRightDownMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val iCap = i
-        if (iCap >= permMatrix.height()) {
+    fun dominanceSumBottomRightDownMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
+        if (i >= permMatrix.height()) {
             return 0
         }
-        val jCap = permMatrix[iCap, AbstractPermutationMatrix.GetType.ROW]
+        val jCap = permMatrix[i, AbstractPermutationMatrix.GetType.ROW]
         if (jCap == permMatrix.NOPOINT) return sum
         return sum + if (jCap < j) 1 else 0
     }
@@ -89,7 +88,7 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumBottomRightUpMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
+    fun dominanceSumBottomRightUpMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
         var iCap = i
 
         if (iCap == 0) {
@@ -106,14 +105,17 @@ class CountingQuery {
     /**
      * see class definition
      */
-    fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: AbstractPermutationMatrix): Int {
-        val jCap = j
-        if (jCap >= permMatrix.width()) return 0
+    fun dominanceSumBottomRightRightMove(i: Int, j: Int, sum: Int, permMatrix: Matrix): Int {
+        if (j >= permMatrix.width()) return 0
 
-        val iCap = permMatrix[jCap, AbstractPermutationMatrix.GetType.COLUMN]
+        val iCap = permMatrix[j, AbstractPermutationMatrix.GetType.COLUMN]
         if (iCap == permMatrix.NOPOINT) return sum
         return sum + if (iCap < i) 1 else 0
     }
+
+    /**
+     * see class definition
+     */
 
     companion object {
         val topRightSummator: (Position2D<Int>, row: Int, col: Int) -> Boolean =
@@ -126,7 +128,7 @@ class CountingQuery {
             { pos, row, col -> pos.i < row && pos.j < col } //above-left
 
 
-        fun dominanceMatrix(matrix: AbstractPermutationMatrix, func: (Position2D<Int>, Int, Int) -> Boolean)
+        fun dominanceMatrix(matrix: Matrix, func: (Position2D<Int>, Int, Int) -> Boolean)
                 : Array<Array<Int>> {
             //half sizes for permutation matrix
             // and for croos is integer

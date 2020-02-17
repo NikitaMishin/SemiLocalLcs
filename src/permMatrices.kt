@@ -1,4 +1,8 @@
+import kotlin.math.abs
 import kotlin.random.Random
+
+
+typealias Matrix = AbstractPermutationMatrix
 
 /**
  * Class that represents permutation and subpermutation matrices
@@ -39,8 +43,8 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
     abstract operator fun set(row: Int, col: Int, value: Boolean)
 
     /**
-     * Returns the  position of non zero elemenet in a row(col) given positon in a col(row)
-     * @param getType deterimines the type of query. For example matrix[col_i,,ColTYpe]
+     * Returns the  position of non zero element in a row(col) given position in a col(row)
+     * @param getType determines the type of query. For example matrix[col_i,,ColTYpe]
      * @return NOPOINT if no point in a row(col) or position in a row(col)
      */
     abstract operator fun get(pos: Int, getType: GetType): Int
@@ -58,7 +62,7 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
     /**
      * wheather matrix is stochastic or not
      */
-    abstract fun IsStochastic(): Boolean
+    abstract fun isStochastic(): Boolean
 
     /**
      * Create zero matrix with NOPOINT at each position in created matrix
@@ -68,20 +72,14 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
     abstract fun print()
 
     companion object {
-
-        fun generatePermutationMatrix(
-            height: Int,
-            width: Int,
-            nonZerosCount: Int,
-            seed: Int
-        ): AbstractPermutationMatrix {
+        fun generatePermutationMatrix(height: Int, width: Int, nonZerosCount: Int, seed: Int): Matrix {
             if (nonZerosCount > kotlin.math.min(height, width)) throw Exception("")
             val randomizer = Random(seed)
-            var positions2D = mutableListOf<Position2D<Int>>()
+            val positions2D = mutableListOf<Position2D<Int>>()
             var remainingCount = nonZerosCount
             while (remainingCount > 0) {
-                val randI = Math.abs(randomizer.nextInt()) % height
-                val randJ = Math.abs(randomizer.nextInt()) % width
+                val randI = abs(randomizer.nextInt()) % height
+                val randJ = abs(randomizer.nextInt()) % width
                 if (positions2D.none { it.i == randI || it.j == randJ }) {
                     positions2D.add(Position2D(randI, randJ))
                     remainingCount--;
@@ -93,7 +91,7 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
 
 }
 
-fun AbstractPermutationMatrix.IsEquals(b: AbstractPermutationMatrix): Boolean {
+fun AbstractPermutationMatrix.isEquals(b: AbstractPermutationMatrix): Boolean {
     if (b.height() != this.height() || this.width() != b.width()) return false
     for (i in 0 until this.height()) {
         for (j in 0 until this.width()) {
@@ -111,8 +109,7 @@ fun AbstractPermutationMatrix.IsEquals(b: AbstractPermutationMatrix): Boolean {
  * COLS in form col -> row , if COL ->  NOPOINT => no point at all in col.
  * Standart indexation from 0 to n - 1
  */
-class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, width: Int) :
-    AbstractPermutationMatrix() {
+class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, width: Int) : Matrix() {
 
     private var rows: MutableList<Int> = MutableList(height) { NOPOINT }
     private var cols: MutableList<Int> = MutableList(width) { NOPOINT }
@@ -128,18 +125,14 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
 
     override fun width() = cols.size
 
-    override fun set(row: Int, col: Int, value: Boolean) = when (value) {
-        true -> {
+    override fun set(row: Int, col: Int, value: Boolean) {
+        if (value) {
             rows[row] = col
             cols[col] = row
+        } else if (this[row, col]) {
+            rows[row] = NOPOINT
+            cols[col] = NOPOINT
         }
-        false ->
-            if (this[row, col]) {
-                rows[row] = NOPOINT
-                cols[col] = NOPOINT
-            } else {
-            }
-
     }
 
 
@@ -162,12 +155,12 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
         if (row != NOPOINT) rows[row] = NOPOINT
     }
 
-    override fun IsStochastic(): Boolean {
+    override fun isStochastic(): Boolean {
         return if (width() > height()) !cols.any { it == NOPOINT }
         else !rows.any { it == NOPOINT }
     }
 
-    override fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix =
+    override fun createZeroMatrix(height: Int, width: Int): Matrix =
         PermutationMatrixTwoLists(mutableListOf(), height, width)
 
 

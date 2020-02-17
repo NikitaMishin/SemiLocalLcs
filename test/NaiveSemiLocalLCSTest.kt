@@ -5,6 +5,8 @@ import kotlin.random.Random
 
 internal class NaiveSemiLocalLCSTest : SemiLocalLCSBaseTester(Random(0)) {
 
+    override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalLCS =
+        NaiveSemiLocalLCS(A, B)
 
     @Test
     fun bookExampleTest() {
@@ -41,34 +43,6 @@ internal class NaiveSemiLocalLCSTest : SemiLocalLCSBaseTester(Random(0)) {
 
     }
 
-    @Test
-    fun fullyMismatchedTest() {
-        val A = "aaaaa"
-        val B = "bb"
-        checkSemiLocalLCS(A.toList(), B.toList(), NaiveSemiLocalLCS(A.toList(), B.toList()))
-    }
 
-    @Test
-    fun fullyMatchedTest() {
-        val A = "aaaaa"
-        val B = "aaaaa"
-        checkSemiLocalLCS(A.toList(), B.toList(), NaiveSemiLocalLCS(A.toList(), B.toList()))
-    }
-
-
-    @Test
-    fun randomCheckerTest() {
-        val random = Random(0)
-        val sizeA = random.nextInt(100)
-        val sizeB = random.nextInt(100)
-        val repeats = 250
-        for (r in 0 until repeats) {
-            val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
-            val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
-            val solution = NaiveSemiLocalLCS(A, B)
-            checkSemiLocalLCS(A, B, solution)
-        }
-
-    }
 
 }

@@ -2,6 +2,11 @@ import java.util.*
 import kotlin.collections.HashMap
 
 /**
+* TODO Irrelevant file?
+ * Useful - smawk algorithm row minima
+**/
+
+/**
  * Wrapper for numerical values of Matrix elements()
  * */
 abstract class ElemWrapper : Cloneable {
