@@ -4,13 +4,7 @@ import Symbol
 import java.lang.Double.max
 
 
-data class ScoringScheme(val matchScore: Double, val mismatchScore: Double, val gapScore: Double) {
-    //TODO bug in book?
-    val normalizedMismatch =  (mismatchScore - 2 * gapScore) / (matchScore - 2 * gapScore)
-    //TODO bug in book?
-    fun originalScoreFunc(score: Double, m: Int, n: Int) = score
-        //score * (matchScore - 2 * gapScore) + (m + n) * gapScore
-}
+
 
 
 class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, private val scoringScheme: ScoringScheme) :
