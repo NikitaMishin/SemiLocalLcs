@@ -46,6 +46,9 @@ internal abstract class SemiLocalLCSBaseTester(val random: Random) {
         for (j in 0..B.size) {
             for (i in 0 until j) {
                 val subList = B.subList(i, j)
+                if(dummyLcs(A, subList)[A.size][subList.size]!=solution.stringSubstringLCS(i, j)) {
+                    println()
+                }
                 Assertions.assertEquals(dummyLcs(A, subList)[A.size][subList.size], solution.stringSubstringLCS(i, j))
             }
         }
@@ -163,6 +166,4 @@ internal abstract class SemiLocalLCSBaseTester(val random: Random) {
         val B = "aaaaa"
         checkSemiLocalLCS(A.toList(), B.toList(), getSemiLocalSolution(A.toList(), B.toList()))
     }
-
-
 }

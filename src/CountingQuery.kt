@@ -1,3 +1,5 @@
+import utils.Position2D
+
 /**
  * Class for dominance sum counting queries with O(1) for permutation and subpermutation matrices.
  * Given the sum in position i,j each function returns sum in adjacent position for different type of dominance sum.

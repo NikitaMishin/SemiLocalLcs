@@ -1,13 +1,11 @@
 package sequenceAlignment
 
 import Symbol
+import utils.IScoringScheme
 import java.lang.Double.max
 
 
-
-
-
-class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, private val scoringScheme: ScoringScheme) :
+class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, private val scoringScheme: IScoringScheme) :
     ISemiLocalSA {
     private var m = a.size
     private var n = b.size
@@ -18,7 +16,7 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
                 b.map { Symbol(it, SymbolType.AlphabetSymbol) } +
                 a.map { Symbol(it, SymbolType.WildCardSymbol) }
 
-    private fun reverseRegularizationScore(value:Double):Double = scoringScheme.originalScoreFunc(value,m,n)
+    private fun reverseRegularizationScore(value:Double,i:Int,j:Int):Double = scoringScheme.getOriginalScoreFunc(value,m,i,j)
 
     internal val matrix = Array(a.size + b.size + 1)
     { i ->
@@ -46,6 +44,9 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
         val m = a.size + 1
         val bSub = bSymbolString.subList(i, j)
         val n = bSub.size + 1
+        val matchScore = scoringScheme.getNormalizedMatchScore().toDouble()
+        val mismatchScore = scoringScheme.getNormalizedMismatchScore().toDouble()
+        val gapScore = scoringScheme.getNormalizedGapScore().toDouble()
 
         val scoreMatrix = Array(m) { Array(n) { 0.0 } }
         for (i in 1 until scoreMatrix.size) {
@@ -55,12 +56,12 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
                             if ((bSub[j - 1].type == SymbolType.WildCardSymbol) ||
                                 (bSub[j - 1].type == SymbolType.AlphabetSymbol && aSymbolString[i - 1].symbol == bSub[j - 1].symbol)
                             )
-                                1.0 // normalized scoringScheme.matchScore
+                                matchScore
                             else
-                                scoringScheme.normalizedMismatch), // normalized scoringScheme.mismatchScore),
+                                mismatchScore),
                     max(
-                        scoreMatrix[i - 1][j] , //normalized gap =0
-                        scoreMatrix[i][j - 1]   // normlaized gap =0
+                        scoreMatrix[i - 1][j] + gapScore ,
+                        scoreMatrix[i][j - 1] + gapScore
                     )
                 )
             }
@@ -68,28 +69,28 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
         return scoreMatrix[m - 1][n - 1]
     }
 
-    override fun getScoringScheme(): ScoringScheme = scoringScheme
+    override fun getScoringScheme() = scoringScheme
 
 
     override fun stringSubstringSA(i: Int, j: Int): Double {
-        if (i < 0 || i > n || j < 0 || j > n) return Double.NEGATIVE_INFINITY
-        return reverseRegularizationScore(matrix[i + m][j])
+        if (i < 0 || i > n || j < 0 || j > n) return Double.NaN
+        return reverseRegularizationScore(matrix[i + m][j],i + m,j)
     }
 
     override fun prefixSuffixSA(k: Int, j: Int): Double {
-        if (k < 0 || k > m || j < 0 || j > n) return Double.NEGATIVE_INFINITY
-        return reverseRegularizationScore(matrix[m - k][j]) - k
+        if (k < 0 || k > m || j < 0 || j > n) return Double.NaN
+        return reverseRegularizationScore(matrix[m - k][j],m - k,j) - k
     }
 
     override fun suffixPrefixSA(l: Int, i: Int): Double {
-        if (l < 0 || l > m || i < 0 || i > n) return Double.NEGATIVE_INFINITY
-        return reverseRegularizationScore(matrix[i + m][m + n - l]) - m + l
+        if (l < 0 || l > m || i < 0 || i > n) return Double.NaN
+        return reverseRegularizationScore(matrix[i + m][m + n - l],i + m,m + n - l) - m + l
 
     }
 
     override fun substringStringSA(k: Int, l: Int): Double {
-        if (k < 0 || k > m || l < 0 || l > m) return Double.NEGATIVE_INFINITY
-        return reverseRegularizationScore(matrix[m - k][m + n - l]) - m - k + l
+        if (k < 0 || k > m || l < 0 || l > m) return Double.NaN
+        return reverseRegularizationScore(matrix[m - k][m + n - l],m - k,m + n - l) - m - k + l
     }
 
     /**

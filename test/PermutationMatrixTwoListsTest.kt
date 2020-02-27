@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import utils.Position2D
 
 internal class PermutationMatrixTwoListsTest {
 

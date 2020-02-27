@@ -5,14 +5,26 @@ import kotlin.random.Random
  */
 enum class SymbolType {
     AlphabetSymbol,
-    WildCardSymbol,// '?' - symbol not presented in alphabet
+    WildCardSymbol,// '?' - symbol not presented in alphabet that mathes everyother
+    GuardSymbol,// '$'- symbol not presented in alphabet that mathes only with other gard TODO what if guard in one side and ? in ohter
     //...
 }
 
 /**
  * Symbol is extended alphabet for semiLocalLCS
  */
-data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>
+data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>{
+    override fun equals(other: Any?): Boolean {
+        if (other !is Symbol<*>) return false // todo bad kotlin type erasure
+        if(this.type==SymbolType.WildCardSymbol || other.type==SymbolType.WildCardSymbol ||
+            (this.type==SymbolType.AlphabetSymbol && other.type==SymbolType.AlphabetSymbol && this.symbol==other.symbol) ||
+                    this.type==SymbolType.GuardSymbol && other.type==SymbolType.GuardSymbol) return true
+        return false
+    }
+
+    fun repeatDeeopCopy(times:Int):List<Symbol<T>> = (0 until times).map { this.copy(this.symbol,this.type) }
+    fun repeatShallowCopy(times:Int):List<Symbol<T>> = (0 until times).map { this }
+}
 
 
 /**
@@ -84,7 +96,7 @@ interface ISemiLocalLCS {
 interface IImplicitSemiLocalLCS : ISemiLocalLCS
 
 interface IStrategyKernelEvaluation<T : Comparable<T>, M : Matrix> {
-    fun evaluate(a: List<T>, b: List<T>): Matrix
+    fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix
 }
 
 /**
@@ -99,7 +111,7 @@ class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: (
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun evaluate(a: List<T>, b: List<T>): Matrix {
+    override fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix {
 
         if (a.size == 1 && b.size == 1) {
             val identityMatrix = instance.createZeroMatrix(2, 2)
@@ -139,6 +151,7 @@ class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: (
     }
 }
 
+
 /**
  *  @param matrixInstance is for providing createZeroMatrix function of specified type (bad kotlin)
  */
@@ -154,7 +167,7 @@ class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: ()
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun evaluate(a: List<T>, b: List<T>): Matrix {
+    override fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix {
 
 //    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
 //        //странд слева > странд сверху
@@ -162,15 +175,15 @@ class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: ()
 
 
         val solution = instance.createZeroMatrix(a.size + b.size, a.size + b.size)
-        val strandMap = hashMapOf<Int, Int>()// what strand is now at left and top edge of current cell strand
-        for (i in 0 until a.size + b.size) strandMap[i] = i
+        val strandMap = IntArray(a.size+b.size) { i->i}// what strand is now at left and top edge of current cell strand
+//        for (i in 0 until a.size + b.size) strandMap[i] = i
 
         for (i in a.indices) {
             for (j in b.indices) {
                 val leftEdge = a.size - 1 - i
                 val topEdge = a.size + j
-                val leftStrand = strandMap[leftEdge]!!
-                val rightStrand = strandMap[topEdge]!!
+                val leftStrand = strandMap[leftEdge]
+                val rightStrand = strandMap[topEdge]
 
                 if (a[i] == b[j] || (a[i] != b[j] && leftStrand > rightStrand)) {
                     strandMap[leftEdge] = rightStrand
@@ -179,13 +192,13 @@ class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: ()
 
                 if (j == b.size - 1) {
                     val strandEnd = leftEdge + b.size
-                    val strandStart = strandMap[leftEdge]!!
+                    val strandStart = strandMap[leftEdge]
                     solution[strandStart, strandEnd] = true
                 }
 
                 if (i == a.size - 1) {
                     val strandEnd = topEdge - a.size
-                    val strandStart = strandMap[topEdge]!!
+                    val strandStart = strandMap[topEdge]
                     solution[strandStart, strandEnd] = true
                 }
 

@@ -1,9 +1,9 @@
+import utils.Position2D
 import kotlin.math.abs
 import kotlin.random.Random
 
 
 typealias Matrix = AbstractPermutationMatrix
-
 /**
  * Class that represents permutation and subpermutation matrices
  */
@@ -209,3 +209,89 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
     }
 
 }
+
+/**
+ * see definiton
+ */
+class  SubBistochasticMatrix(private val width: Int,private val height: Int, private val v:Int){
+
+    /**
+     * Returns the value in position [row,col] in matrix
+     */
+    operator fun get(row: Int, col: Int): Double {
+        TODO()
+    }
+
+    /**
+     * Sets the value in position [row,col] in matrix
+     */
+    operator fun set(row: Int, col: Int, value: Double){
+        TODO()
+    }
+
+
+
+}
+
+//
+//typealias PosValue = Pair<Pair<Int,Int>, Double>
+//abstract class AbstractSubBistochasticMatrix:Iterable<PosValue>{
+//    /**
+//     * The type of query for get queries such as matrix[i,type]
+//     */
+//    enum class GetType {
+//        ROW,
+//        COLUMN
+//    }
+//
+//    /**
+//     * height of subbistochastic matrix
+//     */
+//    abstract fun height(): Int
+//
+//    /**
+//     * width of subbistochastic matrix
+//     */
+//    abstract fun width(): Int
+//
+//    /**
+//     * Returns the value in position [row,col] in matrix
+//     */
+//    abstract operator fun get(row: Int, col: Int): Boolean
+//
+//    /**
+//     * Sets the value in position [row,col] in matrix
+//     */
+//    abstract operator fun set(row: Int, col: Int, value: Boolean)
+//
+//    /**
+//     * Returns the  positions with values of non zero element in a row(col) given position in a col(row)
+//     * @param getType determines the type of query. For example matrix[col_i,,ColTYpe]
+//     * @return null if no point in a row(col) or position in a row(col)
+//     */
+//    abstract operator fun get(pos: Int, getType: GetType): List<PosValue>?
+//
+//    /**
+//     * Resets nonzero element in a row
+//     */
+//    abstract fun resetInRow(row: Int)
+//
+//    /**
+//     * Resets nonzero element in a col
+//     */
+//    abstract fun resetInColumn(column: Int)
+//
+//    /**
+//     * weather matrix is stochastic or not
+//     */
+//    abstract fun isStochastic(): Boolean
+//
+//    /**
+//     * Create zero matrix with NOPOINT at each position in created matrix
+//     */
+//    abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
+//
+//    abstract fun print()
+//
+//
+//}

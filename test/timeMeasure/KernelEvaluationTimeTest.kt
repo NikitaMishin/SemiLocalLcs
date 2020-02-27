@@ -60,12 +60,12 @@ class KernelEvaluationTimeTest {
 
     @Test
     fun semiLocal100x100Recursive() {
-        timeTest(100, 100, 5, ::getSemiLocalRecursive,false)
+        timeTest(100, 100, 5, ::getSemiLocalRecursive,true)
     }
 
     @Test
     fun semiLocal100x100Reducing() {
-        timeTest(100, 100, 5, ::getSemiLocalReducing,false)
+        timeTest(100, 100, 5, ::getSemiLocalReducing,true)
     }
 
 
@@ -100,6 +100,11 @@ class KernelEvaluationTimeTest {
         timeTest(2000, 2000, 1, ::getSemiLocalReducing,false)
     }
 
+
+    @Test
+    fun semiLocal10000x10000Reducing() {
+        timeTest(10000, 10000, 1, ::getSemiLocalReducing,false)
+    }
 
 
 }

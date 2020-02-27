@@ -1,6 +1,9 @@
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import utils.IntervalQuery
+import utils.Position2D
+import utils.RangeTree2D
 import kotlin.random.Random
 
 /**
@@ -10,8 +13,12 @@ import kotlin.random.Random
 internal class RangeTree2DTest {
 
     private val presetPoints = listOf(
-        Position2D(1, 2), Position2D(2, 3), Position2D(3, 5),
-        Position2D(4, 7), Position2D(5, 4), Position2D(6, 1)
+        Position2D(1, 2),
+        Position2D(2, 3),
+        Position2D(3, 5),
+        Position2D(4, 7),
+        Position2D(5, 4),
+        Position2D(6, 1)
     )
     private val preSetTree = RangeTree2D(presetPoints)
 

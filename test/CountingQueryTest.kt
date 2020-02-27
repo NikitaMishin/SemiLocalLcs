@@ -4,15 +4,19 @@ import CountingQuery.Companion.dominanceMatrix
 import CountingQuery.Companion.topLeftSummator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import utils.Position2D
 import java.lang.Math.abs
 import java.lang.Math.min
-import java.util.zip.CheckedOutputStream
 import kotlin.random.Random
 
 internal class CountingQueryTest {
 
     val positions = listOf(
-        Position2D(0, 0), Position2D(1, 1), Position2D(2, 4), Position2D(3, 2), Position2D(4, 3)
+        Position2D(0, 0),
+        Position2D(1, 1),
+        Position2D(2, 4),
+        Position2D(3, 2),
+        Position2D(4, 3)
     )
     val countingQuery = CountingQuery()
 
@@ -87,7 +91,7 @@ internal class CountingQueryTest {
     @Test
     fun dominanceSumBottomRightUpMove() {
         dominanceSumTest(bottomRightSummator, { i, j, dominanceMatrix, genMatrix ->
-            //            val f = PermutationMatrixTwoLists(listOf(Position2D(0,1)),2,2)
+            //            val f = PermutationMatrixTwoLists(listOf(utils.Position2D(0,1)),2,2)
 //            f.print()
 //            val matrix = CountingQuery.dominanceMatrix(f,CountingQuery.bottomRightSummator)
 

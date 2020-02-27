@@ -2,7 +2,7 @@ package sequenceAlignment
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.lang.Math.abs
+import utils.IScoringScheme
 import kotlin.random.Random
 
 
@@ -11,22 +11,34 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
 
     fun compareDouble(a: Double, b: Double): Boolean = kotlin.math.abs(a - b) < epsilon
 
-    fun <T : Comparable<T>> prefixAlignment(a: List<T>, b: List<T>, scoringScheme: ScoringScheme): Double {
+    fun <T : Comparable<T>> prefixAlignment(a: List<T>, b: List<T>, scoringScheme: IScoringScheme): Double {
         val scoreMatrix = Array(a.size + 1) { Array(b.size + 1) { 0.0 } }
+        val match = scoringScheme.getMatchScore().toDouble()
+        val mismatch = scoringScheme.getMismatchScore().toDouble()
+        val gap = scoringScheme.getGapScore().toDouble()
+
         for (i in 1 until scoreMatrix.size) {
             for (j in 1 until scoreMatrix[0].size) {
                 scoreMatrix[i][j] = java.lang.Double.max(
-                    scoreMatrix[i - 1][j - 1] + (if (a[i - 1] == b[j - 1]) scoringScheme.matchScore
-                    else scoringScheme.mismatchScore),
+                    scoreMatrix[i - 1][j - 1] + (if (a[i - 1] == b[j - 1]) match
+                    else mismatch),
                     java.lang.Double.max(
-                        scoreMatrix[i - 1][j] + scoringScheme.gapScore,
-                        scoreMatrix[i][j - 1] + scoringScheme.gapScore
+                        scoreMatrix[i - 1][j] + gap,
+                        scoreMatrix[i][j - 1] + gap
                     )
                 )
             }
         }
 
-        return  scoreMatrix[a.size][b.size]// - (a.size+b.size)*scoringScheme.gapScore) / (scoringScheme.matchScore-2*scoringScheme.mismatchScore)
+//        for(i in 0 until  scoreMatrix.size){
+//            for(j in 0 until  scoreMatrix[0].size){
+//                print("${scoreMatrix[i][j]}  ")
+//            }
+//            println()
+//        }
+//        println()
+
+        return scoreMatrix[a.size][b.size]// - (a.size+b.size)*scoringScheme.gapScore) / (scoringScheme.matchScore-2*scoringScheme.mismatchScore)
     }
 
     abstract fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalSA
@@ -65,10 +77,8 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
         for (j in 0..B.size) {
             for (i in 0 until j) {
                 val subList = B.subList(i, j)
-//                println(solution.getScoringScheme())
-//                println(solution.getScoringScheme().normalizedMismatch)
-//                println(solution.getScoringScheme().originalScoreFunc(solution.stringSubstringSA(i, j),subList.size,A.size))
-//                print("${A},${subList}")
+
+                var scoringScheme = solution.getScoringScheme()
                 if (!compareDouble(
                         prefixAlignment(A, subList, solution.getScoringScheme()),
                         solution.stringSubstringSA(i, j)
@@ -155,6 +165,7 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
         for (r in 0 until repeats) {
             val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
             val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
+
             val solution = getSemiLocalSolution(A, B)
             checkSemiLocalSA(A, B, solution)
         }
@@ -214,7 +225,6 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
     fun fullyMatchedTest() {
         val A = "aa"
         val B = "aa"
-        (getSemiLocalSolution(A.toList(), B.toList()) as NaiveSemiLocalSA<Char>).print()
         checkSemiLocalSA(A.toList(), B.toList(), getSemiLocalSolution(A.toList(), B.toList()))
     }
 }

@@ -1,3 +1,9 @@
+import sequenceAlignment.NaiveSemiLocalSA
+import utils.Fraction
+
+//import sequenceAlignment.ScoringScheme
+
+
 ////Ukkonen, E. (1985). Finding approximate patterns in strings. Journal of Algorithms, 6(1), 132–137. doi:10.1016/0196-6774(85)90023-9 
 //// a column ,b row
 //
@@ -69,11 +75,23 @@
 //
 //
 
-
-
 fun main() {
-//    val points = listOf(Position2D(1,2),Position2D(2,3),Position2D(3,5),Position2D(4,7),Position2D(5,4),Position2D(6,1))
-//    val tree = RangeTree2D(points)
-//    print(tree.ortoghonalQuery(IntervalQuery(1,50),IntervalQuery(1,80)))
+
+    println(Fraction(4,5)*
+    Fraction(0,6))
+//    val m = prefixAlignment("aaaaa".toList(),"".toList(), ScoringScheme(144.0,24.0,12.0))
+//    println(m)
+//    val exp = NaiveSemiLocalSA("aaaaa".toList(),"aaaaa".toList(), ScoringScheme(144.0,24.0,12.0))
+//    exp.print()
+//println(exp.prefixSuffixSA(1,0))
+//    println(exp.stringSubstringSA(0,4))
+
+//
+//    val n = NaiveSemiLocalLCS("aba".toList(),"acaa".toList())
+//    n.print()
+//    println(n.prefixSuffixLCS(1,3))
+//    val points = listOf(utils.Position2D(1,2),utils.Position2D(2,3),utils.Position2D(3,5),utils.Position2D(4,7),utils.Position2D(5,4),utils.Position2D(6,1))
+//    val tree = utils.RangeTree2D(points)
+//    print(tree.ortoghonalQuery(utils.IntervalQuery(1,50),utils.IntervalQuery(1,80)))
 
 }
