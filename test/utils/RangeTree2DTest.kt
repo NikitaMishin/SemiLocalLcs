@@ -1,9 +1,8 @@
+package utils
+
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import utils.IntervalQuery
-import utils.Position2D
-import utils.RangeTree2D
 import kotlin.random.Random
 
 /**

@@ -1,11 +1,12 @@
 package timeMeasure
 
-import IBraidMultiplication
-import NaiveBraidMultiplication
-import SteadyAntMultiplication
-import isEquals
+import longestCommonSubsequence.IBraidMultiplication
+import longestCommonSubsequence.NaiveBraidMultiplication
+import longestCommonSubsequence.SteadyAntMultiplication
+import utils.isEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import utils.AbstractPermutationMatrix
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
@@ -69,7 +70,7 @@ class BraidMultiplicationTimeTest {
 
 //    @Test
 //    fun multiplication2000Naive() {
-//        multiplicationTimeMeasure(2000, 2000, 1, NaiveBraidMultiplication())
+//        multiplicationTimeMeasure(2000, 2000, 1, longestCommonSubsequence.NaiveBraidMultiplication())
 //    }
 
     @Test
@@ -87,7 +88,7 @@ class BraidMultiplicationTimeTest {
 //
 //    @Test
 //    fun multiplication7000SteadyAnt() {
-//        multiplicationTimeMeasure(7000, 7000, 1, SteadyAntMultiplication())
+//        multiplicationTimeMeasure(7000, 7000, 1, longestCommonSubsequence.SteadyAntMultiplication())
 //    }
 
 

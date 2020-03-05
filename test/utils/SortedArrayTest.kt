@@ -1,8 +1,8 @@
+package utils
+
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import utils.IntervalQuery
-import utils.SortedArray
 import kotlin.random.Random
 
 internal class SortedArrayTest {

@@ -1,7 +1,10 @@
+package longestCommonSubsequence
+
+import utils.Matrix
 import kotlin.random.Random
 
 /**
- *Symbol type refer to Symbol
+ *longestCommonSubsequence.Symbol type refer to longestCommonSubsequence.Symbol
  */
 enum class SymbolType {
     AlphabetSymbol,
@@ -11,14 +14,15 @@ enum class SymbolType {
 }
 
 /**
- * Symbol is extended alphabet for semiLocalLCS
+ * longestCommonSubsequence.Symbol is extended alphabet for semiLocalLCS
  */
 data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>{
     override fun equals(other: Any?): Boolean {
         if (other !is Symbol<*>) return false // todo bad kotlin type erasure
-        if(this.type==SymbolType.WildCardSymbol || other.type==SymbolType.WildCardSymbol ||
-            (this.type==SymbolType.AlphabetSymbol && other.type==SymbolType.AlphabetSymbol && this.symbol==other.symbol) ||
-                    this.type==SymbolType.GuardSymbol && other.type==SymbolType.GuardSymbol) return true
+        if(this.type== SymbolType.WildCardSymbol || other.type== SymbolType.WildCardSymbol ||
+            (this.type== SymbolType.AlphabetSymbol && other.type== SymbolType.AlphabetSymbol && this.symbol==other.symbol) ||
+                    this.type== SymbolType.GuardSymbol && other.type== SymbolType.GuardSymbol
+        ) return true
         return false
     }
 
@@ -102,7 +106,8 @@ interface IStrategyKernelEvaluation<T : Comparable<T>, M : Matrix> {
 /**
  *  @param  matrixInstance to get type M (see type erasure)
  */
-class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) : IStrategyKernelEvaluation<T, M> {
+class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) :
+    IStrategyKernelEvaluation<T, M> {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
     /**
      * The recursive algorithm based on steady ant braid multiplication.
@@ -227,7 +232,7 @@ fun getPermBA(A: Matrix, m: Int, n: Int): Matrix {
 //     * See page 67
 //     *
 //     */
-//    fun semiLocalLCSIterative(a: String, b: String, resMatrix: AbstractPermutationMatrix): AbstractPermutationMatrix {
+//    fun semiLocalLCSIterative(a: String, b: String, resMatrix: utils.AbstractPermutationMatrix): utils.AbstractPermutationMatrix {
 //
 //        val P = resMatrix.createZeroMatrix(a.length + b.length, a.length + b.length)
 //        for (i in 0 until a.length + b.length) P[a.length + b.length - 1 - i, i] = true // fully mismatched
@@ -241,8 +246,8 @@ fun getPermBA(A: Matrix, m: Int, n: Int): Matrix {
 //                //fresh
 //                PStroke.resetInRow(0)
 //                PStroke.resetInRow(1)
-//                PStroke[P[j - 1, AbstractPermutationMatrix.GetType.COLUMN], 0] = true
-//                PStroke[P[j, AbstractPermutationMatrix.GetType.COLUMN], 1] = true
+//                PStroke[P[j - 1, utils.AbstractPermutationMatrix.GetType.COLUMN], 0] = true
+//                PStroke[P[j, utils.AbstractPermutationMatrix.GetType.COLUMN], 1] = true
 //                cell.resetInRow(0)
 //                cell.resetInRow(1)
 //                if (a[i] == b[j]) {

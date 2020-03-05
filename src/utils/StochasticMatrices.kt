@@ -1,13 +1,67 @@
-import utils.Position2D
+package utils
+
+import java.util.*
 import kotlin.math.abs
 import kotlin.random.Random
+
+
+
+interface IStochasticMatrix{
+    /**
+     * all elements in matrices is multiple by factor v
+     */
+    val v:Int
+
+    /**
+     * height of matrix
+     */
+    fun height(): Int
+
+    /**
+     * width of matrix
+     */
+    fun width(): Int
+    /**
+     * Get all points in specified row
+     * @param row
+     */
+    fun getAllInRow(row: Int): List<Position2D<Int>>
+    /**
+     * Get all points in specified col
+     * @param col
+     */
+    fun getAllInCol(col: Int): List<Position2D<Int>>
+
+    companion object{
+        fun generateStochasticMatrix(height: Int, width: Int, v:Int, seed: Int): IStochasticMatrix {
+            val randomizer = Random(seed)
+            val positions2D = mutableListOf<Position2D<Int>>()
+            val used = IntArray(width){0}
+            for (row in 0 until height) {
+                    for (trie in 0 until v) {
+                        val randJ = abs(randomizer.nextInt()) % width
+                        val value = abs(randomizer.nextInt()) % 100
+                        if(used[randJ] < v){
+                            used[randJ]++
+                            positions2D.add(Position2D(row,randJ,value))
+                    }
+                }
+            }
+            return VSubBistochasticMatrix(positions2D, height, width, v)
+        }
+    }
+
+
+
+}
+
 
 
 typealias Matrix = AbstractPermutationMatrix
 /**
  * Class that represents permutation and subpermutation matrices
  */
-abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
+abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>>, IStochasticMatrix {
 
     /**
      * The type of query for get queries such as matrix[i,type]
@@ -22,15 +76,6 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>> {
      */
     val NOPOINT = -1
 
-    /**
-     * height of permutation matrix
-     */
-    abstract fun height(): Int
-
-    /**
-     * width of permutation matrix
-     */
-    abstract fun width(): Int
 
     /**
      * Returns the value in position [row,col] in matrix
@@ -110,6 +155,8 @@ fun AbstractPermutationMatrix.isEquals(b: AbstractPermutationMatrix): Boolean {
  * Standart indexation from 0 to n - 1
  */
 class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, width: Int) : Matrix() {
+    override val v: Int
+        get() = 1
 
     private var rows: MutableList<Int> = MutableList(height) { NOPOINT }
     private var cols: MutableList<Int> = MutableList(width) { NOPOINT }
@@ -195,6 +242,16 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
         }
     }
 
+    override fun getAllInRow(row: Int): List<Position2D<Int>> {
+        val col = this[row, GetType.ROW]
+        return if (col != NOPOINT) listOf(Position2D(row,col)) else listOf()
+    }
+
+    override fun getAllInCol(col: Int): List<Position2D<Int>> {
+        val row = this[col, GetType.COLUMN]
+        return  if (row!=NOPOINT) listOf(Position2D(row,col)) else listOf()
+    }
+
     override fun print() {
         val dominanceMatrix = Array(height()) { Array(width()) { 0 } }
         for (pos in this) dominanceMatrix[pos.i][pos.j] = 1
@@ -210,88 +267,40 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
 
 }
 
-/**
- * see definiton
- */
-class  SubBistochasticMatrix(private val width: Int,private val height: Int, private val v:Int){
+
+class VSubBistochasticMatrix(points: List<Position2D<Int>>, height: Int, width: Int, override val v: Int):
+    IStochasticMatrix {
+
+
+    private val arrColToRow = Array(width) { LinkedList<Position2D<Int>>() }
+    private val arrRowToCol = Array(height) { LinkedList<Position2D<Int>>() }
+
+    override fun height() = arrRowToCol.size
+
+    override fun width() = arrColToRow.size
 
     /**
-     * Returns the value in position [row,col] in matrix
+     * The type of query for get queries such as matrix[i,type]
      */
-    operator fun get(row: Int, col: Int): Double {
-        TODO()
+    enum class GetType {
+        ROW,
+        COLUMN
     }
 
-    /**
-     * Sets the value in position [row,col] in matrix
-     */
-    operator fun set(row: Int, col: Int, value: Double){
-        TODO()
+    init {
+        for (pos in points) {
+            arrRowToCol[pos.i].add(Position2D(pos.i, pos.j, pos.value))
+            arrColToRow[pos.j].add(Position2D(pos.i, pos.j, pos.value))
+        }
     }
 
+    override fun getAllInCol(col: Int): List<Position2D<Int>> = this[col, GetType.COLUMN]
 
+    override fun getAllInRow(row: Int): List<Position2D<Int>> = this[row, GetType.ROW]
+
+    operator fun get(pos: Int, type: GetType) = when (type) {
+        GetType.ROW -> arrRowToCol[pos]
+        GetType.COLUMN -> arrColToRow[pos]
+    }
 
 }
-
-//
-//typealias PosValue = Pair<Pair<Int,Int>, Double>
-//abstract class AbstractSubBistochasticMatrix:Iterable<PosValue>{
-//    /**
-//     * The type of query for get queries such as matrix[i,type]
-//     */
-//    enum class GetType {
-//        ROW,
-//        COLUMN
-//    }
-//
-//    /**
-//     * height of subbistochastic matrix
-//     */
-//    abstract fun height(): Int
-//
-//    /**
-//     * width of subbistochastic matrix
-//     */
-//    abstract fun width(): Int
-//
-//    /**
-//     * Returns the value in position [row,col] in matrix
-//     */
-//    abstract operator fun get(row: Int, col: Int): Boolean
-//
-//    /**
-//     * Sets the value in position [row,col] in matrix
-//     */
-//    abstract operator fun set(row: Int, col: Int, value: Boolean)
-//
-//    /**
-//     * Returns the  positions with values of non zero element in a row(col) given position in a col(row)
-//     * @param getType determines the type of query. For example matrix[col_i,,ColTYpe]
-//     * @return null if no point in a row(col) or position in a row(col)
-//     */
-//    abstract operator fun get(pos: Int, getType: GetType): List<PosValue>?
-//
-//    /**
-//     * Resets nonzero element in a row
-//     */
-//    abstract fun resetInRow(row: Int)
-//
-//    /**
-//     * Resets nonzero element in a col
-//     */
-//    abstract fun resetInColumn(column: Int)
-//
-//    /**
-//     * weather matrix is stochastic or not
-//     */
-//    abstract fun isStochastic(): Boolean
-//
-//    /**
-//     * Create zero matrix with NOPOINT at each position in created matrix
-//     */
-//    abstract fun createZeroMatrix(height: Int, width: Int): AbstractPermutationMatrix
-//
-//    abstract fun print()
-//
-//
-//}

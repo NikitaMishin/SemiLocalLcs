@@ -7,7 +7,7 @@ import kotlin.random.Random
 
 
 internal abstract class SemiLocalSABaseTester(val random: Random) {
-    val epsilon = 1E-4
+    val epsilon = 1E-5
 
     fun compareDouble(a: Double, b: Double): Boolean = kotlin.math.abs(a - b) < epsilon
 
@@ -30,18 +30,10 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
             }
         }
 
-//        for(i in 0 until  scoreMatrix.size){
-//            for(j in 0 until  scoreMatrix[0].size){
-//                print("${scoreMatrix[i][j]}  ")
-//            }
-//            println()
-//        }
-//        println()
-
         return scoreMatrix[a.size][b.size]// - (a.size+b.size)*scoringScheme.gapScore) / (scoringScheme.matchScore-2*scoringScheme.mismatchScore)
     }
 
-    abstract fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalSA
+    abstract fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): Pair<ISemiLocalSA, IScoringScheme>
 
     val alphabet = arrayListOf(
         'a',
@@ -73,19 +65,18 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
     )
 
 
-    private fun <E : Comparable<E>> checkStringSubstringProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA) {
+    private fun <E : Comparable<E>> checkStringSubstringProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA,
+                                                                                        scoringScheme: IScoringScheme) {
         for (j in 0..B.size) {
             for (i in 0 until j) {
                 val subList = B.subList(i, j)
-
-                var scoringScheme = solution.getScoringScheme()
                 if (!compareDouble(
-                        prefixAlignment(A, subList, solution.getScoringScheme()),
+                        prefixAlignment(A, subList, scoringScheme),
                         solution.stringSubstringSA(i, j)
                     )
                 ) {
                     assertEquals(
-                        prefixAlignment(A, subList, solution.getScoringScheme()),
+                        prefixAlignment(A, subList, scoringScheme),
                         solution.stringSubstringSA(i, j)
                     )
                 }
@@ -94,24 +85,26 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
         }
     }
 
-    private fun <E : Comparable<E>> checkSubstringStringProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA) {
+    private fun <E : Comparable<E>> checkSubstringStringProblem(A: List<E>,B: List<E>,solution: ISemiLocalSA,
+                                                                                        scoringScheme: IScoringScheme) {
         for (j in 0..A.size) {
             for (i in 0 until j) {
                 val subList = A.subList(i, j)
                 if (!compareDouble(
-                        prefixAlignment(subList, B, solution.getScoringScheme()),
+                        prefixAlignment(subList, B, scoringScheme),
                         solution.substringStringSA(i, j)
                     )
                 )
                     assertEquals(
-                        prefixAlignment(subList, B, solution.getScoringScheme()),
+                        prefixAlignment(subList, B, scoringScheme),
                         solution.substringStringSA(i, j)
                     )
             }
         }
     }
 
-    private fun <E : Comparable<E>> checkPrefixSuffixProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA) {
+    private fun <E : Comparable<E>> checkPrefixSuffixProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA,
+                                                                                        scoringScheme: IScoringScheme) {
         for (i in A.indices) {
             for (j in 0..B.size) {
                 val subListA = A.subList(i, A.size)
@@ -119,41 +112,44 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
 
 
                 if (!compareDouble(
-                        prefixAlignment(subListA, subListB, solution.getScoringScheme()),
+                        prefixAlignment(subListA, subListB, scoringScheme),
                         solution.prefixSuffixSA(i, j)
                     )
-                )
+                ) {
                     assertEquals(
-                        prefixAlignment(subListA, subListB, solution.getScoringScheme()),
+                        prefixAlignment(subListA, subListB, scoringScheme),
                         solution.prefixSuffixSA(i, j)
                     )
+                }
             }
         }
     }
 
-    private fun <E : Comparable<E>> checkSuffixPrefixProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA) {
+    private fun <E : Comparable<E>> checkSuffixPrefixProblem(A: List<E>, B: List<E>, solution: ISemiLocalSA,
+                                                                                        scoringScheme: IScoringScheme) {
         for (i in 0..A.size) {
             for (j in 0 until B.size) {
                 val subListA = A.subList(0, i)
                 val subListB = B.subList(j, B.size)
                 if (!compareDouble(
-                        prefixAlignment(subListA, subListB, solution.getScoringScheme()),
+                        prefixAlignment(subListA, subListB, scoringScheme),
                         solution.suffixPrefixSA(i, j)
                     )
                 )
                     assertEquals(
-                        prefixAlignment(subListA, subListB, solution.getScoringScheme()),
+                        prefixAlignment(subListA, subListB, scoringScheme),
                         solution.suffixPrefixSA(i, j)
                     )
             }
         }
     }
 
-    fun <E : Comparable<E>> checkSemiLocalSA(A: List<E>, B: List<E>, solution: ISemiLocalSA) {
-        checkStringSubstringProblem(A, B, solution)
-        checkPrefixSuffixProblem(A, B, solution)
-        checkSuffixPrefixProblem(A, B, solution)
-        checkSubstringStringProblem(A, B, solution)
+    fun <E : Comparable<E>> checkSemiLocalSA(A: List<E>, B: List<E>, solution: ISemiLocalSA,
+                                                                                    scoringScheme: IScoringScheme) {
+        checkStringSubstringProblem(A, B, solution, scoringScheme)
+        checkPrefixSuffixProblem(A, B, solution, scoringScheme)
+        checkSuffixPrefixProblem(A, B, solution, scoringScheme)
+        checkSubstringStringProblem(A, B, solution, scoringScheme)
     }
 
     @Test
@@ -167,7 +163,7 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
             val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabet.size] }
 
             val solution = getSemiLocalSolution(A, B)
-            checkSemiLocalSA(A, B, solution)
+            checkSemiLocalSA(A, B, solution.first, solution.second)
         }
     }
 
@@ -181,7 +177,7 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
             val A = (0 until sizeA).map { 'a' }
             val B = (0 until sizeB).map { 'b' }
             val solution = getSemiLocalSolution(A, B)
-            checkSemiLocalSA(A, B, solution)
+            checkSemiLocalSA(A, B, solution.first, solution.second)
         }
     }
 
@@ -196,7 +192,7 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
             val A = (0 until sizeA).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabetSize] }
             val B = (0 until sizeB).map { alphabet[kotlin.math.abs(random.nextInt()) % alphabetSize] }
             val solution = getSemiLocalSolution(A, B)
-            checkSemiLocalSA(A, B, solution)
+            checkSemiLocalSA(A, B, solution.first, solution.second)
         }
     }
 
@@ -210,7 +206,7 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
             val A = (0 until sizeA).map { 'a' }
             val B = (0 until sizeB).map { 'a' }
             val solution = getSemiLocalSolution(A, B)
-            checkSemiLocalSA(A, B, solution)
+            checkSemiLocalSA(A, B, solution.first, solution.second)
         }
     }
 
@@ -218,13 +214,15 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
     fun fullyMismatchedTest() {
         val A = "aaaaa"
         val B = "bb"
-        checkSemiLocalSA(A.toList(), B.toList(), getSemiLocalSolution(A.toList(), B.toList()))
+        val solution = getSemiLocalSolution(A.toList(), B.toList())
+        checkSemiLocalSA(A.toList(), B.toList(), solution.first, solution.second)
     }
 
     @Test
     fun fullyMatchedTest() {
         val A = "aa"
         val B = "aa"
-        checkSemiLocalSA(A.toList(), B.toList(), getSemiLocalSolution(A.toList(), B.toList()))
+        val solution = getSemiLocalSolution(A.toList(), B.toList())
+        checkSemiLocalSA(A.toList(), B.toList(), solution.first, solution.second)
     }
 }

@@ -1,5 +1,11 @@
-import sequenceAlignment.NaiveSemiLocalSA
-import utils.Fraction
+import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
+import approximateMatching.SellersCompleteAMatch
+import approximateMatching.ThresholdAMathViaSemiLocal
+import approximateMatching.ThresholdWindowSemiLocal
+import longestCommonSubsequence.ReducingKernelEvaluation
+import sequenceAlignment.*
+import utils.*
+//import sequenceAlignment.SellersCompleteAMatchProblem
 
 //import sequenceAlignment.ScoringScheme
 
@@ -77,8 +83,99 @@ import utils.Fraction
 
 fun main() {
 
-    println(Fraction(4,5)*
-    Fraction(0,6))
+//    println(Fraction(4,5)*
+//    Fraction(0,6))
+//TODO reverse tjat u do in naive
+    val scoringSсheme =
+        RegularScoringScheme(2,10)
+//        FixedScoringScheme(Fraction(2,1),Fraction(-1,1), Fraction(-2,1))
+  val a = "kiss my ass".toList()
+    val b = "kiss me baby one more time kiskisss ".toList()
+
+   var res = SellersCompleteAMatch(a, b, scoringSсheme)
+
+    var sol = ImplicitSemiLocalSA(a,b,scoringSсheme,
+        ReducingKernelEvaluation {
+            PermutationMatrixTwoLists(
+                listOf(),
+                0,
+                0
+            )
+        })
+    var res2 = CompleteAMatchViaSemiLocalTotallyMonotone(sol)
+
+//    println()
+//    sol.print()
+    val s = ThresholdWindowSemiLocal(
+        sol,
+        CompleteAMatchViaSemiLocalTotallyMonotone(sol)
+    )
+    println("hat")
+    val k = ThresholdAMathViaSemiLocal(
+        NaiveSemiLocalSA(a,b,scoringSсheme),
+        CompleteAMatchViaSemiLocalTotallyMonotone( NaiveSemiLocalSA(a,b,scoringSсheme))
+    ).solve(5.0)
+    k.forEach { print(it) }
+    s.solve(7.0,12).forEach { print("${it}") }
+//
+    println()
+//    res.solve()
+    for( i in res.solve() ){
+        print("$i  ")
+    }
+//    for( i in res.solve().withIndex() ){
+////        println("${i.value}-${i.index}")
+////        if(i.value==i.index){
+////            print("[empty]")
+////        }
+//        print(b.subList(i.value,i.index))
+//    }
+    println()
+    for(i in res2.solve()){
+        print("$i  ")
+    }
+//    println()
+//    for( i in res2.solve().withIndex() ){
+////        println("${i.value}-${i.index}")
+////        if(i.value==i.index){
+////            print("[empty]")
+////        }
+//        print(b.subList(i.value,i.index))
+//    }
+    //for(it in SellersCompleteAMatch().solve(a,b,scoringSheme).withIndex()){
+
+      //  print("${it.value}-${it.index},") }
+
+
+//println(res.solve().forEach  (::println))
+    println()
+    val kernel = ReducingKernelEvaluation<Char, PermutationMatrixTwoLists>({
+        PermutationMatrixTwoLists(
+            listOf(),
+            0,
+            0
+        )
+    })
+//
+//    print( ImplicitSemiLocalSA(a,b,scoringSheme,kernel).stringSubstringSA(0,0))
+
+
+    println()
+   var  t = NaiveSemiLocalSA(a,b,scoringSсheme)
+       t.print()
+    println("FF")
+    println(t.stringSubstringSA(0,3))
+//    println(
+//    ImplicitSemiLocalSA(a,b,scoringSheme,kernel).stringSubstringSA(0,2)
+//    )
+//    CountingQuery.dominanceMatrix(
+//    longestCommonSubsequence.staggeredStickyMultiplication(
+//        utils.PermutationMatrixTwoLists(listOf(Position2D(0,1),Position2D(1,0)),2,2),
+//        utils.PermutationMatrixTwoLists(listOf(Position2D(0,0),Position2D(1,1)),2,2),1),CountingQuery.topRightSummator).forEach {
+//        it.forEach { print("$it  ") }
+//        println()
+//    }
+//    kernel.evaluate("a".toList().map { longestCommonSubsequence.Symbol(it,longestCommonSubsequence.SymbolType.AlphabetSymbol) },"b".toList().map { longestCommonSubsequence.Symbol(it,longestCommonSubsequence.SymbolType.AlphabetSymbol) }).print()
 //    val m = prefixAlignment("aaaaa".toList(),"".toList(), ScoringScheme(144.0,24.0,12.0))
 //    println(m)
 //    val exp = NaiveSemiLocalSA("aaaaa".toList(),"aaaaa".toList(), ScoringScheme(144.0,24.0,12.0))
@@ -87,11 +184,57 @@ fun main() {
 //    println(exp.stringSubstringSA(0,4))
 
 //
-//    val n = NaiveSemiLocalLCS("aba".toList(),"acaa".toList())
+//    val n = longestCommonSubsequence.NaiveSemiLocalLCS("aba".toList(),"acaa".toList())
 //    n.print()
 //    println(n.prefixSuffixLCS(1,3))
 //    val points = listOf(utils.Position2D(1,2),utils.Position2D(2,3),utils.Position2D(3,5),utils.Position2D(4,7),utils.Position2D(5,4),utils.Position2D(6,1))
 //    val tree = utils.RangeTree2D(points)
 //    print(tree.ortoghonalQuery(utils.IntervalQuery(1,50),utils.IntervalQuery(1,80)))
 
+    //an anti monge
+    val  matrix = listOf(
+        listOf(-25, -21, -13, - 10),
+        listOf(-25, -21, -13, - 10)
+//        listOf(-42, - 35, - 26, - 20),
+//        listOf(-57, - 48, - 35, - 28),
+//        listOf(-78, - 65, - 51, - 42),
+//        listOf(-90, - 76, - 58 ,- 48)
+    )
+    //transpose ,
+
+
+    //TODO ask tiskin wrong formula? what about totally monotonne?
+    fun scoreTransformer(value:Double,i:Int,j:Int):Double {
+        return value * (scoringSсheme.getMatchScore() - (2 * scoringSсheme.getGapScore())).toDouble() +
+                (a.size + j - i) * scoringSсheme.getGapScore().toDouble()
+    }
+
+    val n = t.b.size+1
+    val m = t.a.size
+    var c =
+//        rowMinima({i,j-> -matrix[1-j][3-i].toDouble()},4,2)
+        rowMinima({i,j->-scoreTransformer(t.matrix[ m+n-1-j][n-1-i],m+n-1-j,n-1-i)},n,n)
+//    c.reverse()
+    c.reverse()
+
+
+
+
+
+    println()
+    for (i in 0 until n){
+        for(j in 0 until n){
+            print("${scoreTransformer(t.matrix[i+m][j],i+m,j)}  ")
+        }
+        println()
+    }
+
+    println(m)
+    println(n)
+    c.forEachIndexed {index, i ->
+        println("${scoreTransformer(t.matrix[m+n-1-i][index],m+n-1-i,index)}, ${n-1-i} ${index}")
+//        println("${matrix[2-1-i][index]}, ${2-1-i}")
+//        println(i)
+
+    }
 }

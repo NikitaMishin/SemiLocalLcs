@@ -52,7 +52,6 @@ class FixedScoringScheme(private val match: Fraction, private val mismatch: Frac
 
     private val normalizedMismatch = (mismatch - 2 * gap) / (match - 2 * gap)
 
-
     override fun getNormalizedMatchScore(): Fraction = Fraction(0, 1)
 
     override fun getNormalizedMismatchScore(): Fraction = normalizedMismatch
@@ -67,7 +66,8 @@ class FixedScoringScheme(private val match: Fraction, private val mismatch: Frac
 
     override fun getOriginalScoreFunc(value: Double, m: Int, i: Int, j: Int): Double {
 //        println((m + j - i) * gap.toDouble())
-        return value * (match - 2 * gap).toDouble() + (m + j - i) * gap.toDouble()
+        //TODO ask tiskin
+        return value * (match - 2 * gap).toDouble() + ( (m +j-i)) * gap.toDouble() //- ()//gap.toDouble()
     }
 
 }

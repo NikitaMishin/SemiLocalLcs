@@ -1,19 +1,7 @@
 package utils
 
 
-data class IntervalQuery<T : Comparable<T>>(val leftInclusive: T, val rightInclusive: T)
 
-
-data class Position2D<T : Comparable<T>>(var i: T, var j: T, val value: Int = 1) {
-    fun isInside(intervalX: IntervalQuery<T>, intervalY: IntervalQuery<T>): Boolean =
-        (i >= intervalX.leftInclusive && i <= intervalX.rightInclusive)
-                && (j >= intervalY.leftInclusive && j <= intervalY.rightInclusive)
-}
-typealias Position1D<T> = Pair<T, Int>
-
-
-fun <T : Comparable<T>> T.isInside(interval: IntervalQuery<T>) =
-    this >= interval.leftInclusive && this <= interval.rightInclusive
 
 
 internal class RangeTree1D<T : Comparable<T>>(points: List<Position1D<T>>) {

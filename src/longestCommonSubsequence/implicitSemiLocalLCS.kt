@@ -1,14 +1,28 @@
+package longestCommonSubsequence
+
+import utils.Matrix
 import utils.IntervalQuery
 import utils.Position2D
 import utils.RangeTree2D
 
-class ImplicitSemiLocalLCS<T, M : Matrix>(val a: List<T>, val b: List<T>, kernelEvaluator: IStrategyKernelEvaluation<T, M>) : IImplicitSemiLocalLCS where T : Comparable<T> {
+class ImplicitSemiLocalLCS<T, M : Matrix>(val a: List<T>, val b: List<T>, kernelEvaluator: IStrategyKernelEvaluation<T, M>) :
+    IImplicitSemiLocalLCS where T : Comparable<T> {
 
     private val m = a.size
     private val n = b.size
 
     private var kernel: Matrix = kernelEvaluator.evaluate(
-        a.map { Symbol(it,SymbolType.AlphabetSymbol) }, b.map { Symbol(it,SymbolType.AlphabetSymbol) })
+        a.map {
+            Symbol(
+                it,
+                SymbolType.AlphabetSymbol
+            )
+        }, b.map {
+            Symbol(
+                it,
+                SymbolType.AlphabetSymbol
+            )
+        })
     private var rangeTree2D: RangeTree2D<Int>
 
     init {

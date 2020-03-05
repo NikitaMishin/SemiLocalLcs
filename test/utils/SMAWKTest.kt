@@ -1,3 +1,7 @@
+package utils
+
+import IntWrapper
+import MongeMatrix
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -70,7 +74,11 @@ internal class SMAWKTest {
 
     @Test
     fun smawk9() {
-        val c = DummyMongeMatrix(9, 18, arrayOf(row1, row2, row3, row4, row5, row6, row7, row8, row9))
+        val c = DummyMongeMatrix(
+            9,
+            18,
+            arrayOf(row1, row2, row3, row4, row5, row6, row7, row8, row9)
+        )
         c.rowMinima().forEachIndexed { index, col -> assertEquals(c.matrix[index].min(), c.get(index, col)) }
     }
 
@@ -93,8 +101,26 @@ internal class SMAWKTest {
         val reduceRow3 = row3.slice(IntRange(0, 3)).toTypedArray()
         val reduceRow4 = row4.slice(IntRange(0, 3)).toTypedArray()
         val reduceRow5 = row5.slice(IntRange(0, 3)).toTypedArray()
-        val c = DummyMongeMatrix(5, 4, arrayOf(reduceRow1, reduceRow2, reduceRow3, reduceRow4, reduceRow5))
+        val c = DummyMongeMatrix(
+            5,
+            4,
+            arrayOf(reduceRow1, reduceRow2, reduceRow3, reduceRow4, reduceRow5)
+        )
         c.rowMinima().forEachIndexed { index, col -> assertEquals(c.matrix[index].min(), c.get(index, col)) }
+
+        reduceRow1.forEach { print("${ -it.number }") }
+        println()
+        reduceRow2.forEach { print("${ -it.number }") }
+        println()
+        reduceRow3.forEach { print("${ -it.number }") }
+        println()
+        reduceRow4.forEach { print("${ -it.number }") }
+        println()
+        reduceRow5.forEach { print("${ -it.number }") }
+        println()
+
+
+
     }
 
 

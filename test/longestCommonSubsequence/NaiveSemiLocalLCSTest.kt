@@ -1,3 +1,5 @@
+package longestCommonSubsequence
+
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -35,7 +37,8 @@ internal class NaiveSemiLocalLCSTest : SemiLocalLCSBaseTester(Random(0)) {
             arrayListOf(-13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8)
         )
 
-        val semiLocalSolution = NaiveSemiLocalLCS("baabcbca".toList(), "baabcabcabaca".toList())
+        val semiLocalSolution =
+            NaiveSemiLocalLCS("baabcbca".toList(), "baabcabcabaca".toList())
         for (i in 0 until knownMatrix.size) {
             for (j in 0 until knownMatrix[0].size)
                 assertEquals(knownMatrix[i][j], semiLocalSolution.semiLocalLCSMatrix[i][j])

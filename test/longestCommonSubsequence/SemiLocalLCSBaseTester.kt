@@ -1,11 +1,37 @@
+package longestCommonSubsequence
+
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.lang.Integer.max
 import kotlin.random.Random
 
 
 internal abstract class SemiLocalLCSBaseTester(val random: Random) {
 
     abstract fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalLCS
+
+    /**
+     *
+     *
+     *
+     * @param a List of elements in a
+     * @param n
+     */
+    fun <Elem> dummyLcs(a: List<Elem>, b: List<Elem>): Array<IntArray> {
+        val n = a.count() + 1
+        val m = b.count() + 1
+
+        val lcsMatrix = Array(n) { _ -> IntArray(m) { _ -> 0 } }
+        for (rowNum in 1 until n) {
+            for (colNum in 1 until m) {
+                if (a[rowNum - 1] == b[colNum - 1]) lcsMatrix[rowNum][colNum] = lcsMatrix[rowNum - 1][colNum - 1] + 1
+                else {
+                    lcsMatrix[rowNum][colNum] = max(lcsMatrix[rowNum - 1][colNum], lcsMatrix[rowNum][colNum - 1])
+                }
+            }
+        }
+        return lcsMatrix
+    }
 
     val alphabet = arrayListOf(
         'a',

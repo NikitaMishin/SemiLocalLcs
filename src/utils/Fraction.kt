@@ -88,5 +88,4 @@ class Fraction(numerator: Int, denominator: Int) {
     operator fun times(other: Int) = this * Fraction(other, 1)
 }
 
-operator fun Int.times(other: Fraction):Fraction = Fraction(this,1) * other
-operator fun Int.plus(other: Fraction):Fraction = Fraction(this,1) + other
+

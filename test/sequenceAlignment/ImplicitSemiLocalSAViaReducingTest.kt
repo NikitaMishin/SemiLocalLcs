@@ -1,9 +1,8 @@
 package sequenceAlignment
 
-import PermutationMatrixTwoLists
-import ReducingKernelEvaluation
-import utils.FixedScoringScheme
-import utils.Fraction
+import utils.PermutationMatrixTwoLists
+import longestCommonSubsequence.ReducingKernelEvaluation
+import utils.IScoringScheme
 import utils.RegularScoringScheme
 import kotlin.random.Random
 
@@ -11,19 +10,26 @@ import kotlin.random.Random
 internal class ImplicitSemiLocalSAViaReducingTest() : SemiLocalSABaseTester(Random(17)) {
 
 
-    override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalSA {
+    override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): Pair<ISemiLocalSA, IScoringScheme> {
 
 
         val denominator = random.nextInt(1, 17)
         val numerator = random.nextInt(0, denominator)
 
-        return ImplicitSemiLocalSA(
+        return Pair(ImplicitSemiLocalSA(
             A,
             B,
-//            FixedScoringScheme(Fraction(2,1), Fraction(-1,1),Fraction(-3,2)),
+//            FixedScoringScheme(Fraction(2,1), Fraction(-1,1),Fraction(-4,2)),
             RegularScoringScheme(numerator, denominator),
-            ReducingKernelEvaluation { PermutationMatrixTwoLists(listOf(), 0, 0) }
-        )
+            ReducingKernelEvaluation {
+                PermutationMatrixTwoLists(
+                    listOf(),
+                    0,
+                    0
+                )
+            }
+
+        ), RegularScoringScheme(numerator, denominator))
 
 
     }

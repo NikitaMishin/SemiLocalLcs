@@ -7,7 +7,7 @@ import kotlin.collections.HashMap
 **/
 
 /**
- * Wrapper for numerical values of Matrix elements()
+ * Wrapper for numerical values of utils.Matrix elements()
  * */
 abstract class ElemWrapper : Cloneable {
 
@@ -202,7 +202,7 @@ abstract class MongeMatrix<T : ElemWrapper> : Cloneable {
 
     /**
      * //TODO check asymptotic
-     * Matrix-vector multiplication A*b = c
+     * utils.Matrix-vector multiplication A*b = c
      * Note that c could be obtained by following:
      * <code>
      *     vectorIndices =
@@ -269,7 +269,7 @@ abstract class MongeMatrix<T : ElemWrapper> : Cloneable {
 }
 
 /**
- * Explicit Monge Matrix with O(n*m) space complexity aka lower bound for multiplication algorithms
+ * Explicit Monge utils.Matrix with O(n*m) space complexity aka lower bound for multiplication algorithms
  */
 class ExplicitMonge<T : ElemWrapper> private constructor() : MongeMatrix<T>() {
     lateinit var matrix: MutableList<MutableList<T>>

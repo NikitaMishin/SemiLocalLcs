@@ -1,3 +1,8 @@
+package longestCommonSubsequence
+
+import utils.AbstractPermutationMatrix
+import utils.Matrix
+import utils.CountingQueryLCS
 import utils.Position2D
 import java.lang.Exception
 import java.lang.IllegalArgumentException
@@ -21,8 +26,8 @@ interface IBraidMultiplication {
 class NaiveBraidMultiplication : IBraidMultiplication {
     override fun multiply(P: Matrix, Q: Matrix): Matrix {
 
-        val aDominance = CountingQuery.dominanceMatrix(P, CountingQuery.topRightSummator)
-        val bDominance = CountingQuery.dominanceMatrix(Q, CountingQuery.topRightSummator)
+        val aDominance = CountingQueryLCS.dominanceMatrix(P, CountingQueryLCS.topRightSummator)
+        val bDominance = CountingQueryLCS.dominanceMatrix(Q, CountingQueryLCS.topRightSummator)
         val cDominance: Array<Array<Int>> = Array(P.height() + 1) { Array(Q.width() + 1) { 0 } }
 
         for (i in 0 until P.height() + 1) {
@@ -254,7 +259,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
     /**
      * returns squeezed submatrix from P to colExclusive  after deletion of zero rows
      */
-    private fun  getP1(P:Matrix, colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+    private fun  getP1(P: Matrix, colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
         val newToOldRows = mutableMapOf<Int, Int>()
         val oldToNewRows = mutableMapOf<Int, Int>()
         val newRowPoints = mutableListOf<Int>()
@@ -291,7 +296,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
     /**
      * returns squeezed submatrix from P from colExclusive after deletion of zero rows
      */
-    private fun getP2(P:Matrix, colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+    private fun getP2(P: Matrix, colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
         val newToOldRows = mutableMapOf<Int, Int>()
         val oldToNewRows = mutableMapOf<Int, Int>()
         val newRowPoints = mutableListOf<Int>()
@@ -329,7 +334,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
     /**
      * returns squeezed submatrix from Q to rowExclusive after deletion of zero cols
      */
-    private fun getQ1(Q:Matrix, rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+    private fun getQ1(Q: Matrix, rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
         val newToOldCol = mutableMapOf<Int, Int>()
         val oldToNewCol = mutableMapOf<Int, Int>()
         val newColPoints = mutableListOf<Int>()
@@ -366,7 +371,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
     /**
      * returns squeezed submatrix from Q from rowExclusive after deletion of zero cols
      */
-    private fun getQ2(Q:Matrix, rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+    private fun getQ2(Q: Matrix, rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
         val newToOldCol = mutableMapOf<Int, Int>()
         val oldToNewCol = mutableMapOf<Int, Int>()
         val newColPoints = mutableListOf<Int>()
@@ -471,7 +476,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
         var RLo = 0 // now at point <n^+,0^->
 
         // queries goes to extended matrix i.e (m+1)x(n+1)
-        val countingQuery = CountingQuery()
+        val countingQuery = CountingQueryLCS()
         val goodPoints = mutableListOf<Position2D<Int>>()
 
 
@@ -570,20 +575,20 @@ class SteadyAntMultiplication : IBraidMultiplication {
 
 
 
-//class SteadyAntMultiplicationNonRecursive: IBraidMultiplication {
+//class SteadyAntMultiplicationNonRecursive: longestCommonSubsequence.IBraidMultiplication {
 //
 //
-//    override fun multiply(P: Matrix, Q: Matrix): Matrix {
+//    override fun multiply(P: utils.Matrix, Q: utils.Matrix): utils.Matrix {
 //        /**
 //         * returns squeezed submatrix from P to colExclusive  after deletion of zero rows
 //         */
-//        fun getP1(colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+//        fun getP1(colExclusive: Int): Pair<Boolean, Pair<utils.Matrix, MutableMap<Int, Int>>?> {
 //            val newToOldRows = mutableMapOf<Int, Int>()
 //            val oldToNewRows = mutableMapOf<Int, Int>()
 //            val newRowPoints = mutableListOf<Int>()
 //
 //            for (row in 0 until P.height()) {
-//                val col = P[row, AbstractPermutationMatrix.GetType.ROW]
+//                val col = P[row, utils.AbstractPermutationMatrix.GetType.ROW]
 //                if (col < colExclusive && col != P.NOPOINT) {
 //                    newToOldRows[newRowPoints.size] = row
 //                    oldToNewRows[row] = newRowPoints.size
@@ -596,7 +601,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //
 //            val nextColPoints = mutableListOf<Int>()
 //            for (col in 0 until colExclusive) {
-//                val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
+//                val oldRow = P[col, utils.AbstractPermutationMatrix.GetType.COLUMN]
 //                nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
 //            }
 //
@@ -614,13 +619,13 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //        /**
 //         * returns squeezed submatrix from P from colExclusive after deletion of zero rows
 //         */
-//        fun getP2(colExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+//        fun getP2(colExclusive: Int): Pair<Boolean, Pair<utils.Matrix, MutableMap<Int, Int>>?> {
 //            val newToOldRows = mutableMapOf<Int, Int>()
 //            val oldToNewRows = mutableMapOf<Int, Int>()
 //            val newRowPoints = mutableListOf<Int>()
 //
 //            for (row in 0 until P.height()) {
-//                val col = P[row, AbstractPermutationMatrix.GetType.ROW]
+//                val col = P[row, utils.AbstractPermutationMatrix.GetType.ROW]
 //                if (col >= colExclusive && col != P.NOPOINT) {
 //                    newToOldRows[newRowPoints.size] = row
 //                    oldToNewRows[row] = newRowPoints.size
@@ -634,7 +639,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //            val nextColPoints = mutableListOf<Int>()
 //
 //            for (col in colExclusive until P.width()) {
-//                val oldRow = P[col, AbstractPermutationMatrix.GetType.COLUMN]
+//                val oldRow = P[col, utils.AbstractPermutationMatrix.GetType.COLUMN]
 //                nextColPoints.add(oldToNewRows.getOrDefault(oldRow, P.NOPOINT))
 //            }
 //
@@ -652,13 +657,13 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //        /**
 //         * returns squeezed submatrix from Q to rowExclusive after deletion of zero cols
 //         */
-//        fun getQ1(rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+//        fun getQ1(rowExclusive: Int): Pair<Boolean, Pair<utils.Matrix, MutableMap<Int, Int>>?> {
 //            val newToOldCol = mutableMapOf<Int, Int>()
 //            val oldToNewCol = mutableMapOf<Int, Int>()
 //            val newColPoints = mutableListOf<Int>()
 //
 //            for (col in 0 until Q.width()) {
-//                val row = Q[col, AbstractPermutationMatrix.GetType.COLUMN]
+//                val row = Q[col, utils.AbstractPermutationMatrix.GetType.COLUMN]
 //
 //                if (row != Q.NOPOINT && row < rowExclusive) {
 //                    newToOldCol[newColPoints.size] = col
@@ -670,7 +675,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //
 //            val nexRowPoints = mutableListOf<Int>()
 //            for (row in 0 until rowExclusive) {
-//                val oldCol = Q[row, AbstractPermutationMatrix.GetType.ROW]
+//                val oldCol = Q[row, utils.AbstractPermutationMatrix.GetType.ROW]
 //                nexRowPoints.add(oldToNewCol.getOrDefault(oldCol, Q.NOPOINT))
 //            }
 //
@@ -689,13 +694,13 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //        /**
 //         * returns squeezed submatrix from Q from rowExclusive after deletion of zero cols
 //         */
-//        fun getQ2(rowExclusive: Int): Pair<Boolean, Pair<Matrix, MutableMap<Int, Int>>?> {
+//        fun getQ2(rowExclusive: Int): Pair<Boolean, Pair<utils.Matrix, MutableMap<Int, Int>>?> {
 //            val newToOldCol = mutableMapOf<Int, Int>()
 //            val oldToNewCol = mutableMapOf<Int, Int>()
 //            val newColPoints = mutableListOf<Int>()
 //
 //            for (col in 0 until Q.width()) {
-//                val row = Q[col, AbstractPermutationMatrix.GetType.COLUMN]
+//                val row = Q[col, utils.AbstractPermutationMatrix.GetType.COLUMN]
 //
 //                if (row != Q.NOPOINT && row >= rowExclusive) {
 //                    newToOldCol[newColPoints.size] = col
@@ -709,7 +714,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //            val nexRowPoints = mutableListOf<Int>()
 //
 //            for (row in rowExclusive until Q.height()) {
-//                val oldCol = Q[row, AbstractPermutationMatrix.GetType.ROW]
+//                val oldCol = Q[row, utils.AbstractPermutationMatrix.GetType.ROW]
 //                nexRowPoints.add(oldToNewCol.getOrDefault(oldCol, Q.NOPOINT))
 //            }
 //
@@ -729,13 +734,13 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //         */
 //        fun inverseMapping(
 //            newToOldX: MutableMap<Int, Int>, newToOldY: MutableMap<Int, Int>,
-//            height: Int, width: Int, shrinkMatrix: Matrix
-//        ): Matrix {
+//            height: Int, width: Int, shrinkMatrix: utils.Matrix
+//        ): utils.Matrix {
 //
 //            val matrix = P.createZeroMatrix(height, width)
 //
 //            for (row in 0 until shrinkMatrix.height()) {
-//                val col = shrinkMatrix[row, AbstractPermutationMatrix.GetType.ROW]
+//                val col = shrinkMatrix[row, utils.AbstractPermutationMatrix.GetType.ROW]
 //                if (col != shrinkMatrix.NOPOINT) matrix[newToOldX[row]!!, newToOldY[col]!!] = true
 //            }
 //            return matrix
@@ -743,7 +748,7 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //
 //
 //
-//        val stack = Stack<Pair<Matrix?,Matrix?>>()
+//        val stack = Stack<Pair<utils.Matrix?,utils.Matrix?>>()
 //        stack.push(Pair(P,Q))
 //        while (stack.size != 0){
 //            val (P,Q) = stack.pop()
@@ -752,8 +757,8 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //            //base case
 //            if (P.width() == 1) {
 //                val m = P.createZeroMatrix(P.height(), Q.width())
-//                val row = P[0, AbstractPermutationMatrix.GetType.COLUMN]
-//                val col = Q[0, AbstractPermutationMatrix.GetType.ROW]
+//                val row = P[0, utils.AbstractPermutationMatrix.GetType.COLUMN]
+//                val col = Q[0, utils.AbstractPermutationMatrix.GetType.ROW]
 //                m[row, col] = row != P.NOPOINT && col != Q.NOPOINT
 //                stack.push(Pair(m,null))
 //            }
@@ -764,8 +769,8 @@ class SteadyAntMultiplication : IBraidMultiplication {
 //            val (P2IsZero, P2) = getP2(widthP1)
 //            val (Q1IsZero, Q1) = getQ1(widthP1)
 //            val (Q2IsZero, Q2) = getQ2(widthP1)
-//            val R1: AbstractPermutationMatrix?
-//            val R2: AbstractPermutationMatrix?
+//            val R1: utils.AbstractPermutationMatrix?
+//            val R2: utils.AbstractPermutationMatrix?
 //
 //            //CASE WHEN P1 OR Q1 IS ZERO
 //            when {

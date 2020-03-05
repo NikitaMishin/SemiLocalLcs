@@ -1,11 +1,11 @@
 package timeMeasure
 
-import ISemiLocalLCS
-import ImplicitSemiLocalLCS
-import NaiveSemiLocalLCS
-import PermutationMatrixTwoLists
-import RecursiveKernelEvaluation
-import ReducingKernelEvaluation
+import longestCommonSubsequence.ISemiLocalLCS
+import longestCommonSubsequence.ImplicitSemiLocalLCS
+import longestCommonSubsequence.NaiveSemiLocalLCS
+import utils.PermutationMatrixTwoLists
+import longestCommonSubsequence.RecursiveKernelEvaluation
+import longestCommonSubsequence.ReducingKernelEvaluation
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
@@ -23,23 +23,30 @@ class KernelEvaluationTimeTest {
     }
 
     private fun getSemiLocalRecursive(A: String, B: String): ISemiLocalLCS =
-        ImplicitSemiLocalLCS(A.toList(), B.toList(), RecursiveKernelEvaluation {
-            PermutationMatrixTwoLists(
-                mutableListOf(), 0, 0
-            )
-        })
+        ImplicitSemiLocalLCS(
+            A.toList(),
+            B.toList(),
+            RecursiveKernelEvaluation {
+                PermutationMatrixTwoLists(
+                    mutableListOf(), 0, 0
+                )
+            })
 
     private fun getSemiLocalReducing(A: String, B: String): ISemiLocalLCS =
-        ImplicitSemiLocalLCS(A.toList(), B.toList(), ReducingKernelEvaluation {
-            PermutationMatrixTwoLists(
-                mutableListOf(), 0, 0
-            )
-        })
+        ImplicitSemiLocalLCS(
+            A.toList(),
+            B.toList(),
+            ReducingKernelEvaluation {
+                PermutationMatrixTwoLists(
+                    mutableListOf(), 0, 0
+                )
+            })
 
-    private fun getNaiveSemiLocalLCS(A: String, B: String): ISemiLocalLCS = NaiveSemiLocalLCS(A.toList(), B.toList())
+    private fun getNaiveSemiLocalLCS(A: String, B: String): ISemiLocalLCS =
+        NaiveSemiLocalLCS(A.toList(), B.toList())
 
 
-    private fun timeTest(sizeA: Int, sizeB: Int, tries: Int, evaluator: (A: String, B: String) -> ISemiLocalLCS,withCheckingCorrectness:Boolean) {
+    private fun timeTest(sizeA: Int, sizeB: Int, tries: Int, evaluator: (A: String, B: String) -> ISemiLocalLCS, withCheckingCorrectness:Boolean) {
         val random = Random(0)
         var accumulatedTime: Long = 0
         for (i in 0 until tries) {

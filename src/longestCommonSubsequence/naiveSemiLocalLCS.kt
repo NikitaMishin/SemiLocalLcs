@@ -1,3 +1,5 @@
+package longestCommonSubsequence
+
 import kotlin.math.max
 
 /**
@@ -10,11 +12,31 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
     private var m = a.size
     private var n = b.size
     private var aSymbolString: List<Symbol<Element>> =
-        a.map { Symbol(it, SymbolType.AlphabetSymbol) }
+        a.map {
+            Symbol(
+                it,
+                SymbolType.AlphabetSymbol
+            )
+        }
     private var bSymbolString: List<Symbol<Element>> =
-        a.map { Symbol(it, SymbolType.WildCardSymbol) } +
-                b.map { Symbol(it, SymbolType.AlphabetSymbol) } +
-                a.map { Symbol(it, SymbolType.WildCardSymbol) }
+        a.map {
+            Symbol(
+                it,
+                SymbolType.WildCardSymbol
+            )
+        } +
+                b.map {
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    )
+                } +
+                a.map {
+                    Symbol(
+                        it,
+                        SymbolType.WildCardSymbol
+                    )
+                }
 
     /**
      * Explicit semiLocal LCS matrix H. THe full definition see on page 53
