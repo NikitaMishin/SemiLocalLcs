@@ -4,8 +4,6 @@ import utils.PermutationMatrixTwoLists
 import longestCommonSubsequence.ReducingKernelEvaluation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import utils.FixedScoringScheme
-import utils.Fraction
 import utils.IScoringScheme
 import utils.RegularScoringScheme
 import kotlin.random.Random
