@@ -73,15 +73,28 @@ class WindowSubstringSolutionNaiveImplicit<T:Comparable<T>>(private var solution
     override fun getScoringScheme(): IScoringScheme = solutions.first().getScoringScheme()
 
     /**
-     * logn^2 * n*w
+     * O(nm)
      */
     override fun constructAlignmentPlot(): Array<DoubleArray> {
         val dotPlot = Array(rows) {DoubleArray(cols)}
+        val w = windowSize
 
         for (i in 0 until rows) {
+            val sol = solutions[i]
+            val scheme = sol.getScoringScheme()
+            var internalI = w
+            var internalJ = w
+            var rawScore = sol.getAtPosition(internalI, internalJ)
 
-            for (j in 0 until cols) {
-                dotPlot[i][j] = getScoreFor(windowSize + i,j + windowSize)
+            dotPlot[i][0] = scheme.getOriginalScoreFunc(rawScore, w, internalI, internalJ)
+
+            for (j in 1 until cols) {
+                rawScore = sol.nextInRow(internalI, internalJ, rawScore, ISemiLocalSolution.Direction.Forward)
+                internalJ++
+                rawScore = sol.nextInCol(internalI, internalJ, rawScore, ISemiLocalSolution.Direction.Forward)
+                internalI++
+
+                dotPlot[i][j] =  scheme.getOriginalScoreFunc(rawScore,w,internalI,internalJ)
             }
         }
         return dotPlot
@@ -101,5 +114,14 @@ class WindowSubstringSANaiveImplicit<T:Comparable<T>,M:Matrix>(val kernelEvaluat
         }.toMutableList()
         return WindowSubstringSolutionNaiveImplicit(res, windowLen, a, b)
     }
-
 }
+//
+///**
+// *
+// */
+//class WindowSubstringSANaiveImplicit<T:Comparable<T>,M:Matrix>():IWindowSubstringSA<T>{
+//    override fun solve(a: List<T>, b: List<T>, windowLen: Int, scoringScheme: IScoringScheme): IWindowSubstringSolution<T> {
+//
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//}

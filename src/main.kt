@@ -2,6 +2,8 @@ import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
 import approximateMatching.SellersCompleteAMatch
 import approximateMatching.ThresholdAMathViaSemiLocal
 import approximateMatching.ThresholdWindowSemiLocal
+import beyondsemilocality.WindowSubstringSANaiveImplicit
+import beyondsemilocality.WindowSubstringSolutionNaiveImplicit
 import longestCommonSubsequence.ReducingKernelEvaluation
 import sequenceAlignment.*
 import utils.*
@@ -87,7 +89,7 @@ fun main() {
 //    Fraction(0,6))
 //TODO reverse tjat u do in naive
     val scoringSсheme =
-        RegularScoringScheme(2,10)
+        RegularScoringScheme(0,10)
 //        FixedScoringScheme(Fraction(2,1),Fraction(-1,1), Fraction(-2,1))
   val a = "kiss my ass".toList()
     val b = "kiss me baby one more time kiskisss ".toList()
@@ -235,6 +237,15 @@ fun main() {
         println("${scoreTransformer(t.matrix[m+n-1-i][index],m+n-1-i,index)}, ${n-1-i} ${index}")
 //        println("${matrix[2-1-i][index]}, ${2-1-i}")
 //        println(i)
+    }
 
+
+    val windowSemiLocal = WindowSubstringSANaiveImplicit(kernel).solve(a,b,4,scoringSсheme).constructAlignmentPlot()
+    for (i in 0 until  windowSemiLocal.size){
+        for(j in 0 until windowSemiLocal[0].size)
+        {
+            print("${windowSemiLocal[i][j].round(1).toInt()  } ")
+        }
+        println()
     }
 }
