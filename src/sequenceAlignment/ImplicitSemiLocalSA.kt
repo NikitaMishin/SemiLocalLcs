@@ -14,8 +14,8 @@ import utils.*
 /**
  *TODO make a note about round,wokrs only with ratiobal scheme (ask tiskin)
  */
-class ImplicitSemiLocalSA<T : Comparable<T>, M : Matrix>(override val pattern: List<T>, override val text: List<T>,
-                                                                                  private val scoringScheme: IScoringScheme, val kernelEvaluator: IStrategyKernelEvaluation<T, M>
+class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, override val text: List<T>,
+                                                         private val scoringScheme: IScoringScheme, val kernelEvaluator: IStrategyKernelEvaluation<T>
 ) : ISemiLocalSA, ISemiLocalSolution<T> {
 
     private val v = scoringScheme.getNormalizedMismatchScore().denominator

@@ -5,31 +5,47 @@ import utils.IntervalQuery
 import utils.Position2D
 import utils.RangeTree2D
 
-class ImplicitSemiLocalLCS<T, M : Matrix>(val a: List<T>, val b: List<T>, kernelEvaluator: IStrategyKernelEvaluation<T, M>) :
-    IImplicitSemiLocalLCS where T : Comparable<T> {
+class ImplicitSemiLocalLCS<T> : IImplicitSemiLocalLCS where T : Comparable<T> {
+    override val kernel: Matrix
 
-    private val m = a.size
-    private val n = b.size
+    private lateinit var rangeTree2D: RangeTree2D<Int>
+    private lateinit var a: List<T>
+    private lateinit var b: List<T>
+    private var m: Int = 0
+    private var n: Int = 0
 
-    private var kernel: Matrix = kernelEvaluator.evaluate(
-        a.map {
-            Symbol(
-                it,
-                SymbolType.AlphabetSymbol
-            )
-        }, b.map {
-            Symbol(
-                it,
-                SymbolType.AlphabetSymbol
-            )
-        })
-    private var rangeTree2D: RangeTree2D<Int>
+    constructor(a: List<T>, b: List<T>, kernelEvaluator: IStrategyKernelEvaluation<T>) {
 
-    init {
+        kernel = kernelEvaluator.evaluate(
+            a.map {
+                Symbol(
+                    it,
+                    SymbolType.AlphabetSymbol
+                )
+            }, b.map {
+                Symbol(
+                    it,
+                    SymbolType.AlphabetSymbol
+                )
+            })
+        init(a, b)
+    }
+
+    constructor(a: List<T>, b: List<T>, kernel: Matrix) {
+        this.kernel = kernel
+        init(a, b)
+    }
+
+    private fun init(a: List<T>, b: List<T>) {
+        this.a = a
+        this.b = b
+        m = a.size
+        n = b.size
         val mutableList = mutableListOf<Position2D<Int>>()
         for (p in kernel) mutableList.add(p)
         rangeTree2D = RangeTree2D(mutableList)
     }
+
 
     /**
      * i from 0 to m + n
@@ -61,7 +77,7 @@ class ImplicitSemiLocalLCS<T, M : Matrix>(val a: List<T>, val b: List<T>, kernel
         return canonicalDecomposition(i + m, m + n - l) - m + l
     }
 
-    override fun getAtPosition(i: Int, j: Int): Int = canonicalDecomposition(i,j)
+    override fun getAtPosition(i: Int, j: Int): Int = canonicalDecomposition(i, j)
 
 }
 

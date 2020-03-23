@@ -28,6 +28,12 @@ data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T
 
     fun repeatDeeopCopy(times:Int):List<Symbol<T>> = (0 until times).map { this.copy(this.symbol,this.type) }
     fun repeatShallowCopy(times:Int):List<Symbol<T>> = (0 until times).map { this }
+
+    override fun hashCode(): Int {
+        var result = symbol.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
 }
 
 
@@ -96,10 +102,11 @@ interface ISemiLocalLCS {
     }
 }
 
-//TODO add functions for coherent calls to dominance sum via CountinqQuery
-interface IImplicitSemiLocalLCS : ISemiLocalLCS
+interface IImplicitSemiLocalLCS : ISemiLocalLCS{
+    val kernel: Matrix
 
-interface IStrategyKernelEvaluation<T : Comparable<T>, M : Matrix> {
+}
+interface IStrategyKernelEvaluation<T : Comparable<T>> {
     fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix
 }
 
@@ -107,7 +114,7 @@ interface IStrategyKernelEvaluation<T : Comparable<T>, M : Matrix> {
  *  @param  matrixInstance to get type M (see type erasure)
  */
 class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) :
-    IStrategyKernelEvaluation<T, M> {
+    IStrategyKernelEvaluation<T> {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
     /**
      * The recursive algorithm based on steady ant braid multiplication.
@@ -160,8 +167,7 @@ class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: (
 /**
  *  @param matrixInstance is for providing createZeroMatrix function of specified type (bad kotlin)
  */
-class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) :
-    IStrategyKernelEvaluation<T, M> {
+class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) : IStrategyKernelEvaluation<T> {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
 
     /**
