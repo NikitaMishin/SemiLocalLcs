@@ -1,16 +1,14 @@
 package longestCommonSubsequence
 
-import utils.Matrix
-import utils.IntervalQuery
-import utils.Position2D
-import utils.RangeTree2D
+import sequenceAlignment.ISemiLocalData
+import utils.*
 
-class ImplicitSemiLocalLCS<T> : IImplicitSemiLocalLCS where T : Comparable<T> {
+class ImplicitSemiLocalLCS<T> : ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> where T : Comparable<T> {
     override val kernel: Matrix
 
     private lateinit var rangeTree2D: RangeTree2D<Int>
-    private lateinit var a: List<T>
-    private lateinit var b: List<T>
+    override lateinit var pattern: List<T>
+    override lateinit var text: List<T>
     private var m: Int = 0
     private var n: Int = 0
 
@@ -37,8 +35,8 @@ class ImplicitSemiLocalLCS<T> : IImplicitSemiLocalLCS where T : Comparable<T> {
     }
 
     private fun init(a: List<T>, b: List<T>) {
-        this.a = a
-        this.b = b
+        this.pattern = a
+        this.text = b
         m = a.size
         n = b.size
         val mutableList = mutableListOf<Position2D<Int>>()
@@ -59,7 +57,7 @@ class ImplicitSemiLocalLCS<T> : IImplicitSemiLocalLCS where T : Comparable<T> {
 
     override fun prefixSuffixLCS(k: Int, j: Int): Int {
         if (k < 0 || k > m || j < 0 || j > n) return -1
-        return canonicalDecomposition(m - k, j) - k //?TPDP
+        return canonicalDecomposition(m - k, j) - k
     }
 
     override fun stringSubstringLCS(i: Int, j: Int): Int {
@@ -77,7 +75,25 @@ class ImplicitSemiLocalLCS<T> : IImplicitSemiLocalLCS where T : Comparable<T> {
         return canonicalDecomposition(i + m, m + n - l) - m + l
     }
 
+    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i,j).toDouble()
+
+    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k,j).toDouble()
+
+    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l,i).toDouble()
+
+    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k,l).toDouble()
+
     override fun getAtPosition(i: Int, j: Int): Int = canonicalDecomposition(i, j)
+
+    override fun print() {
+        for (i in 0 until m + n + 1) {
+            for (j in 0 until m + n + 1) {
+                print("  ${getAtPosition(i, j)}  ")
+            }
+            println()
+        }
+    }
+
 
 }
 

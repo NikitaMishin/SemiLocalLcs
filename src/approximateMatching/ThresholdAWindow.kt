@@ -1,5 +1,6 @@
 package approximateMatching
 
+import sequenceAlignment.ISemiLocalFastAccess
 import sequenceAlignment.ISemiLocalSolution
 import utils.Interval
 
@@ -39,11 +40,11 @@ class ThresholdWindowSemiLocal<T : Comparable<T>>(
         // goes diagonal via incremental queries
         while (curRow + 1 <= n + m && curCol + 1 <= n) {
             curValue = semilocal.nextInRow(curRow, curCol, curValue,
-                ISemiLocalSolution.Direction.Forward
+                ISemiLocalFastAccess.Direction.Forward
             )
             curCol++
             curValue = semilocal.nextInCol(curRow, curCol, curValue,
-                ISemiLocalSolution.Direction.Forward
+                ISemiLocalFastAccess.Direction.Forward
             )
             curRow++
             println(curRow)

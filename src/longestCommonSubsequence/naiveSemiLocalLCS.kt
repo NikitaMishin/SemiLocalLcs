@@ -1,37 +1,38 @@
 package longestCommonSubsequence
 
+import sequenceAlignment.ISemiLocalData
 import kotlin.math.max
 
 /**
  * Implementation of semi-local LCS via naive approach, i.e the semi-local lcs matrix stored explicitly
  */
-data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>) :
-    ISemiLocalLCS where Element : Comparable<Element> {
+data class NaiveSemiLocalLCS<T:Comparable<T>>(override val pattern: List<T>,override val text: List<T>) :
+    ISemiLocalLCS, ISemiLocalData<T> {
     // a of size m
     // b of size n
-    private var m = a.size
-    private var n = b.size
-    private var aSymbolString: List<Symbol<Element>> =
-        a.map {
+  private var m = pattern.size
+    private var n = text.size
+    private var aSymbolString: List<Symbol<T>> =
+        pattern.map {
             Symbol(
                 it,
                 SymbolType.AlphabetSymbol
             )
         }
-    private var bSymbolString: List<Symbol<Element>> =
-        a.map {
+    private var bSymbolString: List<Symbol<T>> =
+        pattern.map {
             Symbol(
                 it,
                 SymbolType.WildCardSymbol
             )
         } +
-                b.map {
+                text.map {
                     Symbol(
                         it,
                         SymbolType.AlphabetSymbol
                     )
                 } +
-                a.map {
+                pattern.map {
                     Symbol(
                         it,
                         SymbolType.WildCardSymbol
@@ -42,9 +43,9 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
      * Explicit semiLocal LCS matrix H. THe full definition see on page 53
      *  H_{a,b}\[-m : n | 0 : m + n \] i.e i from -m to n and j from 0 to m + n
      */
-    internal var semiLocalLCSMatrix: Array<Array<Int>> = Array(a.size + b.size + 1)
+    internal var semiLocalLCSMatrix: Array<Array<Int>> = Array(pattern.size + text.size + 1)
     { i ->
-        Array(a.size + b.size + 1)
+        Array(pattern.size + text.size + 1)
         { j ->
             if (j <= (i - m)) {
                 j - i + m
@@ -83,7 +84,7 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
      * @param j end index exclusive
      */
     private fun lcs(i: Int, j: Int): Int {
-        val m = a.size + 1
+        val m = pattern.size + 1
         val bSub = bSymbolString.subList(i, j)
         val n = bSub.size + 1
 
@@ -104,10 +105,19 @@ data class NaiveSemiLocalLCS<Element>(val a: List<Element>, val b: List<Element>
 
     override fun getAtPosition(i: Int, j: Int): Int = semiLocalLCSMatrix[i][j]
 
+    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i,j).toDouble()
+
+    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k,j).toDouble()
+
+    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l,i).toDouble()
+
+    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k,l).toDouble()
+
+
     /**
      * For testing purposes
      */
-    internal fun print() {
+    override fun print() {
         for (i in 0 until semiLocalLCSMatrix.size) {
             for (j in 0 until semiLocalLCSMatrix[0].size) {
                 print("  ${semiLocalLCSMatrix[i][j]}  ")

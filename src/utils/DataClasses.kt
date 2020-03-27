@@ -1,7 +1,7 @@
 package utils
 
-
-data class Interval(val startInclusive: Int, val endExclusive: Int, val score: Double)
+//TODO new one
+data class Interval(val startInclusive: Int, val endExclusive: Int, val score: Double=1.0)
 
 /**
  *

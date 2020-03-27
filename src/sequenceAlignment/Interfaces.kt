@@ -7,7 +7,33 @@ import utils.IScoringScheme
 typealias ISemiLocalSA = ISemiLocalSequenceAlignment
 
 
+interface ISemiLocalStringSubstringProblem {
+    /**
+     *For a given A and B asks for sa score for A and B[i:j]
+     */
+    fun stringSubstring(i: Int, j: Int): Double
+}
 
+interface ISemiLocalPrefixSuffixProblem {
+    /**
+     *For a given A and B asks for sa  score for A[k:A.size] and B[0:j]
+     */
+    fun prefixSuffix(k: Int, j: Int): Double
+}
+
+interface ISemiLocalSuffixPrefixProblem {
+    /**
+     *For a given A and B asks for sa score for A[0:l] and B[i:B.size]
+     */
+    fun suffixPrefix(l: Int, i: Int): Double
+}
+
+interface ISemiLocalSubstringStringProblem {
+    /**
+     *For a given A and B asks for sa score for A[k:l] and B
+     */
+    fun substringString(k: Int, l: Int): Double
+}
 
 
 /**
@@ -15,36 +41,14 @@ typealias ISemiLocalSA = ISemiLocalSequenceAlignment
  * The definition of semiLocal SA problem see book "The algebra of string comparison: Computing with sticky braids",
  * page 89
  */
-interface ISemiLocalSequenceAlignment {
-    /**
-     *For a given A and B asks for sa score for A and B[i:j]
-     */
-    fun stringSubstringSA(i: Int, j: Int): Double
-
-    /**
-     *For a given A and B asks for sa score for A[k:A.size] and B[0:j]
-     */
-    fun prefixSuffixSA(k: Int, j: Int): Double
-
-    /**
-     *For a given A and B asks for sa score for A[0:l] and B[i:B.size]
-     */
-    fun suffixPrefixSA(l: Int, i: Int): Double
-
-    /**
-     *For a given A and B asks for sa score for A[k:l] and B
-     */
-    fun substringStringSA(k: Int, l: Int): Double
+interface ISemiLocalSequenceAlignment : ISemiLocalSubstringStringProblem, ISemiLocalSuffixPrefixProblem,
+    ISemiLocalPrefixSuffixProblem, ISemiLocalStringSubstringProblem {
 
     fun print()
 }
 
 
-/**
- * Interface that provides access to solution to matrix element of semilocal problem for the given lists of comparable elements.
- */
-interface ISemiLocalSolution<T : Comparable<T>> {
-
+interface ISemiLocalData<T : Comparable<T>> {
     /**
      * the first list that compared
      */
@@ -54,6 +58,11 @@ interface ISemiLocalSolution<T : Comparable<T>> {
      * the second list that compared
      */
     val text: List<T>
+
+
+}
+
+interface ISemiLocalFastAccess {
 
     /**
      * if index grow then forward else backward
@@ -98,8 +107,19 @@ interface ISemiLocalSolution<T : Comparable<T>> {
      * returns scoring scheme for semilocal problem
      */
     fun getScoringScheme(): IScoringScheme
+
 }
 
+//TODO lcs should implement this interface
+/**
+ * Interface that provides access to solution to matrix element of semilocal problem for the given lists of comparable elements.
+ */
+interface ISemiLocalSolution<T : Comparable<T>> : ISemiLocalData<T>, ISemiLocalFastAccess
 
+
+/**
+ *
+ */
+interface ISemiLocalCombined<T:Comparable<T>>: ISemiLocalSA, ISemiLocalSolution<T>
 
 

@@ -72,12 +72,12 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
                 val subList = B.subList(i, j)
                 if (!compareDouble(
                         prefixAlignment(A, subList, scoringScheme),
-                        solution.stringSubstringSA(i, j)
+                        solution.stringSubstring(i, j)
                     )
                 ) {
                     assertEquals(
                         prefixAlignment(A, subList, scoringScheme),
-                        solution.stringSubstringSA(i, j)
+                        solution.stringSubstring(i, j)
                     )
                 }
 
@@ -92,12 +92,12 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
                 val subList = A.subList(i, j)
                 if (!compareDouble(
                         prefixAlignment(subList, B, scoringScheme),
-                        solution.substringStringSA(i, j)
+                        solution.substringString(i, j)
                     )
                 )
                     assertEquals(
                         prefixAlignment(subList, B, scoringScheme),
-                        solution.substringStringSA(i, j)
+                        solution.substringString(i, j)
                     )
             }
         }
@@ -113,12 +113,12 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
 
                 if (!compareDouble(
                         prefixAlignment(subListA, subListB, scoringScheme),
-                        solution.prefixSuffixSA(i, j)
+                        solution.prefixSuffix(i, j)
                     )
                 ) {
                     assertEquals(
                         prefixAlignment(subListA, subListB, scoringScheme),
-                        solution.prefixSuffixSA(i, j)
+                        solution.prefixSuffix(i, j)
                     )
                 }
             }
@@ -133,12 +133,12 @@ internal abstract class SemiLocalSABaseTester(val random: Random) {
                 val subListB = B.subList(j, B.size)
                 if (!compareDouble(
                         prefixAlignment(subListA, subListB, scoringScheme),
-                        solution.suffixPrefixSA(i, j)
+                        solution.suffixPrefix(i, j)
                     )
                 )
                     assertEquals(
                         prefixAlignment(subListA, subListB, scoringScheme),
-                        solution.suffixPrefixSA(i, j)
+                        solution.suffixPrefix(i, j)
                     )
             }
         }

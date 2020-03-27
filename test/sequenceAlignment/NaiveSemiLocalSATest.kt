@@ -1,11 +1,9 @@
 package sequenceAlignment
 
-import utils.PermutationMatrixTwoLists
 import longestCommonSubsequence.ReducingKernelEvaluation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import utils.IScoringScheme
-import utils.RegularScoringScheme
+import utils.*
 import kotlin.random.Random
 
 
@@ -31,16 +29,28 @@ internal class NaiveSemiLocalSATest() : SemiLocalSABaseTester(Random(17)) {
     }
 
     @Test
+    fun tmp(){
+        println(prefixAlignment("ABCA".toList(),"ACBA".toList(),FixedScoringScheme(Fraction(1,1),
+            Fraction(-3,10),Fraction(-81,100)
+        )))
+        println(
+            prefixAlignment(
+                "CABBA".toList(),"СBBA".toList(),FixedScoringScheme(Fraction(2,1), Fraction(-1,1), Fraction(-1,1))
+            )
+        )
+    }
+
+    @Test
     fun check() {
         fun <E : Comparable<E>> checkStringSubstringProblem(A: List<E>, B: List<E>, sol1: ISemiLocalSA, sol2: ISemiLocalSA) {
             for (j in 0..B.size) {
                 for (i in 0 until j) {
                     if (!compareDouble(
-                            sol1.stringSubstringSA(i, j), sol2.stringSubstringSA(i, j)
+                            sol1.stringSubstring(i, j), sol2.stringSubstring(i, j)
                         )
                     ) {
                         Assertions.assertEquals(
-                            sol1.stringSubstringSA(i, j), sol2.stringSubstringSA(i, j)
+                            sol1.stringSubstring(i, j), sol2.stringSubstring(i, j)
                         )
                     }
 

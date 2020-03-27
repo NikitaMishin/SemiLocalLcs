@@ -1,17 +1,8 @@
-import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
-import approximateMatching.SellersCompleteAMatch
-import approximateMatching.ThresholdAMathViaSemiLocal
-import approximateMatching.ThresholdWindowSemiLocal
-import beyondsemilocality.WindowSubstringLCSImplicit
-import beyondsemilocality.WindowSubstringSANaiveImplicit
-import beyondsemilocality.canonicalSWindows
+import beyondsemilocality.*
 import longestCommonSubsequence.ImplicitSemiLocalLCS
-import longestCommonSubsequence.NaiveSemiLocalLCS
 import longestCommonSubsequence.ReducingKernelEvaluation
-import sequenceAlignment.*
+import longestCommonSubsequence.Symbol
 import utils.*
-import java.lang.Math.pow
-import kotlin.math.log2
 import kotlin.math.pow
 
 //import sequenceAlignment.SellersCompleteAMatchProblem
@@ -262,17 +253,63 @@ fun main() {
 //    println(ss)
 //    println()
 
+    val c= "145239sa5a".toList()
+    val d = "14dsa5".toList()
+
+
+
     val mmmmm = 10.0
     val dummy = PermutationMatrixTwoLists(listOf(),0,0)
 
     val arr: Array<Array<PermutationMatrixTwoLists>> = Array(4){ i->Array((mmmmm / 2.0.pow(i.toDouble()).toInt()).toInt()){dummy} }
-    canonicalSWindows("145239sa5a".toList(),"14dsa5".toList(), arr as Array<Array<Matrix>>,8,3)
-    arr.forEach { it.forEach { println(it.print()) } }
+    canonicalSWindows(c,d, arr as Array<Array<Matrix>>,8,3)
+    //arr.forEach { it.forEach { println(it.print()) } }
+    println("SOLU")
+    val res = WindowSubstringSAImplicit<Char>().solve(c,d,2,LCSScoringScheme())
+    val plot = res.constructAlignmentPlot()
+    for( i in 0 until plot.size){
+        for (j in 0 until plot[0].size){
+            print("${plot[i][j]} ")
+        }
+        println()
+    }
+
+    println("SHOULD")
+    val rs = WindowSubstringSANaiveImplicit<Char>(ReducingKernelEvaluation{
+        PermutationMatrixTwoLists(
+            listOf(),
+            0,
+            0
+        )
+    }).solve(c,d,2,RegularScoringScheme(0,1)).constructAlignmentPlot()
 
     println(
         ImplicitSemiLocalLCS("39sa".toList(),"14dsa5".toList(),arr[2][1]).stringSubstringLCS(0,4))
 
-
-    println(
-    ImplicitSemiLocalLCS("45239sa5".toList(),"14dsa5".toList(),WindowSubstringLCSImplicit<Char>().secondPhrase(1,9,arr,1,0,8,6)).stringSubstringLCS(0,6))
+    for( i in 0 until rs.size){
+        for (j in 0 until rs[0].size){
+            print("${rs[i][j]} ")
+        }
+        println()
     }
+
+    println(   6 ==5)
+    println("VSe")
+
+
+//    ImplicitSemiLocalLCS(c.subList(0,4),d,WindowSubstringLCSImplicit<Char>().secondPhrase(0,4,arr,1,0,4,d.size)).print()
+    println(c.subList(0,4))
+    println(d)
+    ImplicitSemiLocalLCS(c.subList(0,4),d,arr[2][0]).print()
+    println()
+    ImplicitSemiLocalLCS(c.subList(0,4),d,WindowSubstringLCSImplicit<Char>().secondPhrase(0,4,arr,1,0,4,d.size)).print()
+
+    //ImplicitFragmentSubstringLCS<Symbol<Char>>().solve(c,d, mutableListOf(Interval(1,2), Interval(2,3),Interval(1,3)),LCSScoringScheme())
+////shoukd be TODO 7
+//println(
+//
+//    NaiveSemiLocalSA("CABBA".toList(),"CBBA".toList(),FixedScoringScheme(Fraction(2,1), Fraction(-1,1), Fraction(-1,1))).print()
+//)
+
+}
+

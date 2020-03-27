@@ -17,7 +17,7 @@ interface IScoringScheme {
  * A regular scoring scheme for sequence alignment problem
  * regular i.e match equals to 1, gap equals to 0 and mismatch is a value from [0,1)
  */
-class RegularScoringScheme(numerator: Int, denominator: Int) : IScoringScheme {
+open class RegularScoringScheme(numerator: Int, denominator: Int) : IScoringScheme {
 
     private val match = Fraction(1, 1)
     private val mismatch = Fraction(numerator, denominator)
@@ -45,6 +45,8 @@ class RegularScoringScheme(numerator: Int, denominator: Int) : IScoringScheme {
 
     override fun getOriginalScoreFunc(value: Double, m: Int, i: Int, j: Int): Double = value
 }
+
+class LCSScoringScheme: RegularScoringScheme(0,1)
 
 //TODO not working ask Tiksin about normalization
 class FixedScoringScheme(private val match: Fraction, private val mismatch: Fraction, private val gap: Fraction) :

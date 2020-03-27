@@ -1,11 +1,8 @@
 package sequenceAlignment
 
+import longestCommonSubsequence.*
 import utils.CountingQuerySA
 import utils.IStochasticMatrix
-import longestCommonSubsequence.IStrategyKernelEvaluation
-import utils.Matrix
-import longestCommonSubsequence.Symbol
-import longestCommonSubsequence.SymbolType
 import utils.VSubBistochasticMatrix
 
 import utils.*
@@ -14,20 +11,30 @@ import utils.*
 /**
  *TODO make a note about round,wokrs only with ratiobal scheme (ask tiskin)
  */
-class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, override val text: List<T>,
-                                                         private val scoringScheme: IScoringScheme, val kernelEvaluator: IStrategyKernelEvaluation<T>
-) : ISemiLocalSA, ISemiLocalSolution<T> {
+class ImplicitSemiLocalSA<T : Comparable<T>> : ISemiLocalCombined<T> {
 
-    private val v = scoringScheme.getNormalizedMismatchScore().denominator
-    private val mu = scoringScheme.getNormalizedMismatchScore().numerator
-    private val m = pattern.size
-    private val n = text.size
+    override val pattern: List<T>
+    override val text: List<T>
+
+    private var v = 0
+    private var mu = 0
+    private var m = 0
+    private var n = 0
+    private val scoringScheme:IScoringScheme
 
     private val rangeTree2D: RangeTree2D<Int>
-    private val countinqQuery = CountingQuerySA()
-    private val stochasticMatrix: IStochasticMatrix
+    private val countingQuerySA = CountingQuerySA()
+    private val  stochasticMatrix: IStochasticMatrix
 
-    init {
+
+    constructor(a:List<T>, b:List<T>, scoringScheme: IScoringScheme, kernelEvaluator: IStrategyKernelEvaluation<T>){
+        v = scoringScheme.getNormalizedMismatchScore().denominator
+        mu = scoringScheme.getNormalizedMismatchScore().numerator
+        m = a.size
+        n = b.size
+        pattern = a
+        text = b
+        this.scoringScheme = scoringScheme
 
         val permMatrixExtended = kernelEvaluator.evaluate(
             pattern.flatMap {
@@ -72,6 +79,20 @@ class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, over
 
     }
 
+    constructor(lcsSolution: IImplicitSemiLocalLCSSolution<T>){
+        this.stochasticMatrix = lcsSolution.kernel
+        rangeTree2D = RangeTree2D(lcsSolution.kernel.iterator().asSequence().toMutableList())
+        v = 1
+        mu = 0
+        m = lcsSolution.pattern.size
+        n = lcsSolution.text.size
+        pattern = lcsSolution.pattern
+        text = lcsSolution.text
+        scoringScheme = RegularScoringScheme(0,1)
+    }
+
+
+
     private fun reverseRegularizationScore(value: Double, i: Int, j: Int): Double =
         scoringScheme.getOriginalScoreFunc(value, m, i, j)
 
@@ -87,22 +108,22 @@ class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, over
 
     //Implementation of ISemiLocalSA interface
 
-    override fun prefixSuffixSA(k: Int, j: Int): Double {
+    override fun prefixSuffix(k: Int, j: Int): Double {
         if (k < 0 || k > m || j < 0 || j > n) return Double.NaN
         return reverseRegularizationScore(canonicalDecomposition(m - k, j), k, j) - k
     }
 
-    override fun stringSubstringSA(i: Int, j: Int): Double {
+    override fun stringSubstring(i: Int, j: Int): Double {
         if (i < 0 || i > n || j < 0 || j > n) return Double.NaN
         return reverseRegularizationScore(canonicalDecomposition(i + m, j), i, j)
     }
 
-    override fun substringStringSA(k: Int, l: Int): Double {
+    override fun substringString(k: Int, l: Int): Double {
         if (k < 0 || k > m || l < 0 || l > m) return Double.NaN
         return reverseRegularizationScore(canonicalDecomposition(m - k, m + n - l), k, l) - m - k + l
     }
 
-    override fun suffixPrefixSA(l: Int, i: Int): Double {
+    override fun suffixPrefix(l: Int, i: Int): Double {
         if (l < 0 || l > m || i < 0 || i > n) return Double.NaN
         return reverseRegularizationScore(canonicalDecomposition(i + m, m + n - l), i, l) - m + l
     }
@@ -123,15 +144,15 @@ class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, over
 
     override fun getAtPosition(i: Int, j: Int): Double = canonicalDecomposition(i, j)
 
-    override fun nextInCol(i: Int, j: Int, rawValue: Double, direction: ISemiLocalSolution.Direction): Double =
+    override fun nextInCol(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double =
         when (direction) {
-            ISemiLocalSolution.Direction.Forward -> j - (i + 1 - m) - countinqQuery.dominanceSumTopRightDownMove(
+            ISemiLocalFastAccess.Direction.Forward -> j - (i + 1 - m) - countingQuerySA.dominanceSumTopRightDownMove(
                 i,
                 j,
                 j - i + m - rawValue,
                 stochasticMatrix
             )
-            ISemiLocalSolution.Direction.BackWard -> j - (i - 1 - m) - countinqQuery.dominanceSumTopRightUpMove(
+            ISemiLocalFastAccess.Direction.BackWard -> j - (i - 1 - m) - countingQuerySA.dominanceSumTopRightUpMove(
                 i,
                 j,
                 j - i + m - rawValue,
@@ -139,15 +160,16 @@ class ImplicitSemiLocalSA<T : Comparable<T>>(override val pattern: List<T>, over
             )
         }
 
-    override fun nextInRow(i: Int, j: Int, rawValue: Double, direction: ISemiLocalSolution.Direction): Double =
+
+    override fun nextInRow(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double =
         when (direction) {
-            ISemiLocalSolution.Direction.Forward -> j + 1 - (i - m) - countinqQuery.dominanceSumTopRightRightMove(
+            ISemiLocalFastAccess.Direction.Forward -> j + 1 - (i - m) - countingQuerySA.dominanceSumTopRightRightMove(
                 i,
                 j,
                 j - i + m - rawValue,
                 stochasticMatrix
             )
-            ISemiLocalSolution.Direction.BackWard -> j - 1 - (i - m) - countinqQuery.dominanceSumTopRightLeftMove(
+            ISemiLocalFastAccess.Direction.BackWard -> j - 1 - (i - m) - countingQuerySA.dominanceSumTopRightLeftMove(
                 i,
                 j,
                 j - i + m - rawValue,

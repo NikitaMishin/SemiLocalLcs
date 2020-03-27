@@ -16,10 +16,15 @@ fun Double.round(decimals: Int): Double {
  */
 operator fun Int.times(other: Fraction):Fraction = Fraction(this,1) * other
 operator fun Int.plus(other: Fraction):Fraction = Fraction(this,1) + other
-
+fun Int.isEqualTo(other: Fraction) =  Fraction(this,1) == other
 
 /**
  *
  */
 fun <T : Comparable<T>> T.isInside(interval: IntervalQuery<T>) =
     this >= interval.leftInclusive && this <= interval.rightInclusive
+
+/**
+ * Extension for Fractions
+ */
+fun Fraction.isEqualTo(num:Int) =  Fraction(num,1) == this

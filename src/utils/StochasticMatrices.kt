@@ -268,9 +268,9 @@ class PermutationMatrixTwoLists(positions: List<Position2D<Int>>, height: Int, w
 }
 
 
+
 class VSubBistochasticMatrix(points: List<Position2D<Int>>, height: Int, width: Int, override val v: Int):
     IStochasticMatrix {
-
 
     private val arrColToRow = Array(width) { LinkedList<Position2D<Int>>() }
     private val arrRowToCol = Array(height) { LinkedList<Position2D<Int>>() }
