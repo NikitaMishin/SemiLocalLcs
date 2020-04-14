@@ -202,11 +202,16 @@ internal class GraphAlgorithmsTest {
             Edge(5, 4, 0.98, "5->4"),//should be clique [4,5]
 
             Edge(3, 1, 0.91, "3->1"), // shoukd be clique [1,2,3]
+            Edge(1, 3, 0.91, "1->3"), // shoukd be clique [1,2,3]
+
 
 
             Edge(1, 4, 0.75, "1->4"), // shoukd be cluster  [1,2,3], [4,5]
+            Edge(4, 1, 0.75, "4->1"), // shoukd be cluster  [1,2,3], [4,5]
 
-            Edge(6, 4, 0.69, "6->4") // shoukd be cluster  [[1,2,3], [4,5]],[ 6 ]
+
+            Edge(6, 4, 0.69, "6->4"), // shoukd be cluster  [[1,2,3], [4,5]],[ 6 ]
+                    Edge(4, 6, 0.69, "4->6") // shoukd be cluster  [[1,2,3], [4,5]],[ 6 ]
 
 
         )
@@ -219,7 +224,31 @@ internal class GraphAlgorithmsTest {
 
 
         val c = HierarhicalClusteringMinDistance(0.9, 0.7, normalizedGraph).buildHierarchy()
-        println(c)
     }
+
+    @Test
+    fun mclAlgoTest(){
+println(       normalizedGraph.numVertices()
+)
+        val arr = Array(normalizedGraph.numVertices()){DoubleArray(normalizedGraph.numVertices()){0.0} }
+
+        for( it in normalizedGraph.getAllEdges()){
+            arr[it.from-1][it.to-1] = it.score
+        }
+
+        mclClustering(arr)
+        println()
+
+        mclClustering(
+            arrayOf(
+                doubleArrayOf(0.0,1.0,1.0,1.0),
+                doubleArrayOf(1.0,0.0,0.0,1.0),
+                doubleArrayOf(1.0,0.0,0.0,0.0),
+                doubleArrayOf(1.0,1.0,0.0,0.0)
+            )
+        )
+
+    }
+
 
 }

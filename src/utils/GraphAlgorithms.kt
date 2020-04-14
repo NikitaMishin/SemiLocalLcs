@@ -1,7 +1,9 @@
 package utils
 
+import java.lang.Math.pow
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.pow
 import kotlin.random.Random
 
 
@@ -829,6 +831,112 @@ class HierarhicalClusteringMinDistance<E, V>(
         if (set1.size < set2.size) set1 = set2
         return set1.first()
     }
+}
+
+
+/**
+ * finds cluster via mcl cluster
+ */
+fun mclClustering(
+    initialGraph: Array<DoubleArray>,
+    r: Int = 3,
+    p: Int = 3,
+    iterationNum: Int = 100,
+    addSelfLoops: Boolean = true
+) {
+
+
+    val algoEpsilon = 1E-5
+
+
+    fun matrixMult(matrix1: Array<DoubleArray>, matrix2: Array<DoubleArray>): Array<DoubleArray> {
+        val newMatrix = Array(matrix1.size) { DoubleArray(matrix1.size) { 0.0 } }
+        for (i in matrix1.indices) {
+            for (j in matrix1.indices) {
+                var tmp = 0.0
+                for (k in matrix1.indices) {
+                    tmp += matrix1[i][k] * matrix2[k][j]
+                }
+                if (tmp < algoEpsilon) newMatrix[i][j] = 0.0
+                else newMatrix[i][j] = tmp
+            }
+        }
+        return newMatrix
+    }
+
+    fun columnRaiseAndNormalize(matrix: Array<DoubleArray>, j: Int, degree: Int) {
+        val columnElems = matrix.indices.map { matrix[it][j].pow(degree) }
+        val sum = columnElems.sum()
+
+        columnElems.forEachIndexed { index, it ->
+            val n = it / sum
+            if (n < algoEpsilon) matrix[index][j] = 0.0
+            else matrix[index][j] = n
+        }
+    }
+
+    fun normalizeMatrix(matrix: Array<DoubleArray>, degree: Int) {
+        for (j in matrix.indices) {
+            columnRaiseAndNormalize(matrix, j, degree)
+        }
+    }
+
+    fun isSteadyState(a: Array<DoubleArray>, b: Array<DoubleArray>): Boolean {
+        for (i in a.indices) {
+            for (j in a.indices) {
+                if (!a[i][j].isEquals(b[i][j])) return false
+            }
+        }
+
+        return true
+    }
+
+    val idMatrix = Array(initialGraph.size) { i -> DoubleArray(initialGraph.size) { j -> if (i == j) 1.0 else 0.0 } }
+
+
+    fun binPowN(matrix: Array<DoubleArray>, n: Int): Array<DoubleArray> {
+        if (n == 1) return idMatrix
+        if (n % 2 == 1) return matrixMult(binPowN(matrix, n - 1), matrix)
+        else {
+            val b = binPowN(matrix, n / 2)
+            return matrixMult(b, b)
+        }
+
+    }
+
+
+    val normalizedMatrix = Array(initialGraph.size) { i -> DoubleArray(initialGraph.size) { j -> initialGraph[i][j] } }
+
+
+    // add self loops
+    if (addSelfLoops) {
+        normalizedMatrix.indices.forEach { normalizedMatrix[it][it] = 1.0 }
+    }
+
+    //normalize matrix
+    normalizeMatrix(normalizedMatrix, 1)
+
+    var prevMatrix = normalizedMatrix
+    var curMatrix = normalizedMatrix
+
+    for (iter in 0 until iterationNum) {
+        prevMatrix = curMatrix
+        curMatrix = binPowN(curMatrix, r)
+        normalizeMatrix(curMatrix, p)
+        if (isSteadyState(curMatrix, prevMatrix)) break
+    }
+
+
+    for (i in curMatrix.indices) {
+        for (j in curMatrix.indices) {
+            print("${curMatrix[i][j]} ")
+        }
+        println()
+    }
+
 
 }
+
+
+
 
