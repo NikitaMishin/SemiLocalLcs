@@ -121,7 +121,6 @@ class GraphMatrix<E, V> : IGraph<E, V> {
  * shallow copy of data
  */
 fun <E, V> inverseGraph(graph: IGraph<E, V>): IGraph<E, V> {
-    val n = graph.numVertices()
     val vertices = graph.asSequence().map { it.copy() }.toList()
     val edges = vertices.flatMap { it ->
         graph.getAllEdgesFrom(it.index).map {
@@ -299,7 +298,7 @@ fun <E, V> tarjanOptimalBranchingBranching(
     //is the vertices that has been identified as the final root in the critical
     //graph. Note that this may be a supervertex, in which case min[root]
     //is the vertex of G that is chosen as the root of the MSA.
-    var finalRoots = mutableListOf<Int>()
+    val finalRoots = mutableListOf<Int>()
 
     //S,W disjoint sets
     // S --- contains all super vertices (aka strongly connected components)
@@ -339,7 +338,7 @@ fun <E, V> tarjanOptimalBranchingBranching(
     //    keeps track of the incoming edges of the strongly connected components in the critical graph.
     //    If v is the representative of the strongly connected component Sv, then enter[v] is the edge of the critical
     //    graph that points into Sv (or ∅ if no such edge exists).
-    var enter = hashMapOf<Int, EdgeNode>()
+    val enter = hashMapOf<Int, EdgeNode>()
 
 
     // if vertex is specified as root then it would be in final answer
@@ -421,9 +420,9 @@ fun <E, V> tarjanOptimalBranchingBranching(
             enter.remove(curRoot)
 //            enter[curRoot] = null
 
-            var cycleEdges = mutableListOf(criticalEdge)
+            val cycleEdges = mutableListOf(criticalEdge)
 
-            var cycleRepr = mutableListOf(S.find(criticalEdge.to))
+            val cycleRepr = mutableListOf(S.find(criticalEdge.to))
 
 
             var minWeightedEdge = criticalEdge
@@ -445,7 +444,7 @@ fun <E, V> tarjanOptimalBranchingBranching(
 
             // Save the vertex that would be root if the newly
             // created strong component would be a root.
-            var cycleRoot = min[S.find(minWeightedEdge.to)]!!
+            val cycleRoot = min[S.find(minWeightedEdge.to)]!!
 
 
             // Union all components of the cycle into one component.
@@ -703,7 +702,7 @@ abstract class AbstractHierarchicalClustering<E, V>(internal var initialGraph: I
 
         loop@ while (roots.size > 1) {
 
-            val maxEdge = curGraph.getAllEdges().maxBy { it.score }!!
+            val maxEdge = curGraph.getAllEdges().maxBy { it.score } ?: break
 
             val from = maxEdge.from
             val to = maxEdge.to
@@ -836,17 +835,19 @@ class HierarhicalClusteringMinDistance<E, V>(
 
 /**
  * finds cluster via mcl cluster
+ * @return cluster assignment. Note that nodes not clustered will be in group 0;
  */
 fun mclClustering(
     initialGraph: Array<DoubleArray>,
-    r: Int = 3,
-    p: Int = 3,
+    r: Int = 2,
+    p: Int = 2,
     iterationNum: Int = 100,
     addSelfLoops: Boolean = true
-) {
+): Array<Int> {
 
 
-    val algoEpsilon = 1E-5
+    val algoEpsilon = epsilon
+    val roundN = 8
 
 
     fun matrixMult(matrix1: Array<DoubleArray>, matrix2: Array<DoubleArray>): Array<DoubleArray> {
@@ -855,7 +856,7 @@ fun mclClustering(
             for (j in matrix1.indices) {
                 var tmp = 0.0
                 for (k in matrix1.indices) {
-                    tmp += matrix1[i][k] * matrix2[k][j]
+                    tmp += (matrix1[i][k] * matrix2[k][j]).round(roundN)
                 }
                 if (tmp < algoEpsilon) newMatrix[i][j] = 0.0
                 else newMatrix[i][j] = tmp
@@ -864,21 +865,30 @@ fun mclClustering(
         return newMatrix
     }
 
-    fun columnRaiseAndNormalize(matrix: Array<DoubleArray>, j: Int, degree: Int) {
-        val columnElems = matrix.indices.map { matrix[it][j].pow(degree) }
+    fun columnRaiseAndNormalize(matrix: Array<DoubleArray>, j: Int, degree: Int): Boolean {
+        val columnElems = matrix.indices.map { matrix[it][j].pow(degree).round(roundN) }
         val sum = columnElems.sum()
+        val sumSq = columnElems.map { it * it }.sum()
 
         columnElems.forEachIndexed { index, it ->
-            val n = it / sum
+            val n = (it / sum).round(roundN)
             if (n < algoEpsilon) matrix[index][j] = 0.0
             else matrix[index][j] = n
         }
+
+        //check variance
+//        println(sumSq  - sum * sum/matrix.size )
+        return sumSq - (sum * sum) / matrix.size > algoEpsilon   // variance in column too high
     }
 
-    fun normalizeMatrix(matrix: Array<DoubleArray>, degree: Int) {
+    fun normalizeMatrix(matrix: Array<DoubleArray>, degree: Int): Boolean {
+        var lowVariance = true
         for (j in matrix.indices) {
-            columnRaiseAndNormalize(matrix, j, degree)
+            if (columnRaiseAndNormalize(matrix, j, degree)) {
+                lowVariance = false
+            }
         }
+        return lowVariance
     }
 
     fun isSteadyState(a: Array<DoubleArray>, b: Array<DoubleArray>): Boolean {
@@ -891,11 +901,8 @@ fun mclClustering(
         return true
     }
 
-    val idMatrix = Array(initialGraph.size) { i -> DoubleArray(initialGraph.size) { j -> if (i == j) 1.0 else 0.0 } }
-
-
     fun binPowN(matrix: Array<DoubleArray>, n: Int): Array<DoubleArray> {
-        if (n == 1) return idMatrix
+        if (n == 1) return matrix
         if (n % 2 == 1) return matrixMult(binPowN(matrix, n - 1), matrix)
         else {
             val b = binPowN(matrix, n / 2)
@@ -916,25 +923,46 @@ fun mclClustering(
     //normalize matrix
     normalizeMatrix(normalizedMatrix, 1)
 
-    var prevMatrix = normalizedMatrix
+    var prevMatrix: Array<DoubleArray>
     var curMatrix = normalizedMatrix
 
     for (iter in 0 until iterationNum) {
         prevMatrix = curMatrix
         curMatrix = binPowN(curMatrix, r)
+
         normalizeMatrix(curMatrix, p)
+//        if (normalizeMatrix(curMatrix, p)) break
+
+        //works better
         if (isSteadyState(curMatrix, prevMatrix)) break
     }
 
 
+
+    val maxJ = DoubleArray(curMatrix.size){0.0}
+    //cluster as
+    val clusterAss = Array(curMatrix.size){0}
+
+
+
+
+    var group = 1
     for (i in curMatrix.indices) {
+        var isGroupDetected = false
+
         for (j in curMatrix.indices) {
-            print("${curMatrix[i][j]} ")
+            if(curMatrix[i][j] > maxJ[j]){
+                clusterAss[j] = group
+                maxJ[j] = curMatrix[i][j]
+                isGroupDetected = true
+            }
+            print("${curMatrix[i][j].round(3)}   ")
         }
         println()
+        if(isGroupDetected) group++
     }
 
-
+    return clusterAss
 }
 
 
