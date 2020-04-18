@@ -4,7 +4,9 @@ import sequenceAlignment.ISemiLocalPrefixSuffixProblem
 import sequenceAlignment.ISemiLocalStringSubstringProblem
 import sequenceAlignment.ISemiLocalSubstringStringProblem
 import sequenceAlignment.ISemiLocalSuffixPrefixProblem
+import utils.IScoringScheme
 import utils.Matrix
+import kotlin.math.max
 import kotlin.random.Random
 
 /**
@@ -20,17 +22,17 @@ enum class SymbolType {
 /**
  * longestCommonSubsequence.Symbol is extended alphabet for semiLocalLCS
  */
-data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T>{
+data class Symbol<T>(val symbol: T, val type: SymbolType) {
     override fun equals(other: Any?): Boolean {
         if (other !is Symbol<*>) return false // todo bad kotlin type erasure
-        if(this.type== SymbolType.WildCardSymbol || other.type== SymbolType.WildCardSymbol ||
-            (this.type== SymbolType.AlphabetSymbol && other.type== SymbolType.AlphabetSymbol && this.symbol==other.symbol) ||
-                    this.type== SymbolType.GuardSymbol && other.type== SymbolType.GuardSymbol
+        if (this.type == SymbolType.WildCardSymbol || other.type == SymbolType.WildCardSymbol ||
+            (this.type == SymbolType.AlphabetSymbol && other.type == SymbolType.AlphabetSymbol && this.symbol == other.symbol) ||
+            this.type == SymbolType.GuardSymbol && other.type == SymbolType.GuardSymbol
         ) return true
         return false
     }
 
-    fun repeatShallowCopy(times:Int):List<Symbol<T>> = (0 until times).map { this }
+    fun repeatShallowCopy(times: Int): List<Symbol<T>> = (0 until times).map { this }
 
     override fun hashCode(): Int {
         var result = symbol.hashCode()
@@ -43,9 +45,10 @@ data class Symbol<T>(val symbol: T, val type: SymbolType) where T : Comparable<T
 /**
  *  @param  matrixInstance to get type M (see type erasure)
  */
-class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) :
-    IStrategyKernelEvaluation<T> {
+class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
+    IStrategyKernelEvaluation {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
+
     /**
      * The recursive algorithm based on steady ant braid multiplication.
      * See page 64
@@ -53,7 +56,7 @@ class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: (
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix {
+    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
 
         if (a.size == 1 && b.size == 1) {
             val identityMatrix = instance.createZeroMatrix(2, 2)
@@ -97,7 +100,7 @@ class RecursiveKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: (
 /**
  *  @param matrixInstance is for providing createZeroMatrix function of specified type (bad kotlin)
  */
-class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: () -> M) : IStrategyKernelEvaluation<T> {
+class ReducingKernelEvaluation<M : Matrix>(matrixInstance: () -> M) : IStrategyKernelEvaluation {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
 
     /**
@@ -108,7 +111,7 @@ class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: ()
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix {
+    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
 
 //    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
 //        //странд слева > странд сверху
@@ -116,7 +119,8 @@ class ReducingKernelEvaluation<T : Comparable<T>, M : Matrix>(matrixInstance: ()
 
 
         val solution = instance.createZeroMatrix(a.size + b.size, a.size + b.size)
-        val strandMap = IntArray(a.size+b.size) { i->i}// what strand is now at left and top edge of current cell strand
+        val strandMap =
+            IntArray(a.size + b.size) { i -> i }// what strand is now at left and top edge of current cell strand
 //        for (i in 0 until a.size + b.size) strandMap[i] = i
 
         for (i in a.indices) {
@@ -163,44 +167,89 @@ fun getPermBA(A: Matrix, m: Int, n: Int): Matrix {
 }
 
 
-//    /**
-//     * The iterative algorithm for semilocal lcs kernel.
-//     * See page 67
-//     *
-//     */
-//    fun semiLocalLCSIterative(a: String, b: String, resMatrix: utils.AbstractPermutationMatrix): utils.AbstractPermutationMatrix {
-//
-//        val P = resMatrix.createZeroMatrix(a.length + b.length, a.length + b.length)
-//        for (i in 0 until a.length + b.length) P[a.length + b.length - 1 - i, i] = true // fully mismatched
-////    for(i in 0 until a.length+b.length) P[i,i] = true // fully mismatched
-//
-//        val PStroke = resMatrix.createZeroMatrix(P.height(), 2)
-//        val cell = resMatrix.createZeroMatrix(2, 2)
-//
-//        for (i in 1 until P.height()) {
-//            for (j in 1 until P.width()) {
-//                //fresh
-//                PStroke.resetInRow(0)
-//                PStroke.resetInRow(1)
-//                PStroke[P[j - 1, utils.AbstractPermutationMatrix.GetType.COLUMN], 0] = true
-//                PStroke[P[j, utils.AbstractPermutationMatrix.GetType.COLUMN], 1] = true
-//                cell.resetInRow(0)
-//                cell.resetInRow(1)
-//                if (a[i] == b[j]) {
-//                    // cell.set(0,0,true)
-//                    //cell.set(1,1,true)
-//                } else {
-//                    cell[1, 0] = true
-//                    cell[0, 1] = true
-//                    P.resetInColumn(j)
-//                    P.resetInColumn(j - 1)
-//                    val product = steadyAntWrapper(PStroke, cell)
-//                    for (p in product) P[p.i, p.j + j - 1] = true
-//                }
-//            }
-//
-//        }
-//        //  P.print()
-//
-//        return P
-//    }
+//TODO new
+
+/**
+ *
+ */
+fun getMongeMatrixBA(A: AbstractMongeMatrix, m: Int, n: Int): AbstractMongeMatrix {
+    val B = A.createNewMatrix(A.height(), A.width())
+    for (i in 0 until B.height()) {//-n to m
+        for (j in 0 until B.width()) {
+//            B[n + m - i, m + n - j] = A[i,j] +  (i - n) - j + m
+            B[i, j] = A[n + m - i, m + n - j] - (i - n) + j - n
+        }
+    }
+
+    return B
+}
+
+
+class ExplicitKernelEvaluation(private val scheme: IScoringScheme) {
+    val mu = scheme.getNormalizedMismatchScore().numerator
+    val v = scheme.getNormalizedMismatchScore().denominator
+
+    //base cases
+    val matchIdMatrix = MongeMatrix(3, 3)
+    val mismatchMatrix = MongeMatrix(3, 3)
+
+    init {
+        // fill mismatch matrix
+        mismatchMatrix[0, 0] = 0.0
+        mismatchMatrix[1, 0] = 0.0
+        mismatchMatrix[2, 0] = 0.0
+
+        mismatchMatrix[2, 1] = 0.0
+        mismatchMatrix[2, 2] = 0.0
+
+        mismatchMatrix[0, 1] = 1.0
+        mismatchMatrix[0, 2] = 2.0
+
+        mismatchMatrix[1, 1] = 1.toDouble() - mu.toDouble() / v
+        mismatchMatrix[1, 2] = 1.toDouble()
+
+
+        for (i in 0 until matchIdMatrix.height()) {
+            for (j in 0 until matchIdMatrix.width()) {
+                matchIdMatrix[i, j] = max(0, j - i).toDouble()
+            }
+        }
+
+    }
+
+    private fun <T> sol(a: List<T>, b: List<T>): AbstractMongeMatrix = when {
+        a.size == 1 && b.size == 1 && a[0] == b[0] -> matchIdMatrix
+        a.size == 1 && b.size == 1 && a[0] != b[0] -> mismatchMatrix
+        b.size > a.size -> {
+            val n1 = b.size / 2
+            val b1 = b.subList(0, n1)
+            val b2 = b.subList(n1, b.size)
+
+            getMongeMatrixBA((staggeredExplicitMultiplication(sol(b1, a), sol(b2, a), a.size)), a.size, b.size)
+        }
+        else -> {
+            val m1 = a.size / 2
+            val a1 = a.subList(0, m1)
+            val a2 = a.subList(m1, a.size)
+
+            staggeredExplicitMultiplication(sol(a1, b), sol(a2, b), b.size)
+
+        }
+    }
+
+
+    fun <T> solve(a: List<T>, b: List<T>): AbstractMongeMatrix {
+
+        var solution = sol(a, b)
+        if (solution[solution.height() - 1, 0] != 0.0) solution = getMongeMatrixBA(solution, a.size, b.size)
+        for (i in 0 until solution.height()) {
+            for (j in 0 until solution.width()) {
+
+//                 j - (i - m) -
+//                solution[i, j] = j - (i - a.size) - solution[i, j]
+            }
+        }
+        return solution
+    }
+
+}
