@@ -1,18 +1,24 @@
 package longestCommonSubsequence
 
+import sequenceAlignment.ISemiLocalCombined
 import sequenceAlignment.ISemiLocalData
+import sequenceAlignment.ISemiLocalFastAccess
+import utils.IScoringScheme
+import utils.LCSScoringScheme
 import kotlin.math.max
 
 /**
  * Implementation of semi-local LCS via naive approach, i.e the semi-local lcs matrix stored explicitly
  */
-data class NaiveSemiLocalLCS<T:Comparable<T>>(override val pattern: List<T>,override val text: List<T>) :
-    ISemiLocalLCS, ISemiLocalData<T> {
-    // a of size m
-    // b of size n
-  private var m = pattern.size
+class NaiveSemiLocalLCS<T>(override val pattern: List<T>, override val text: List<T>) : ISemiLocalCombined<T>,
+    ISemiLocalLCS {
+
+    override fun getScoringScheme(): IScoringScheme = LCSScoringScheme()
+
+
+    private var m = pattern.size
     private var n = text.size
-    private var aSymbolString: List<Symbol<T>> =
+    private var aSymbolString =
         pattern.map {
             Symbol(
                 it,
@@ -103,15 +109,18 @@ data class NaiveSemiLocalLCS<T:Comparable<T>>(override val pattern: List<T>,over
         return lcsMatrix[m - 1][n - 1]
     }
 
-    override fun getAtPosition(i: Int, j: Int): Int = semiLocalLCSMatrix[i][j]
+    override fun nextInCol(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double = TODO()
 
-    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i,j).toDouble()
+    override fun nextInRow(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double = TODO()
+    override fun getAtPosition(i: Int, j: Int): Double = semiLocalLCSMatrix[i][j].toDouble()
 
-    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k,j).toDouble()
+    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i, j).toDouble()
 
-    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l,i).toDouble()
+    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k, j).toDouble()
 
-    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k,l).toDouble()
+    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l, i).toDouble()
+
+    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k, l).toDouble()
 
 
     /**

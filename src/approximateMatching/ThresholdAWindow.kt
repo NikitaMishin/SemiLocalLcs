@@ -15,9 +15,8 @@ interface IThresholdAWindowProblem {
     fun solve(threshold: Double, windowLen: Int): List<Interval>
 }
 
-class ThresholdWindowSemiLocal<T : Comparable<T>>(
-    var semilocal: ISemiLocalSolution<T>, var aMatchProblem: ICompleteAMatchProblem<T>
-) : IThresholdAWindowProblem {
+class ThresholdWindowSemiLocal<T>(var semilocal: ISemiLocalSolution<T>, var aMatchProblem: ICompleteAMatchProblem<T>) :
+    IThresholdAWindowProblem {
 
     //TODO add value transofre
     override fun solve(threshold: Double, windowLen: Int): List<Interval> {
@@ -39,11 +38,13 @@ class ThresholdWindowSemiLocal<T : Comparable<T>>(
 
         // goes diagonal via incremental queries
         while (curRow + 1 <= n + m && curCol + 1 <= n) {
-            curValue = semilocal.nextInRow(curRow, curCol, curValue,
+            curValue = semilocal.nextInRow(
+                curRow, curCol, curValue,
                 ISemiLocalFastAccess.Direction.Forward
             )
             curCol++
-            curValue = semilocal.nextInCol(curRow, curCol, curValue,
+            curValue = semilocal.nextInCol(
+                curRow, curCol, curValue,
                 ISemiLocalFastAccess.Direction.Forward
             )
             curRow++

@@ -1,31 +1,26 @@
 package longestCommonSubsequence
 
+import sequenceAlignment.ISemiLocalCombined
 import sequenceAlignment.ISemiLocalData
+import sequenceAlignment.ISemiLocalFastAccess
 import utils.*
 
-class ImplicitSemiLocalLCS<T> : ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> where T : Comparable<T> {
+//ISemiLocalCombined
+class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T>, ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> {
     override val kernel: Matrix
 
     private lateinit var rangeTree2D: RangeTree2D<Int>
     override lateinit var pattern: List<T>
     override lateinit var text: List<T>
+
+    private val scoringScheme = LCSScoringScheme()
+
+
     private var m: Int = 0
     private var n: Int = 0
 
-    constructor(a: List<T>, b: List<T>, kernelEvaluator: IStrategyKernelEvaluation<T>) {
-
-        kernel = kernelEvaluator.evaluate(
-            a.map {
-                Symbol(
-                    it,
-                    SymbolType.AlphabetSymbol
-                )
-            }, b.map {
-                Symbol(
-                    it,
-                    SymbolType.AlphabetSymbol
-                )
-            })
+    constructor(a: List<T>, b: List<T>, kernelEvaluator: IStrategyKernelEvaluation) {
+        kernel = kernelEvaluator.evaluate(a, b)
         init(a, b)
     }
 
@@ -75,15 +70,54 @@ class ImplicitSemiLocalLCS<T> : ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> 
         return canonicalDecomposition(i + m, m + n - l) - m + l
     }
 
-    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i,j).toDouble()
+    override fun stringSubstring(i: Int, j: Int): Double = stringSubstringLCS(i, j).toDouble()
 
-    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k,j).toDouble()
+    override fun prefixSuffix(k: Int, j: Int): Double = prefixSuffixLCS(k, j).toDouble()
 
-    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l,i).toDouble()
+    override fun suffixPrefix(l: Int, i: Int): Double = suffixPrefixLCS(l, i).toDouble()
 
-    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k,l).toDouble()
+    override fun substringString(k: Int, l: Int): Double = substringStringLCS(k, l).toDouble()
 
-    override fun getAtPosition(i: Int, j: Int): Int = canonicalDecomposition(i, j)
+    override fun getAtPosition(i: Int, j: Int): Double = canonicalDecomposition(i, j).toDouble()
+
+    override fun getScoringScheme(): IScoringScheme = scoringScheme
+
+    private val countingQuerySA = CountingQuerySA()
+
+
+    override fun nextInCol(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double =
+        when (direction) {
+            ISemiLocalFastAccess.Direction.Forward -> j - (i + 1 - m) - countingQuerySA.dominanceSumTopRightDownMove(
+                i,
+                j,
+                j - i + m - rawValue,
+                kernel
+            )
+            ISemiLocalFastAccess.Direction.BackWard -> j - (i - 1 - m) - countingQuerySA.dominanceSumTopRightUpMove(
+                i,
+                j,
+                j - i + m - rawValue,
+                kernel
+            )
+        }
+
+
+    override fun nextInRow(i: Int, j: Int, rawValue: Double, direction: ISemiLocalFastAccess.Direction): Double =
+        when (direction) {
+            ISemiLocalFastAccess.Direction.Forward -> j + 1 - (i - m) - countingQuerySA.dominanceSumTopRightRightMove(
+                i,
+                j,
+                j - i + m - rawValue,
+                kernel
+            )
+            ISemiLocalFastAccess.Direction.BackWard -> j - 1 - (i - m) - countingQuerySA.dominanceSumTopRightLeftMove(
+                i,
+                j,
+                j - i + m - rawValue,
+                kernel
+            )
+        }
+
 
     override fun print() {
         for (i in 0 until m + n + 1) {
@@ -92,6 +126,18 @@ class ImplicitSemiLocalLCS<T> : ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> 
             }
             println()
         }
+    }
+
+    //tmp
+    fun getMatrix(): AbstractMongeMatrix {
+        val mongeMatrix = MongeMatrix(m + n + 1, m + n + 1)
+        for (i in 0 until m + n + 1) {
+            for (j in 0 until m + n + 1) {
+                mongeMatrix[i, j] = getAtPosition(i, j)
+            }
+
+        }
+        return mongeMatrix
     }
 
 

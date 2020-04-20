@@ -42,7 +42,7 @@ interface ISemiLocalSubstringStringLCSProblem {
 interface ISemiLocalLCS : ISemiLocalSA, ISemiLocalSubstringStringLCSProblem, ISemiLocalSuffixPrefixLCSProblem,
     ISemiLocalPrefixSuffixLCSProblem, ISemiLocalStringSubstringLCSProblem {
 
-    fun getAtPosition(i: Int, j: Int): Int
+    fun getAtPosition(i: Int, j: Int): Double
 
     companion object {
         val alphabet = arrayListOf(
@@ -83,10 +83,8 @@ interface ISemiLocalLCS : ISemiLocalSA, ISemiLocalSubstringStringLCSProblem, ISe
 
 
 
-interface IImplicitSemiLocalLCSSolution<T:Comparable<T>> : ISemiLocalData<T> {
+interface IImplicitSemiLocalLCSSolution<T> : ISemiLocalData<T> {
     val kernel: Matrix
 }
 
-interface IStrategyKernelEvaluation<T : Comparable<T>> {
-    fun evaluate(a: List<Symbol<T>>, b: List<Symbol<T>>): Matrix
-}
+

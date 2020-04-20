@@ -1,5 +1,7 @@
 package utils
 
+import longestCommonSubsequence.AbstractMongeMatrix
+import longestCommonSubsequence.ReducingKernelEvaluation
 import java.util.*
 import kotlin.math.abs
 import kotlin.random.Random
@@ -131,6 +133,16 @@ abstract class AbstractPermutationMatrix : Iterable<Position2D<Int>>, IStochasti
                 }
             }
             return PermutationMatrixTwoLists(positions2D, height, width)
+        }
+
+        fun generateSquarePermutationMatrix(a: Int, b: Int,seed: Int,limit:Int =100): Matrix {
+            val randomizer = Random(seed)
+            val kernel = ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists}).evaluate(
+                (0 until a).map { randomizer.nextInt(0,limit) },
+                (0 until b).map { randomizer.nextInt(0,limit) }
+            )
+
+            return kernel
         }
     }
 

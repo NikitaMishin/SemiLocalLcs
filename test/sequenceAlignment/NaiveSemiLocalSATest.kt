@@ -20,24 +20,29 @@ internal class NaiveSemiLocalSATest() : SemiLocalSABaseTester(Random(17)) {
             NaiveSemiLocalSA(
                 A,
                 B,
-//                FixedScoringScheme(Fraction(5, 1), Fraction(-1, 1), Fraction(3, 1))
-            RegularScoringScheme(numerator, denominator)
+                FixedScoringScheme(Fraction(20, 1), Fraction(-10, 1), Fraction(-300, 15))
+//            RegularScoringScheme(numerator, denominator)
             ),
-            scoringScheme
+            FixedScoringScheme(Fraction(20, 1), Fraction(-10, 1), Fraction(-300, 15))
         )
 
     }
 
     @Test
     fun tmp(){
-        println(prefixAlignment("ABCA".toList(),"ACBA".toList(),FixedScoringScheme(Fraction(1,1),
-            Fraction(-3,10),Fraction(-81,100)
-        )))
-        println(
-            prefixAlignment(
-                "CABBA".toList(),"СBBA".toList(),FixedScoringScheme(Fraction(2,1), Fraction(-1,1), Fraction(-1,1))
-            )
+
+        val sc = FixedScoringScheme(Fraction(1,1),
+            Fraction(-1,1),Fraction(-3,2)
         )
+        println(prefixAlignment("AAAA".toList(),"A".toList(),2 ,sc))
+        println(
+        NaiveSemiLocalSA("AAAA".toList(),"AA".toList(),sc).substringString(0,1)
+        )
+//        println(
+//            prefixAlignment(
+//                "CABBA".toList(),"СBBA".toList(),FixedScoringScheme(Fraction(2,1), Fraction(-1,1), Fraction(-1,1))
+//            )
+//        )
     }
 
     @Test

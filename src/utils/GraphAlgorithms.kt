@@ -22,12 +22,18 @@ interface IEdge<E> {
 }
 
 
+/**
+ *
+ */
 data class Edge<E>(override var from: Int, override var to: Int, override var score: Double, override var data: E) :
     IEdge<E> {
     override fun copy(): IEdge<E> = Edge(from, to, score, data)
 
 }
 
+/**
+ *
+ */
 data class Vertex<V>(override var index: Int, override var data: V) : IVertex<V> {
     override fun copy(): IVertex<V> = Vertex(index, data)
 }
@@ -938,12 +944,9 @@ fun mclClustering(
     }
 
 
-
-    val maxJ = DoubleArray(curMatrix.size){0.0}
+    val maxJ = DoubleArray(curMatrix.size) { 0.0 }
     //cluster as
-    val clusterAss = Array(curMatrix.size){0}
-
-
+    val clusterAss = Array(curMatrix.size) { 0 }
 
 
     var group = 1
@@ -951,7 +954,7 @@ fun mclClustering(
         var isGroupDetected = false
 
         for (j in curMatrix.indices) {
-            if(curMatrix[i][j] > maxJ[j]){
+            if (curMatrix[i][j] > maxJ[j]) {
                 clusterAss[j] = group
                 maxJ[j] = curMatrix[i][j]
                 isGroupDetected = true
@@ -959,7 +962,7 @@ fun mclClustering(
             print("${curMatrix[i][j].round(3)}   ")
         }
         println()
-        if(isGroupDetected) group++
+        if (isGroupDetected) group++
     }
 
     return clusterAss

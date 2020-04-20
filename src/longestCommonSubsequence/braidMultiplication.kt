@@ -7,13 +7,19 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.measureTimeMillis
 
 
+/**
+ *
+ */
 interface IBraidMultiplication {
     fun multiply(P: Matrix, Q: Matrix): Matrix
 }
 
-
+/**
+ *
+ */
 interface IStrategyKernelEvaluation {
     fun <T> evaluate(a: List<T>, b: List<T>): Matrix
 }
@@ -32,6 +38,24 @@ class NaiveBraidMultiplication : IBraidMultiplication {
         val bDominance = CountingQueryLCS.dominanceMatrix(Q, CountingQueryLCS.topRightSummator)
         val cDominance: Array<Array<Int>> = Array(P.height() + 1) { Array(Q.width() + 1) { 0 } }
 
+        println("unmult")
+        val time = measureTimeMillis {
+            for (i in 0 until P.height() + 1) {
+                for (k in 0 until Q.width() + 1) {
+                    var tmp = Int.MAX_VALUE
+                    for (j in 0 until P.width() + 1) {
+                        tmp = Integer.min(aDominance[i][j] + bDominance[j][k], tmp)
+
+                    }
+                    cDominance[i][k] = tmp
+                }
+            }
+            println(cDominance[0][0])
+        }
+
+        println("mu tyme beach${time}")
+
+
         for (i in 0 until P.height() + 1) {
             for (k in 0 until Q.width() + 1) {
                 var tmp = Int.MAX_VALUE
@@ -49,6 +73,45 @@ class NaiveBraidMultiplication : IBraidMultiplication {
             for (j in 0 until Q.width()) {
                 c[i, j] =
                     (cDominance[i][j + 1] + cDominance[i + 1][j] - cDominance[i][j] - cDominance[i + 1][j + 1]) == 1
+            }
+        }
+
+        return c
+    }
+}
+
+/**
+ *
+ */
+class MongeBraidMultiplication:IBraidMultiplication{
+    override fun multiply(P: Matrix, Q: Matrix): Matrix {
+        val aDominance = CountingQueryLCS.dominanceMatrix(P, CountingQueryLCS.topRightSummator)
+        val bDominance = CountingQueryLCS.dominanceMatrix(Q, CountingQueryLCS.topRightSummator)
+
+        val a = MongeMatrix(aDominance.size,bDominance.size)
+        val b = MongeMatrix(aDominance.size,bDominance.size)
+        aDominance.forEachIndexed { i, it -> it.forEachIndexed { j,value -> a[i,j] = value.toDouble()   } }
+        bDominance.forEachIndexed { i, it -> it.forEachIndexed { j,value -> b[i,j] = value.toDouble()   } }
+
+        val c = P.createZeroMatrix(P.height(), Q.width())
+        println("unmult")
+        val time = measureTimeMillis {
+
+            val c = a*b
+            println(c[0,0])
+        }
+
+        println("mu tyme beach${time}")
+
+
+        val cDominance = a * b
+
+        println("mult")
+
+        for (i in 0 until P.height()) {
+            for (j in 0 until Q.width()) {
+                c[i, j] =
+                    (cDominance[i, j + 1] + cDominance[i + 1, j] - cDominance[i, j] - cDominance[i + 1, j + 1]).toInt() == 1
             }
         }
 
@@ -688,10 +751,10 @@ abstract class AbstractMongeMatrix() {
      * smawk algorithm implementation. O(n*queryTimeForMatrixElementAccess)
      * @return Indexes of position in a row for each row in matrix
      */
-    fun matrixVectorMult(vector: List<Double>): MutableList<Int> {
+    fun matrixVectorMult(vector: MutableList<Double>): MutableList<Int> {
         val result = MutableList(this.height()) { -1 }
 
-        fun smawk(rows: List<Int>, cols: List<Int>) {
+        fun smawk(rows: MutableList<Int>, cols: MutableList<Int>) {
             if (rows.isEmpty()) return
 
             val stack = Stack<Int>()
@@ -707,7 +770,7 @@ abstract class AbstractMongeMatrix() {
             }
 
 
-            val oddRows = rows.filterIndexed { i, _ -> i % 2 == 1 }
+            val oddRows = rows.filterIndexed { i, _ -> i % 2 == 1 }.toMutableList()
             smawk(oddRows, stack)
 
             val colToIndex = HashMap<Int, Int>()
@@ -734,7 +797,7 @@ abstract class AbstractMongeMatrix() {
             }
         }
 
-        smawk((0 until height()).toList(), (0 until width()).toList())
+        smawk((0 until height()).toMutableList(), (0 until width()).toMutableList())
         return result
     }
 
@@ -744,10 +807,10 @@ abstract class AbstractMongeMatrix() {
 
         //O(n)* smawk
         for (col in 0 until b.width()) {
-            val b = (0 until b.height()).map { row -> b[row, col] }
-            val c = matrixVectorMult(b)
+            val bVector = (0 until b.height()).map { row -> b[row, col] }.toMutableList()
+            val c = matrixVectorMult(bVector)
             c.forEachIndexed { row, j ->
-                res[row, col] = get(row, j) + b[j]
+                res[row, col] = get(row, j) + bVector[j]
             }
         }
         return res
@@ -866,6 +929,14 @@ fun staggeredExplicitMultiplication(p: AbstractMongeMatrix, q: AbstractMongeMatr
             qExtended[row, col] = qExtended[row, q.width() - 1] + qExtended[q.height() - 1, col]
         }
     }
+
+//    println("P")
+//    for(i in 0 until  p.height()){
+//        for (j in 0 until  p.width()){
+//            print("${p[i,j]}  ")
+//        }
+//        println()
+//    }
 //
 //    println()
 //    for(i in 0 until  pExtended.height()){
@@ -889,3 +960,5 @@ fun staggeredExplicitMultiplication(p: AbstractMongeMatrix, q: AbstractMongeMatr
 
 
 }
+
+

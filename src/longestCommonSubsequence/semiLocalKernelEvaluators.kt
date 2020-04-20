@@ -184,8 +184,15 @@ fun getMongeMatrixBA(A: AbstractMongeMatrix, m: Int, n: Int): AbstractMongeMatri
     return B
 }
 
+interface IStrategyExplicitMatrixEvaluation {
+    fun <T> evaluate(a: List<T>, b: List<T>): AbstractMongeMatrix
+}
 
-class ExplicitKernelEvaluation(private val scheme: IScoringScheme) {
+
+/**
+ * For given scoring scheme provides solve method that
+ */
+class ExplicitKernelEvaluation(private val scheme: IScoringScheme):IStrategyExplicitMatrixEvaluation {
     val mu = scheme.getNormalizedMismatchScore().numerator
     val v = scheme.getNormalizedMismatchScore().denominator
 
@@ -238,18 +245,14 @@ class ExplicitKernelEvaluation(private val scheme: IScoringScheme) {
     }
 
 
-    fun <T> solve(a: List<T>, b: List<T>): AbstractMongeMatrix {
-
+    override fun <T> evaluate(a: List<T>, b: List<T>): AbstractMongeMatrix {
         var solution = sol(a, b)
         if (solution[solution.height() - 1, 0] != 0.0) solution = getMongeMatrixBA(solution, a.size, b.size)
-        for (i in 0 until solution.height()) {
-            for (j in 0 until solution.width()) {
-
-//                 j - (i - m) -
-//                solution[i, j] = j - (i - a.size) - solution[i, j]
-            }
-        }
+        //do not forget apply
         return solution
     }
 
 }
+
+
+

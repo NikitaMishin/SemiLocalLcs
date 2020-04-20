@@ -1,6 +1,5 @@
 package approximateMatching
 
-import sequenceAlignment.ISemiLocalSolution
 import utils.Interval
 import java.util.*
 
@@ -17,7 +16,7 @@ interface IThresholdAMatch {
 
 
 //TODO some words aboyt normalization?
-class ThresholdAMathViaSemiLocal<T : Comparable<T>>(var solution: ISemiLocalSolution<T>, var aMatchProblem: ICompleteAMatchProblem<T>) :
+class ThresholdAMathViaSemiLocal<T>(private var aMatchProblem: ICompleteAMatchProblem<T>) :
     IThresholdAMatch {
     override fun solve(threshold: Double): List<Interval> {
         val colMax = aMatchProblem.solve()
@@ -28,6 +27,7 @@ class ThresholdAMathViaSemiLocal<T : Comparable<T>>(var solution: ISemiLocalSolu
         while (j > 0) {
             if (colMax[j].second >= threshold) {
                 res.add(Interval(colMax[j].first, j, colMax[j].second))
+//                j--
                 break
             }
             j--
@@ -39,21 +39,16 @@ class ThresholdAMathViaSemiLocal<T : Comparable<T>>(var solution: ISemiLocalSolu
             val left = colMax[j].first
             val right = j
             val value = colMax[j].second
-//            if (value >= threshold && (right > res.last().startInclusive && value >= res.last().score)) {
+            //TODO
+//            if (value >= threshold && (right > res.last().startInclusive && value >= res.last().score) && left >= res.last.startInclusive ) {
 //                //find better
 //                res.removeLast()
 //                res.add(Interval(left, right, value))
 //            } else
-            if (value >= threshold && right <= res.last().startInclusive) res.add(
-                Interval(
-                    left,
-                    right,
-                    value
-                )
-            )
-
+            if (value >= threshold && right <= res.last().startInclusive) res.add(Interval(left, right, value))
             j--
         }
+
         return res.reversed()
     }
 }

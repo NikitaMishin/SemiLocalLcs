@@ -6,8 +6,7 @@ import utils.IScoringScheme
 import java.lang.Double.max
 
 //TODO  naive only works with rational scoring scheme
-class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, private val scoringScheme: IScoringScheme) :
-    ISemiLocalSA, ISemiLocalSolution<T> {
+class NaiveSemiLocalSA<T>(val a: List<T>, val b: List<T>, private val scoringScheme: IScoringScheme) : ISemiLocalSA, ISemiLocalSolution<T> {
     override val pattern: List<T> = a
     override val text: List<T> = b
 
@@ -39,9 +38,9 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
                         SymbolType.WildCardSymbol
                     )
                 }
-
+    //TODO
     private fun reverseRegularizationScore(value: Double, i: Int, j: Int): Double =
-        value //scoringScheme.getOriginalScoreFunc(value,m,i,j)
+        value +  (scoringScheme.getGapScore() * (n - (m + j - i))).toDouble() //scoringScheme.getOriginalScoreFunc(value,m,i,j)
 
     internal val matrix = Array(a.size + b.size + 1)
     { i ->
@@ -75,6 +74,7 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
         val gapScore = scoringScheme.getGapScore().toDouble()
 
 
+        //TODO
         val scoreMatrix = Array(m) { Array(n) { 0.0 } }
         for (i in 1 until scoreMatrix.size) {
             for (j in 1 until scoreMatrix[0].size) {
@@ -93,7 +93,7 @@ class NaiveSemiLocalSA<T : Comparable<T>>(val a: List<T>, val b: List<T>, privat
                 )
             }
         }
-        return scoreMatrix[m - 1][n - 1]
+        return scoreMatrix[m - 1][n - 1]  //+ (bSymbolString.size - (j - i)) * scoringScheme.getGapScore().toDouble()
     }
 
     // Implementation of ISemiLocalSA interface

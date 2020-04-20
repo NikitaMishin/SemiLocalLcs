@@ -48,7 +48,7 @@ interface ISemiLocalSequenceAlignment : ISemiLocalSubstringStringProblem, ISemiL
 }
 
 
-interface ISemiLocalData<T : Comparable<T>> {
+interface ISemiLocalData<T> {
     /**
      * the first list that compared
      */
@@ -114,12 +114,12 @@ interface ISemiLocalFastAccess {
 /**
  * Interface that provides access to solution to matrix element of semilocal problem for the given lists of comparable elements.
  */
-interface ISemiLocalSolution<T : Comparable<T>> : ISemiLocalData<T>, ISemiLocalFastAccess
+interface ISemiLocalSolution<T> : ISemiLocalData<T>, ISemiLocalFastAccess
 
 
 /**
  *
  */
-interface ISemiLocalCombined<T:Comparable<T>>: ISemiLocalSA, ISemiLocalSolution<T>
+interface ISemiLocalCombined<T>: ISemiLocalSA, ISemiLocalSolution<T>
 
 

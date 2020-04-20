@@ -10,7 +10,7 @@ import kotlin.math.max
 /**
  *
  */
-interface ICompleteAMatchProblem<T : Comparable<T>> {
+interface ICompleteAMatchProblem<T> {
     /**
      * For every prefix of text t<0 : j>, the problem asks for the maximum
      * alignment score of pattern p against all possible choices of a suffix t<i : j> from this prefix
@@ -19,7 +19,7 @@ interface ICompleteAMatchProblem<T : Comparable<T>> {
     fun solve(): Array<Pair<Int, Double>>
 }
 
-class SellersCompleteAMatch<T : Comparable<T>>(
+class SellersCompleteAMatch<T>(
     var pattern: List<T>,
     var text: List<T>,
     var scoringScheme: IScoringScheme
@@ -44,13 +44,6 @@ class SellersCompleteAMatch<T : Comparable<T>>(
                 )
             }
         }
-
-//        for (i in 0..pattern.size) {
-//            for (j in 0..text.size) {
-//                print("${scoreMatrix[i][j]} ")
-//            }
-//            println()
-//        }
 
         //backtrace to restore start position
         return (0..text.size).toList().map { j ->
@@ -79,24 +72,21 @@ class SellersCompleteAMatch<T : Comparable<T>>(
 /**
  *
  */
-class CompleteAMatchViaSemiLocalTotallyMonotone<T : Comparable<T>>(var solution: ISemiLocalSolution<T>) :
+class CompleteAMatchViaSemiLocalTotallyMonotone<T>(var solution: ISemiLocalSolution<T>) :
     ICompleteAMatchProblem<T> {
     private var pattern = solution.pattern
     private var text = solution.text
-    private var scoringScheme = solution.getScoringScheme()
 
     //TODO ask tiskin wrong formula? what about totally monotonne?
-    private fun scoreTransformer(value: Double, i: Int, j: Int): Double {
-        return value * (scoringScheme.getMatchScore() - (2 * scoringScheme.getGapScore())).toDouble() +
-                (pattern.size + j - i) * scoringScheme.getGapScore().toDouble()
-    }
+    private fun scoreTransformer(value: Double, i: Int, j: Int) =
+        solution.getScoringScheme().getOriginalScoreFunc(value, solution.pattern.size, i, j)
 
-    //TODO only works with 1,mu/v,0 ask tiskin about normalization
+
     override fun solve(): Array<Pair<Int, Double>> {
 
         val n = text.size + 1
         val m = pattern.size
-        // TODO add comment
+//TODO
         val smawk = rowMinima({ i, j ->
             -scoreTransformer(
                 solution.getAtPosition(m + n - 1 - j, n - 1 - i).round(1),
@@ -104,11 +94,14 @@ class CompleteAMatchViaSemiLocalTotallyMonotone<T : Comparable<T>>(var solution:
                 n - 1 - i
             )
         }, n, n)
+
+
         smawk.reverse()
+
         return smawk.mapIndexed { index, i ->
             Pair(
                 n - 1 - i,
-                scoreTransformer(solution.getAtPosition(m + n - 1 - i, index), m + n - 1 - i, index).round(1)
+                scoreTransformer(solution.getAtPosition(m + n - 1 - i , index),  n - 1 - i, index).round(1)
             )
         }.toTypedArray()
     }
