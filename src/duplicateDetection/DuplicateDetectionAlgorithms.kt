@@ -1,10 +1,9 @@
-package beyondsemilocality
+package duplicateDetection
 
 import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
 import approximateMatching.ThresholdAMathViaSemiLocal
-import longestCommonSubsequence.ReducingKernelEvaluation
 import sequenceAlignment.ISemiLocalProvider
-import sequenceAlignment.ImplicitSemiLocalSA
+import sequenceAlignment.ImplicitMongeSemiLocalProvider
 import utils.*
 
 
@@ -22,24 +21,59 @@ data class Fragment<T>(val text: List<T>, var startInclusive: Int, var endExclus
 }
 
 
-//TODO need choose specific threshold  /// maybe normalized?
-class GroupDuplicateSearching(var semilocalBuilder: ISemiLocalProvider, var scheme: IScoringScheme) {
+/**
+ *
+ */
+interface ISimilarityGraphBuilder<T> {
+    fun buildGraph(fragments: List<List<T>>, func: IMeasureFunction<T>): IGraph<List<T>, List<T>>
+}
 
 
-    /**
-     * Find all clones of pattern p in all fragments with length of the duplicate >= minLen.
-     * Note that returns Group  with rest fragments with length >= minLen
-     * if no found --- returns initial fragments and empty Group
-     */
-    fun <T> duplicateViaApproximateMatching(
-        p: Fragment<T>, fragments: List<Fragment<T>>, h: Double, w: Int): Pair<Group<T>, MutableList<Fragment<T>>> {
+class SimilarityGraphBuilder<T>(var graphBuilder: IGraphBuilder<List<T>, List<T>>) : ISimilarityGraphBuilder<T> {
+
+    override fun buildGraph(fragments: List<List<T>>, func: IMeasureFunction<T>): IGraph<List<T>, List<T>> {
+        val vertices = fragments.mapIndexed { index: Int, list: List<T> -> Vertex(index, list) }
+        val edges = mutableListOf<Edge<List<T>>>()
+
+        for (i in fragments.indices) {
+            for (j in i + 1..fragments.size) {
+                val solutionIJ = func.computeSimilarity(fragments[i], fragments[j])
+                val solutionJI = func.computeSimilarity(fragments[j], fragments[i])
+                edges.add(Edge(i, j, solutionIJ.first, solutionIJ.second))
+                edges.add(Edge(j, i, solutionJI.first, solutionJI.second))
+            }
+        }
+        return graphBuilder.build(vertices, edges)
+    }
+}
+
+
+/**
+ * Find all clones of pattern p in all fragments with length of the duplicate >= minLen.
+ * Note that returns Group  with rest fragments with length >= minLen
+ * if no found --- returns initial fragments and empty Group
+ */
+
+interface IApproximateMatching<T> {
+    fun find(p: Fragment<T>, fragments: List<Fragment<T>>): Pair<Group<T>, MutableList<Fragment<T>>>
+
+}
+
+//TODO SEE BELOWS TODO
+class ApproximateMatching<T>(val semiLocalProvider: ISemiLocalProvider, val scheme: IScoringScheme) :
+    IApproximateMatching<T> {
+
+    val h: Double = TODO()
+    var w: Int = TODO()
+
+    override fun find(p: Fragment<T>, fragments: List<Fragment<T>>): Pair<Group<T>, MutableList<Fragment<T>>> {
 
         val restFragments: MutableList<Fragment<T>> = mutableListOf()
         val duplicates = mutableListOf<TextInterval<T>>()
 
 
         for (fragment in fragments) {
-            val solution = semilocalBuilder.buildSolution(
+            val solution = semiLocalProvider.buildSolution(
                 p.text.subList(p.startInclusive, p.endExclusive),
                 fragment.text.subList(fragment.startInclusive, fragment.endExclusive),
                 scheme
@@ -72,7 +106,11 @@ class GroupDuplicateSearching(var semilocalBuilder: ISemiLocalProvider, var sche
             //last
             if (fragment.endExclusive - (last + fragment.startInclusive) >= w)
                 restFragments.add(
-                    Fragment(fragment.text, last + fragment.startInclusive, fragment.endExclusive)
+                    Fragment(
+                        fragment.text,
+                        last + fragment.startInclusive,
+                        fragment.endExclusive
+                    )
                 )
 
             duplicates.addAll(clones.map {
@@ -88,14 +126,41 @@ class GroupDuplicateSearching(var semilocalBuilder: ISemiLocalProvider, var sche
 
         return Pair(Group(p, duplicates), restFragments)
 
+    }
+}
 
+
+//
+
+
+/**
+ *
+ */
+interface IGroupCloneDetection<T> {
+    fun find(fragments: List<Fragment<T>>): List<Group<T>>
+}
+
+
+class GroupCloneDetectionApproximateMatchWay<T>(val approximateMatcher: IApproximateMatching<T>) :
+    IGroupCloneDetection<T> {
+
+    //TODO
+    override fun find(fragments: List<Fragment<T>>): List<Group<T>> {
+        return findGroups(fragments, mutableListOf(), TODO(), TODO(), TODO())
     }
 
-    fun <T> findGroups(fragments: List<Fragment<T>>, groups: MutableList<Group<T>>, h: Double, min: Int, max: Int): MutableList<Group<T>> {
 
-       if (groups.size==2){
-           println()
-       }
+    fun findGroups(
+        fragments: List<Fragment<T>>,
+        groups: MutableList<Group<T>>,
+        h: Double,
+        min: Int,
+        max: Int
+    ): MutableList<Group<T>> {
+
+        if (groups.size == 2) {
+            println()
+        }
 
         if (max < min) return groups
 
@@ -113,15 +178,23 @@ class GroupDuplicateSearching(var semilocalBuilder: ISemiLocalProvider, var sche
                 val pattern = Fragment(p.text, leftEdge, rightEdge)
                 val tmp = mutableListOf<Fragment<T>>()
 
-                if (offset >= min) tmp += Fragment(p.text, p.startInclusive, p.startInclusive + offset)
+                if (offset >= min) tmp += Fragment(
+                    p.text,
+                    p.startInclusive,
+                    p.startInclusive + offset
+                )
 
-                if (p.endExclusive - rightEdge >= min) tmp += Fragment(p.text, rightEdge, p.endExclusive)
+                if (p.endExclusive - rightEdge >= min) tmp += Fragment(
+                    p.text,
+                    rightEdge,
+                    p.endExclusive
+                )
 
                 for (fr in fragments) {
                     if (p == fr) continue
                     tmp.add(fr)
                 }
-                val res = duplicateViaApproximateMatching(pattern, tmp, h, min)
+                val res = approximateMatcher.find(pattern, tmp)
                 if (res.first.duplicates.isNotEmpty()) {
 
                     groups.add(res.first)
@@ -135,5 +208,7 @@ class GroupDuplicateSearching(var semilocalBuilder: ISemiLocalProvider, var sche
 
 
     }
-
 }
+
+
+

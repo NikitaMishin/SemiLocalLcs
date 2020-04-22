@@ -67,6 +67,13 @@ interface IGraph<E, V> : Iterable<IVertex<V>> {
 }
 
 
+/**
+ *
+ */
+interface IGraphBuilder<E, V> {
+    fun build(vertices: List<Vertex<V>>, edges: List<Edge<E>>): IGraph<E, V>
+}
+
 class GraphMatrix<E, V> : IGraph<E, V> {
 
 
