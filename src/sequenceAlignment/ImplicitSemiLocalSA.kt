@@ -316,5 +316,23 @@ class ExplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
         }
     }
     fun getMatrix() = matrix
-
 }
+
+
+//TODO
+
+
+interface ISemiLocalProvider{
+    fun <T>buildSolution(a:List<T>,b:List<T>,scheme: IScoringScheme):ISemiLocalCombined<T>
+}
+
+class  ExplicitMongeSemiLocalProvider(var explicitKernelEvaluation: IStrategyExplicitMatrixEvaluation): ISemiLocalProvider {
+    override fun <T> buildSolution(a: List<T>, b: List<T>,scheme: IScoringScheme): ISemiLocalCombined<T> =
+        ExplicitSemiLocalSA(a,b,scheme,explicitKernelEvaluation)
+}
+
+class  ImplicitMongeSemiLocalProvider(var implicitKernel: IStrategyKernelEvaluation): ISemiLocalProvider {
+    override fun <T> buildSolution(a: List<T>, b: List<T>,scheme: IScoringScheme): ISemiLocalCombined<T> =
+        ImplicitSemiLocalSA(a,b,scheme,implicitKernel)
+}
+
