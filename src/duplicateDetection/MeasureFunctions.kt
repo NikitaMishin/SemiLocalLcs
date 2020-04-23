@@ -7,31 +7,61 @@ import beyondsemilocality.IFragmentSubstringProvider
 import sequenceAlignment.ISemiLocalProvider
 import utils.IScoringScheme
 
+
+/**
+ * Function that measure similarity between given fragments
+ * @return Pair of score  with interval in b where this happen
+ */
 interface IMeasureFunction<T> {
     fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>>
 }
 
 
-
-//local
+/**
+ * Bounded-length Smith-Waterman Measure Function. reffer to local alignment between two strings
+ */
 class BoundedLengthSWMeasureFunction<T>(
-    var provider: IFragmentSubstringProvider<T>,
-    var scheme: IScoringScheme,
-    var w: Int
-) : IMeasureFunction<T> {
+    var provider: IFragmentSubstringProvider<T>, var scheme: IScoringScheme, var w: Int) : IMeasureFunction<T> {
     override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
         val bslw = BoundedLengthSmithWatermanAlignment(provider).solve(a, b, scheme, w)
         return Pair(bslw.first.score, b.subList(bslw.second.startInclusive, bslw.second.endExclusive))
     }
 }
-//TODO BoundendLengthSWAccumulated
+
+/**
+ *
+ */
+class BoundedLengthSWAccumulatedFunction<T>():IMeasureFunction<T>{
+    override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
+        // find all non intersected
+        TODO()
+    }
+}
 
 
-//TODO normalized blsw measure in article
+/**
+ *
+ */
+class NormalizedBoundedLengthSWMeasureFunction<T>():IMeasureFunction<T>{
+    override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
+        TODO("Should be implemented as sum of non intersected pair of clones")
+    }
+}
 
-//TODO semi-local also prefix-suffix and reverse
 
-//string- substring
+/**
+ *
+ */
+class NormalizedBoundedLengthSWAccumulatedMeasureFunction<T>():IMeasureFunction<T>{
+    override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
+        TODO("Should be implemented from article")
+    }
+}
+
+
+/**
+ *
+ */
 class StringSubstringMeasureFunction<T>(var provider: ISemiLocalProvider, var scheme: IScoringScheme) :
     IMeasureFunction<T> {
     override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
@@ -39,16 +69,13 @@ class StringSubstringMeasureFunction<T>(var provider: ISemiLocalProvider, var sc
             .solve().mapIndexed { index: Int, pair: Pair<Int, Double> -> Pair(index, pair) }.maxBy { it.second.second }
         return Pair(aMatch!!.second.second, b.subList(aMatch.second.first, aMatch.first))
     }
-
-
 }
 
-//TODO what is this ?
-class StringSubstringMeasureFunctionAccumulated<T>(
-    var provider: ISemiLocalProvider,
-    var scheme: IScoringScheme,
-    var threshold: Double
-) : IMeasureFunction<T> {
+
+/**
+ *
+ */
+class StringSubstringAccumulatedMeasureFunction<T>(var provider: ISemiLocalProvider, var scheme: IScoringScheme, var threshold: Double) : IMeasureFunction<T> {
     override fun computeSimilarity(a: List<T>, b: List<T>): Pair<Double, List<T>> {
         val clones =
             ThresholdAMathViaSemiLocal(CompleteAMatchViaSemiLocalTotallyMonotone(provider.buildSolution(a, b, scheme)))
@@ -85,5 +112,4 @@ class GlobalAlignmentMeasureFunction<T>(var scheme: IScoringScheme) : IMeasureFu
 
         return Pair(scoreMatrix[a.size][b.size], TODO())
     }
-
 }

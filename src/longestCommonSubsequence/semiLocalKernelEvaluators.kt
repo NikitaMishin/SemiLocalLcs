@@ -238,7 +238,6 @@ class ExplicitKernelEvaluation(private val scheme: IScoringScheme):IStrategyExpl
             val m1 = a.size / 2
             val a1 = a.subList(0, m1)
             val a2 = a.subList(m1, a.size)
-
             staggeredExplicitMultiplication(sol(a1, b), sol(a2, b), b.size)
 
         }

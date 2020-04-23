@@ -1,7 +1,17 @@
+import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
+import approximateMatching.ThresholdAMathViaSemiLocal
 import beyondsemilocality.*
+import duplicateDetection.ApproximateMatching
+import duplicateDetection.Fragment
+import duplicateDetection.GroupCloneDetectionApproximateMatchWay
 import longestCommonSubsequence.*
+import sequenceAlignment.ExplicitMongeSemiLocalProvider
 import sequenceAlignment.ExplicitSemiLocalSA
+import sequenceAlignment.ImplicitSemiLocalSA
 import utils.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 //import sequenceAlignment.SellersCompleteAMatchProblem
 
@@ -154,29 +164,35 @@ fun main() {
 //        SellersCompleteAMatch(a.toList(), b.toList(), scoringScheme)
 //    ).solve(1.0).forEach { println(it) }
 
-
-       val scoringScheme = FixedScoringScheme(Fraction(3, 1), Fraction(-5, 1), Fraction(-6, 1))
+//    f// aa-a aaaaabaa b
+//    b/  aaba aaaaa-aa
+    val scoringScheme = FixedScoringScheme(Fraction(2, 1), Fraction(-1, 1), Fraction(-1, 1))
 //val scoringScheme =  LCSScoringScheme()
-    val a = "aaa a a aaab aab".toList()
+    val a = "stalker".toList()
 //     val a = mutableListOf("Lorem", "Ipsum").toList()
-    val b = "baa baaa a a aaa".toList()
-    val explicit = ExplicitSemiLocalSA(a,b,scoringScheme,ExplicitKernelEvaluation(scoringScheme))
+    val b =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaastaker.........sta asd ".toList()
+    val explicit = ExplicitSemiLocalSA(a, b, scoringScheme, ExplicitKernelEvaluation(scoringScheme))
 
 //    ImplicitFragmentSubstringProviderN(a,b,scoringScheme).getSolutionFor(0,5).print()
 
-    val rs=   WindowSubstringProvider(ExplicitFragmentSubstringProvider(a,b,scoringScheme)).solve(a,b,3,scoringScheme).constructAlignmentPlot()
-    for (i in 0 until  rs.size){
-        for(j in 0 until rs[0].size){
+    val rs =
+        WindowSubstringProvider(ExplicitFragmentSubstringProvider(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
+            .constructAlignmentPlot()
+    for (i in 0 until rs.size) {
+        for (j in 0 until rs[0].size) {
             print("  ${rs[i][j].round(2)}  ")
         }
         println()
 
     }
     println()
-println(a)
+    println(a)
 //    println(b)
-    val impl=   WindowSubstringProvider(ImplicitFragmentSubstringProviderN(a,b,scoringScheme)).solve(a,b,3,scoringScheme).constructAlignmentPlot()
-    for (i in 0 until  impl.size) {
+    val impl =
+        WindowSubstringProvider(ImplicitFragmentSubstringProviderN(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
+            .constructAlignmentPlot()
+    for (i in 0 until impl.size) {
         for (j in 0 until impl[0].size) {
             print("  ${impl[i][j].round(2)}  ")
         }
@@ -184,6 +200,109 @@ println(a)
 ///
 
     }
+
+    println()
+    println()
+    println("BOUNDED")
+
+
+//    BoundedLengthSmithWatermanAlignment(ExplicitFragmentSubstringProvider(a,b,scoringScheme)).solve(a,b,scoringScheme,3)
+
+
+    ThresholdAMathViaSemiLocal(CompleteAMatchViaSemiLocalTotallyMonotone(explicit)).solve(5.0)
+        .forEach { println(b.subList(it.startInclusive, it.endExclusive)) }
+
+
+//    val fragments = mutableListOf(
+//        "This algorithms describes some function will be lost  soglasen".toList(),
+//        "soglasen This algorithms describes  soglasen".toList(),
+//        "Some function will be lost soglasen".toList(),
+//        "soglasen algorithms describes".toList()
+//    )
+
+    val fragments = mutableListOf(
+        "abba".toList(),
+        "abba mouse noise moise doiche cruchec".toList(),
+        "abbadur".toList(),
+        " cruche spartak jvnirjnv".toList()
+    )
+
+
+    val mainFr = "This algorithms describes some function will be lost  soglasen".toList() +
+            "soglasen This algorithms describes  soglasen".toList() +
+            "Some function will be lost soglasen".toList() +
+            "soglasen algorithms describes".toList()
+    val mainfr = mutableListOf(
+        Fragment(mainFr, 0, mainFr.size)
+    )
+
+    val fr = mutableListOf(
+        Fragment(fragments[0], 0, fragments[0].size),
+        Fragment(fragments[1], 0, fragments[1].size),
+        Fragment(fragments[2], 0, fragments[2].size),
+        Fragment(fragments[3], 0, fragments[3].size)
+    )
+
+
+
+    println("STOP")
+
+    val c = ExplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme,ExplicitKernelEvaluation(scoringScheme)).getMatrix()
+//
+//    for ( i in 0 until c.height()){
+//        for(j in 0 until c.width()){
+//            print(" ${c[i,j]}")
+//            c[i,j] = -c[i,j]
+//        }
+//        println()
+//    }
+
+    println()
+    val res = ImplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme, ReducingKernelEvaluation{ dummyPermutationMatrixTwoLists})
+    val d = res.getMatrix()
+    val dist = d.createNewMatrix(fr[1].text.size+1,fr[1].text.size+1)
+    for ( i in 0 until fr[1].text.size+1){
+        for(j in 0 until fr[1].text.size+1){
+            dist[i,j] = (-res.stringSubstring(i,j) )
+//            if(i>j) dist[i,j] = (j-i).toDouble()
+            print(" ${dist[i,j]} ")
+        }
+        println()
+    }
+    for ( i in 0 until fr[1].text.size+1){
+        for(j in 0 until fr[1].text.size+1){
+            dist[i,j] =( (dist[i,j]+1000) / (0 until dist.height() ).sumByDouble { dist[it,j]+1000 }).round(3)
+        }
+        println()
+    }
+
+
+
+
+    println(dist.isMongePropertySatisified())
+
+//    val trs = GroupCloneDetectionApproximateMatchWay(
+//        ApproximateMatching<Char>(
+//            ExplicitMongeSemiLocalProvider(ExplicitKernelEvaluation(scoringScheme)), scoringScheme
+//        )
+//    )
+//        .findGroups(fr, mutableListOf(), 3.0, 4, 50)
+
+
+//
+//    for (gr in trs) {
+//        println("Head")
+//        println(gr.head.text.subList(gr.head.startInclusive, gr.head.endExclusive))
+//        println("GROUP:")
+//        gr.duplicates.forEach {
+//            print(it.text.subList(it.startInclusive, it.endExclusive))
+//            print(" ${it.text}")
+//            println(
+//                " ${it.score}"
+//            )
+//        }
+//    }
+
 }
 //
 //

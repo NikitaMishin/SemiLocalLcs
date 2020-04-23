@@ -728,7 +728,10 @@ abstract class AbstractMongeMatrix() {
                         val diagR = this[rowNum2, colNum2]
                         val antiDiagL = this[rowNum2, colNum1]
                         val antiDiagR = this[rowNum1, colNum2]
-                        if (antiDiagL + antiDiagR < diagL + diagR) return false
+                        if (antiDiagL + antiDiagR < diagL + diagR) {
+                            println("$antiDiagL + $antiDiagR < $diagL + $diagR")
+                            return false
+                        }
                     }
                 }
             }
