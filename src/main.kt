@@ -9,14 +9,18 @@ import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
 import java.io.File
 import com.github.javaparser.ast.PackageDeclaration
-
-
-
+import duplicateDetection.ApproximateMatchingViaThresholdAMatch
+import duplicateDetection.Fragment
+import duplicateDetection.GroupCloneDetectionApproximateMatchWay
+import longestCommonSubsequence.ExplicitKernelEvaluation
+import sequenceAlignment.ExplicitMongeSemiLocalProvider
+import utils.FixedScoringScheme
+import utils.Fraction
 
 
 fun main() {
 
-
+//
 //    val a = "hat".toList()
 //     val a = mutableListOf("Lorem", "Ipsum").toList()
 ////    val b = "baa baaa a a aaa".toList()
@@ -91,7 +95,7 @@ fun main() {
 //
 ////    f// aa-a aaaaabaa b
 ////    b/  aaba aaaaa-aa
-//    val scoringScheme = FixedScoringScheme(Fraction(2, 1), Fraction(-1, 1), Fraction(-1, 1))
+    val scoringScheme = FixedScoringScheme(Fraction(5, 1), Fraction(-100, 1), Fraction(-100, 1))
 ////val scoringScheme =  LCSScoringScheme()
 //    val a = "stalker".toList()
 ////     val a = mutableListOf("Lorem", "Ipsum").toList()
@@ -145,30 +149,30 @@ fun main() {
 ////        "soglasen algorithms describes".toList()
 ////    )
 //
-//    val fragments = mutableListOf(
-//        "abba".toList(),
-//        "abba mouse noise moise doiche cruchec".toList(),
-//        "abbadur".toList(),
-//        " cruche spartak jvnirjnv".toList()
-//    )
-//
-//
-//    val mainFr = "This algorithms describes some function will be lost  soglasen".toList() +
-//            "soglasen This algorithms describes  soglasen".toList() +
-//            "Some function will be lost soglasen".toList() +
-//            "soglasen algorithms describes".toList()
-//    val mainfr = mutableListOf(
-//        Fragment(mainFr, 0, mainFr.size)
-//    )
-//
-//    val fr = mutableListOf(
-//        Fragment(fragments[0], 0, fragments[0].size),
-//        Fragment(fragments[1], 0, fragments[1].size),
-//        Fragment(fragments[2], 0, fragments[2].size),
-//        Fragment(fragments[3], 0, fragments[3].size)
-//    )
-//
-//
+    val fragments = mutableListOf(
+        "abba  spartak".toList(),
+        "abba mouse noise moise doiche cruchec".toList(),
+        "abbadur".toList(),
+        " cruche spartak jvnirjnv".toList()
+    )
+
+
+    val mainFr = "This algorithms describes some function will be lost  soglasen".toList() +
+            "soglasen This algorithms describes  soglasen".toList() +
+            "Some function will be lost soglasen".toList() +
+            "soglasen algorithms describes".toList()
+    val mainfr = mutableListOf(
+        Fragment(mainFr, 0, mainFr.size)
+    )
+
+    val fr = mutableListOf(
+        Fragment(fragments[0], 0, fragments[0].size),
+        Fragment(fragments[1], 0, fragments[1].size),
+        Fragment(fragments[2], 0, fragments[2].size),
+        Fragment(fragments[3], 0, fragments[3].size)
+    )
+
+
 //
 //    println("STOP")
 //
@@ -206,27 +210,26 @@ fun main() {
 //
 //    println(dist.isMongePropertySatisified())
 
-//    val trs = GroupCloneDetectionApproximateMatchWay(
-//        ApproximateMatching<Char>(
-//            ExplicitMongeSemiLocalProvider(ExplicitKernelEvaluation(scoringScheme)), scoringScheme
-//        )
-//    )
-//        .findGroups(fr, mutableListOf(), 3.0, 4, 50)
+    val trs = GroupCloneDetectionApproximateMatchWay(
+        ApproximateMatchingViaThresholdAMatch<Char>(
+            ExplicitMongeSemiLocalProvider(ExplicitKernelEvaluation(scoringScheme)), scoringScheme
+        )
+    ,4, 50).find(fr)
 
 
-//
-//    for (gr in trs) {
-//        println("Head")
-//        println(gr.head.text.subList(gr.head.startInclusive, gr.head.endExclusive))
-//        println("GROUP:")
-//        gr.duplicates.forEach {
-//            print(it.text.subList(it.startInclusive, it.endExclusive))
-//            print(" ${it.text}")
-//            println(
-//                " ${it.score}"
-//            )
-//        }
-//    }
+
+    for (gr in trs) {
+        println("Head")
+        println(gr.head.text.subList(gr.head.startInclusive, gr.head.endExclusive))
+        println("GROUP:")
+        gr.duplicates.forEach {
+            print(it.text.subList(it.startInclusive, it.endExclusive))
+            print(" Text:${it.text}")
+            println(
+                " ${it.score}"
+            )
+        }
+    }
 
 //}
 //
@@ -241,13 +244,13 @@ fun main() {
 //
 //    WindowSubstringProvider(ExplicitFragmentSubstringProvider(a,b,scoringScheme)).solve(a,b,2,scoringScheme).getSolution(0).print()
 //    println()
-
-
+//
+//
 //    ExplicitSemiLocalSA("aa".toList(),b,scoringScheme,arrMonge[1][0]).print()
 //    println()
 //    ImplicitSemiLocalLCS("aa".toList(),b,arrM[1][0]).print()
-
-
+//
+//
 //    println()
 //
 //  val c =   ExplicitSemiLocalSA("a".toList(),b,scoringScheme,ExplicitKernelEvaluation(scoringScheme)).getMatrix()
@@ -275,14 +278,14 @@ fun main() {
 //        println()
 
 
-    val file = "/home/nikita/Apache/Apache Commons Collections/src/"
-    val comm = collectAllJavaDoc(file)
-    println(comm.size)
-
+//    val file = "/home/nikita/Apache/Apache Commons Collections/src/"
+//    val comm = collectAllJavaDoc(file)
+//    println(comm.size)
 //
-    comm.take(10).forEach{
-        println(it)
-    }
+////
+//    comm.take(10).forEach{
+//        println(it)
+//    }
 }
 
 
