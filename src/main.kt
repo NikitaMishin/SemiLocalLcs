@@ -1,93 +1,18 @@
-import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
-import approximateMatching.ThresholdAMathViaSemiLocal
-import beyondsemilocality.*
-import duplicateDetection.ApproximateMatching
-import duplicateDetection.Fragment
-import duplicateDetection.GroupCloneDetectionApproximateMatchWay
-import longestCommonSubsequence.*
-import sequenceAlignment.ExplicitMongeSemiLocalProvider
-import sequenceAlignment.ExplicitSemiLocalSA
-import sequenceAlignment.ImplicitSemiLocalSA
-import utils.*
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
-//import sequenceAlignment.SellersCompleteAMatchProblem
-
-//import sequenceAlignment.ScoringScheme
+import application.collectAllJavaDoc
+import com.github.javaparser.JavaParser
+import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.body.EnumDeclaration
+import com.github.javaparser.ast.body.FieldDeclaration
+import com.github.javaparser.ast.body.MethodDeclaration
+import java.io.File
+import com.github.javaparser.ast.PackageDeclaration
 
 
-////Ukkonen, E. (1985). Finding approximate patterns in strings. Journal of Algorithms, 6(1), 132–137. doi:10.1016/0196-6774(85)90023-9 
-//// a column ,b row
-//
-//
-//
-///**
-// *
-// * also check Ukkonen, E. (1985). Finding approximate patterns in strings where builds automaton
-// * O(n * m) DP APPROACH
-// */
-//fun <Elem> dpApproximateSubseqMatching(fragment: List<Elem>, pattern: List<Elem>): Array<IntArray> {
-//    // build edit dsit n * m
-//    val n = fragment.count() + 1
-//    val m = pattern.count() + 1
-//    val editDstMatrix = Array(n) { i -> IntArray(m) { j -> if (i == 0) j else 0 } }
-//    for (rowNum in 1 until n) {
-//        for (colNum in 1 until m) {
-//            if (fragment[rowNum - 1] == pattern[colNum - 1]) editDstMatrix[rowNum][colNum] =
-//                editDstMatrix[rowNum - 1][colNum - 1]
-//            else editDstMatrix[rowNum][colNum] =
-//                minOf(
-//                    editDstMatrix[rowNum - 1][colNum] + 1,
-//                    editDstMatrix[rowNum][colNum - 1] + 1,
-//                    editDstMatrix[rowNum - 1][colNum - 1] + 1
-//                )
-//        }
-//    }
-//    return editDstMatrix
-//}
-//
-//
-//fun <Elem> LSHApproximateSubseqMatching(fragment: List<Elem>, pattern: List<Elem>) {
-//    TODO()
-//}
-//
-//fun <Elem> printLcsMatrix(arr: Array<IntArray>, rowSeq: List<Elem>, colSeq: List<Elem>) {
-//    print("    ")
-//    for (elem in colSeq) {
-//        print("$elem ")
-//    }
-//    println()
-//
-//    var pos = -1
-//
-//    // query last col to find approximate pattern matching
-//    for (row in arr) {
-//        if (pos == -1) print("  ") else print("${rowSeq[pos]} ")
-//        for (elem in row) {
-//            print("$elem ")
-//        }
-//        println()
-//        pos++
-//    }
-//}
-//
-//fun isEqual(arr1: Array<IntArray>, arr2: Array<IntArray>): Boolean {
-//    if (arr1.size != arr2.size || arr1[0].size != arr2[0].size) return false
-//    val n = arr1.size
-//    val m = arr1[0].size
-//
-//    for (rowNum in 0 until n) {
-//        for (colNum in 0 until m) {
-//            if (arr1[rowNum][colNum] != arr2[rowNum][colNum]) return false
-//        }
-//    }
-//
-//    return true
-//}
-//
-//
+
+
 
 fun main() {
 
@@ -161,125 +86,125 @@ fun main() {
 //        SellersCompleteAMatch(a.toList(), b.toList(), scoringScheme)
 //    ).solve(1.0,4).forEach { println(b.subList(it.startInclusive, it.endExclusive) + it.score) }
 //    ThresholdAMathViaSemiLocal(
-//        SellersCompleteAMatch(a.toList(), b.toList(), scoringScheme)
-//    ).solve(1.0).forEach { println(it) }
-
-//    f// aa-a aaaaabaa b
-//    b/  aaba aaaaa-aa
-    val scoringScheme = FixedScoringScheme(Fraction(2, 1), Fraction(-1, 1), Fraction(-1, 1))
-//val scoringScheme =  LCSScoringScheme()
-    val a = "stalker".toList()
-//     val a = mutableListOf("Lorem", "Ipsum").toList()
-    val b =
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaastaker.........sta asd ".toList()
-    val explicit = ExplicitSemiLocalSA(a, b, scoringScheme, ExplicitKernelEvaluation(scoringScheme))
-
-//    ImplicitFragmentSubstringProviderN(a,b,scoringScheme).getSolutionFor(0,5).print()
-
-    val rs =
-        WindowSubstringProvider(ExplicitFragmentSubstringProvider(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
-            .constructAlignmentPlot()
-    for (i in 0 until rs.size) {
-        for (j in 0 until rs[0].size) {
-            print("  ${rs[i][j].round(2)}  ")
-        }
-        println()
-
-    }
-    println()
-    println(a)
-//    println(b)
-    val impl =
-        WindowSubstringProvider(ImplicitFragmentSubstringProviderN(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
-            .constructAlignmentPlot()
-    for (i in 0 until impl.size) {
-        for (j in 0 until impl[0].size) {
-            print("  ${impl[i][j].round(2)}  ")
-        }
-        println()
-///
-
-    }
-
-    println()
-    println()
-    println("BOUNDED")
-
-
-//    BoundedLengthSmithWatermanAlignment(ExplicitFragmentSubstringProvider(a,b,scoringScheme)).solve(a,b,scoringScheme,3)
-
-
-    ThresholdAMathViaSemiLocal(CompleteAMatchViaSemiLocalTotallyMonotone(explicit)).solve(5.0)
-        .forEach { println(b.subList(it.startInclusive, it.endExclusive)) }
-
-
-//    val fragments = mutableListOf(
-//        "This algorithms describes some function will be lost  soglasen".toList(),
-//        "soglasen This algorithms describes  soglasen".toList(),
-//        "Some function will be lost soglasen".toList(),
-//        "soglasen algorithms describes".toList()
-//    )
-
-    val fragments = mutableListOf(
-        "abba".toList(),
-        "abba mouse noise moise doiche cruchec".toList(),
-        "abbadur".toList(),
-        " cruche spartak jvnirjnv".toList()
-    )
-
-
-    val mainFr = "This algorithms describes some function will be lost  soglasen".toList() +
-            "soglasen This algorithms describes  soglasen".toList() +
-            "Some function will be lost soglasen".toList() +
-            "soglasen algorithms describes".toList()
-    val mainfr = mutableListOf(
-        Fragment(mainFr, 0, mainFr.size)
-    )
-
-    val fr = mutableListOf(
-        Fragment(fragments[0], 0, fragments[0].size),
-        Fragment(fragments[1], 0, fragments[1].size),
-        Fragment(fragments[2], 0, fragments[2].size),
-        Fragment(fragments[3], 0, fragments[3].size)
-    )
-
-
-
-    println("STOP")
-
-    val c = ExplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme,ExplicitKernelEvaluation(scoringScheme)).getMatrix()
+////        SellersCompleteAMatch(a.toList(), b.toList(), scoringScheme)
+////    ).solve(1.0).forEach { println(it) }
 //
-//    for ( i in 0 until c.height()){
-//        for(j in 0 until c.width()){
-//            print(" ${c[i,j]}")
-//            c[i,j] = -c[i,j]
+////    f// aa-a aaaaabaa b
+////    b/  aaba aaaaa-aa
+//    val scoringScheme = FixedScoringScheme(Fraction(2, 1), Fraction(-1, 1), Fraction(-1, 1))
+////val scoringScheme =  LCSScoringScheme()
+//    val a = "stalker".toList()
+////     val a = mutableListOf("Lorem", "Ipsum").toList()
+//    val b =
+//        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaastaker.........sta asd ".toList()
+//    val explicit = ExplicitSemiLocalSA(a, b, scoringScheme, ExplicitKernelEvaluation(scoringScheme))
+//
+////    ImplicitFragmentSubstringProviderN(a,b,scoringScheme).getSolutionFor(0,5).print()
+//
+//    val rs =
+//        WindowSubstringProvider(ExplicitFragmentSubstringProvider(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
+//            .constructAlignmentPlot()
+//    for (i in 0 until rs.size) {
+//        for (j in 0 until rs[0].size) {
+//            print("  ${rs[i][j].round(2)}  ")
+//        }
+//        println()
+//
+//    }
+//    println()
+//    println(a)
+////    println(b)
+//    val impl =
+//        WindowSubstringProvider(ImplicitFragmentSubstringProviderN(a, b, scoringScheme)).solve(a, b, 3, scoringScheme)
+//            .constructAlignmentPlot()
+//    for (i in 0 until impl.size) {
+//        for (j in 0 until impl[0].size) {
+//            print("  ${impl[i][j].round(2)}  ")
+//        }
+//        println()
+/////
+//
+//    }
+//
+//    println()
+//    println()
+//    println("BOUNDED")
+//
+//
+////    BoundedLengthSmithWatermanAlignment(ExplicitFragmentSubstringProvider(a,b,scoringScheme)).solve(a,b,scoringScheme,3)
+//
+//
+//    ThresholdAMathViaSemiLocal(CompleteAMatchViaSemiLocalTotallyMonotone(explicit)).solve(5.0)
+//        .forEach { println(b.subList(it.startInclusive, it.endExclusive)) }
+//
+//
+////    val fragments = mutableListOf(
+////        "This algorithms describes some function will be lost  soglasen".toList(),
+////        "soglasen This algorithms describes  soglasen".toList(),
+////        "Some function will be lost soglasen".toList(),
+////        "soglasen algorithms describes".toList()
+////    )
+//
+//    val fragments = mutableListOf(
+//        "abba".toList(),
+//        "abba mouse noise moise doiche cruchec".toList(),
+//        "abbadur".toList(),
+//        " cruche spartak jvnirjnv".toList()
+//    )
+//
+//
+//    val mainFr = "This algorithms describes some function will be lost  soglasen".toList() +
+//            "soglasen This algorithms describes  soglasen".toList() +
+//            "Some function will be lost soglasen".toList() +
+//            "soglasen algorithms describes".toList()
+//    val mainfr = mutableListOf(
+//        Fragment(mainFr, 0, mainFr.size)
+//    )
+//
+//    val fr = mutableListOf(
+//        Fragment(fragments[0], 0, fragments[0].size),
+//        Fragment(fragments[1], 0, fragments[1].size),
+//        Fragment(fragments[2], 0, fragments[2].size),
+//        Fragment(fragments[3], 0, fragments[3].size)
+//    )
+//
+//
+//
+//    println("STOP")
+//
+//    val c = ExplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme,ExplicitKernelEvaluation(scoringScheme)).getMatrix()
+////
+////    for ( i in 0 until c.height()){
+////        for(j in 0 until c.width()){
+////            print(" ${c[i,j]}")
+////            c[i,j] = -c[i,j]
+////        }
+////        println()
+////    }
+//
+//    println()
+//    val res = ImplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme, ReducingKernelEvaluation{ dummyPermutationMatrixTwoLists})
+//    val d = res.getMatrix()
+//    val dist = d.createNewMatrix(fr[1].text.size+1,fr[1].text.size+1)
+//    for ( i in 0 until fr[1].text.size+1){
+//        for(j in 0 until fr[1].text.size+1){
+//            dist[i,j] = (-res.stringSubstring(i,j) )
+////            if(i>j) dist[i,j] = (j-i).toDouble()
+//            print(" ${dist[i,j]} ")
 //        }
 //        println()
 //    }
-
-    println()
-    val res = ImplicitSemiLocalSA(fr[0].text, fr[1].text,scoringScheme, ReducingKernelEvaluation{ dummyPermutationMatrixTwoLists})
-    val d = res.getMatrix()
-    val dist = d.createNewMatrix(fr[1].text.size+1,fr[1].text.size+1)
-    for ( i in 0 until fr[1].text.size+1){
-        for(j in 0 until fr[1].text.size+1){
-            dist[i,j] = (-res.stringSubstring(i,j) )
-//            if(i>j) dist[i,j] = (j-i).toDouble()
-            print(" ${dist[i,j]} ")
-        }
-        println()
-    }
-    for ( i in 0 until fr[1].text.size+1){
-        for(j in 0 until fr[1].text.size+1){
-            dist[i,j] =( (dist[i,j]+1000) / (0 until dist.height() ).sumByDouble { dist[it,j]+1000 }).round(3)
-        }
-        println()
-    }
-
-
-
-
-    println(dist.isMongePropertySatisified())
+//    for ( i in 0 until fr[1].text.size+1){
+//        for(j in 0 until fr[1].text.size+1){
+//            dist[i,j] =( (dist[i,j]+1000) / (0 until dist.height() ).sumByDouble { dist[it,j]+1000 }).round(3)
+//        }
+//        println()
+//    }
+//
+//
+//
+//
+//    println(dist.isMongePropertySatisified())
 
 //    val trs = GroupCloneDetectionApproximateMatchWay(
 //        ApproximateMatching<Char>(
@@ -303,7 +228,7 @@ fun main() {
 //        }
 //    }
 
-}
+//}
 //
 //
 //    println()
@@ -348,7 +273,56 @@ fun main() {
 //        }
 //
 //        println()
+
+
+    val file = "/home/nikita/Apache/Apache Commons Collections/src/"
+    val comm = collectAllJavaDoc(file)
+    println(comm.size)
+
+//
+    comm.take(10).forEach{
+        println(it)
+    }
+}
+
+
+
+
+
+
+
+
+
+//Me
+
+fun <T:Node>getAllCommentsFor(parsedFile:CompilationUnit, javaClassType:Class<T>){
+    parsedFile.findAll(javaClassType).forEach {
+//        getFullMethodName(
+//        (it as MethodDeclaration))
+
+//         it.comment.get().ifJavadocComment {
+
+//            val r = JavaDocComment(
+//                "sef",
+//                enumToTypeComment(javaClassType),
+//                it.content
+//            )
+//
+//            println(r)
+//            println()
+//        }
+////        println(it.comment.get().asJavadocComment().parse().blockTags[])
+////        println(it.comment)
 //    }
+//    parsedFile.findAll(MethodDeclaration::class.java).forEach {
+//
+    }
+
+}
+
+
+
+
 
 
 
