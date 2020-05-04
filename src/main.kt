@@ -1,4 +1,5 @@
 
+import application.UnifiedComment
 import application.collectAllJavaDoc
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
@@ -12,11 +13,17 @@ import com.github.javaparser.ast.PackageDeclaration
 import duplicateDetection.ApproximateMatchingViaThresholdAMatch
 import duplicateDetection.Fragment
 import duplicateDetection.GroupCloneDetectionApproximateMatchWay
+import edu.stanford.nlp.pipeline.CoreDocument
+import edu.stanford.nlp.pipeline.StanfordCoreNLP
+import edu.stanford.nlp.simple.Sentence
 import longestCommonSubsequence.ExplicitKernelEvaluation
+import longestCommonSubsequence.ReducingKernelEvaluation
 import sequenceAlignment.ExplicitMongeSemiLocalProvider
+import sequenceAlignment.ImplicitSemiLocalSA
 import utils.FixedScoringScheme
 import utils.Fraction
-
+import utils.dummyPermutationMatrixTwoLists
+import java.util.*
 
 fun main() {
 
@@ -210,26 +217,26 @@ fun main() {
 //
 //    println(dist.isMongePropertySatisified())
 
-    val trs = GroupCloneDetectionApproximateMatchWay(
-        ApproximateMatchingViaThresholdAMatch<Char>(
-            ExplicitMongeSemiLocalProvider(ExplicitKernelEvaluation(scoringScheme)), scoringScheme
-        )
-    ,4, 50).find(fr)
-
-
-
-    for (gr in trs) {
-        println("Head")
-        println(gr.head.text.subList(gr.head.startInclusive, gr.head.endExclusive))
-        println("GROUP:")
-        gr.duplicates.forEach {
-            print(it.text.subList(it.startInclusive, it.endExclusive))
-            print(" Text:${it.text}")
-            println(
-                " ${it.score}"
-            )
-        }
-    }
+//    val trs = GroupCloneDetectionApproximateMatchWay(
+//        ApproximateMatchingViaThresholdAMatch<Char>(
+//            ExplicitMongeSemiLocalProvider(ExplicitKernelEvaluation(scoringScheme)), scoringScheme
+//        )
+//    ,4, 50).find(fr)
+//
+//
+//
+//    for (gr in trs) {
+//        println("Head")
+//        println(gr.head.text.subList(gr.head.startInclusive, gr.head.endExclusive))
+//        println("GROUP:")
+//        gr.duplicates.forEach {
+//            print(it.text.subList(it.startInclusive, it.endExclusive))
+//            print(" Text:${it.text}")
+//            println(
+//                " ${it.score}"
+//            )
+//        }
+//    }
 
 //}
 //
@@ -278,55 +285,197 @@ fun main() {
 //        println()
 
 
-//    val file = "/home/nikita/Apache/Apache Commons Collections/src/"
-//    val comm = collectAllJavaDoc(file)
-//    println(comm.size)
+    val file = "/home/nikita/Apache/Apache Commons Collections/src/"
+    val comm = collectAllJavaDoc(file)
+//    println(comm.take(10))
+
+//    println("TXET")
+//    println(comm.take(10).map { it.javadocComment.parse().toText() })
+//
+//
+//    println("COMME")
+//    println(comm.take(10).map { it.javadocComment.parse().toComment("    ")})
+//
+//    println("DFESCr")
+//    println(comm.take(10).map { it.javadocComment.parse().description})
+
+    println("TOTEXT")
+    comm.take(10).map { it.javadocComment.parse().description.toText()}.forEach {
+        println()
+        println(it)  }
+
+    println("TOSTRING")
+//    println(comm.take(10).map { it.javadocComment.parse().description.toString()})
+
+
 //
 ////
 //    comm.take(10).forEach{
 //        println(it)
 //    }
+
+
+    println("haha")
+
+//    A - B C A
+//    A C B - A
+
+println(   ImplicitSemiLocalSA("ABCA".toList(),"ACBA".toList(),FixedScoringScheme(Fraction(1,1),
+        Fraction(-3,10), Fraction
+    (-1,2)
+    ),ReducingKernelEvaluation{ dummyPermutationMatrixTwoLists}).stringSubstring(0,4)
+)
+//    val sent = Sentence("Lucy is in the sky with diamonds.")
+//    val nerTags = sent.nerTags()  // [PERSON, O, O, O, O, O, O, O]
+//    val firstPOSTag = sent.posTag(0)   // NNP
+//    println(nerTags)
+//    println(firstPOSTag)
+//    BasicPipelineExample.main(arrayOf())
+//    println(Element(4,5, 7)==Element(4,6,7))
+//    println(ImplicitSemiLocalSA(
+//        listOf(Element(4,5, 7),Element(4,6,6)), listOf(Element(4,5, 6),Element(4,6,7)),FixedScoringScheme(Fraction(1,1),
+//        Fraction(-3,10), Fraction
+//            (-1,2)
+//    ),ReducingKernelEvaluation{ dummyPermutationMatrixTwoLists}).stringSubstring(0,2)
+//    )
 }
 
 
 
 
 
+object BasicPipelineExample {
+
+    var text = "Joe Smith was born in California. " +
+            "In 2017, he went to Paris, France in the summer. " +
+            "His flight left at 3:00pm on July 10th, 2017. " +
+            "After eating some escargot for the first time, Joe said, \"That was delicious!\" " +
+            "He sent a postcard to his sister Jane Smith. " +
+            "After hearing about Joe's trip, Jane decided she might go to France one day."
+
+    val text2  = "Hello Joe . Jow <code> T latte = Shop().buyCofe() </code>. 5 + 5 = ten"
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        // set up pipeline properties
+        val props = Properties()
+        // set the list of annotators to run
+        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote")
+        // set a property for an annotator, in this case the coref annotator is being set to use the neural algorithm
+        props.setProperty("coref.algorithm", "neural")
+        // build pipeline
+        val pipeline = StanfordCoreNLP(props)
+        // create a document object
+        val document = CoreDocument(text)
+        // annnotate the document
+        pipeline.annotate(document)
+        // examples
+
+        // 10th token of the document
+        val token = document.tokens()[10]
+        println("Example: token")
+        println(token)
+        println()
+
+        // text of the first sentence
+        val sentenceText = document.sentences()[0].text()
+        println("Example: sentence")
+        println(sentenceText)
+        println()
+
+        // second sentence
+        val sentence = document.sentences()[1]
+
+        // list of the part-of-speech tags for the second sentence
+        val posTags = sentence.posTags()
+        println("Example: pos tags")
+        println(posTags)
+        println()
+
+        // list of the ner tags for the second sentence
+        val nerTags = sentence.nerTags()
+        println("Example: ner tags")
+        println(nerTags)
+        println()
+
+        // constituency parse for the second sentence
+        val constituencyParse = sentence.constituencyParse()
+        println("Example: constituency parse")
+        println(constituencyParse)
+        println()
+
+        // dependency parse for the second sentence
+        val dependencyParse = sentence.dependencyParse()
+        println("Example: dependency parse")
+        println(dependencyParse)
+        println()
+
+        // kbp relations found in fifth sentence
+        val relations = document.sentences()[4].relations()
+        println("Example: relation")
+        println(relations[0])
+        println()
+
+        // entity mentions in the second sentence
+        val entityMentions = sentence.entityMentions()
+        println("Example: entity mentions")
+        println(entityMentions)
+        println()
+
+        // coreference between entity mentions
+        val originalEntityMention = document.sentences()[3].entityMentions()[1]
+        println("Example: original entity mention")
+        println(originalEntityMention)
+        println("Example: canonical entity mention")
+        println(originalEntityMention.canonicalEntityMention().get())
+        println()
+
+        // get document wide coref info
+        val corefChains = document.corefChains()
+        println("Example: coref chains for document")
+        println(corefChains)
+        println()
+
+        // get quotes in document
+        val quotes = document.quotes()
+        val quote = quotes[0]
+        println("Example: quote")
+        println(quote)
+        println()
+
+        // original speaker of quote
+        // note that quote.speaker() returns an Optional
+        println("Example: original speaker of quote")
+        println(quote.speaker().get())
+        println()
+
+        // canonical speaker of quote
+        println("Example: canonical speaker of quote")
+        println(quote.canonicalSpeaker().get())
+        println()
+
+        val doc2 = CoreDocument(text2)
+        pipeline.annotate(doc2)
+        println(doc2.sentences().map { it.tokens() })
+        println(doc2.sentences().map { it.tokens().toString() })
+
+        println(doc2.sentences().map { it.nerTags() })
+        println(doc2.sentences().map { it.posTags() })
 
 
+//        val document = CoreDocument(text)
+//        // annnotate the document
+//        pipeline.annotate(document
+        val c = CoreDocument("Token new. York  San Jose. Mishin Nikita, ")
+        pipeline.annotate(c)
+        println(c.tokens())
+        println(c.tokens().forEach{
 
+            print("${it.beginPosition()}:${it.endPosition()},")})
+        println(c.sentences().map{it.nerTags()})
+        println(c.sentences().map{it.posTags()})
 
-//Me
-
-fun <T:Node>getAllCommentsFor(parsedFile:CompilationUnit, javaClassType:Class<T>){
-    parsedFile.findAll(javaClassType).forEach {
-//        getFullMethodName(
-//        (it as MethodDeclaration))
-
-//         it.comment.get().ifJavadocComment {
-
-//            val r = JavaDocComment(
-//                "sef",
-//                enumToTypeComment(javaClassType),
-//                it.content
-//            )
-//
-//            println(r)
-//            println()
-//        }
-////        println(it.comment.get().asJavadocComment().parse().blockTags[])
-////        println(it.comment)
-//    }
-//    parsedFile.findAll(MethodDeclaration::class.java).forEach {
-//
     }
 
 }
-
-
-
-
-
-
-
 
