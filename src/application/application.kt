@@ -5,6 +5,7 @@ object Application {
 
     val processors = mutableListOf<IElementProcessor<String, UnifiedComment>>(
         TagRemovalTransformer(),
+        TokenToLowerCaseTransformer(),
         StopWordsRemovalProcessor(),
         MinimalTokenLengthTransformer()
     )

@@ -327,3 +327,16 @@ class MinimalTokenLengthTransformer<T, P>(val minLength: Int = 4) : IElementProc
     override fun process(elemsList: List<List<Element<T, P>>>): List<List<Element<T, P>>> =
         elemsList.filter { it.size >= minLength }
 }
+
+/**
+ * To lower case
+ */
+class TokenToLowerCaseTransformer<P> : IElementProcessor<String, P> {
+    override fun process(elemsList: List<List<Element<String, P>>>): List<List<Element<String, P>>> =
+        elemsList.map { sentence ->
+            sentence.map {
+                it.elem = it.elem.toLowerCase()
+                it
+            }
+        }
+}
