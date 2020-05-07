@@ -29,41 +29,6 @@ class CommentElement<T>(
 ) : Element<T, UnifiedComment>()
 
 
-interface IElementProcessor<T, P> {
-    fun process(elemsList: List<Element<T, P>>): List<Element<T, P>>
-}
-
-/**
- * Removes stop words from elemList
- */
-class StopWordsRemovalProcessor<T, P> : IElementProcessor<T, P> {
-    override fun process(elemsList: List<Element<T, P>>): List<Element<T, P>> {
-//        elemsList.filter { mapper(it.elem)=="." }
-        TODO()
-    }
-}
-
-
-/**
- * Removes all Delimiters
- */
-class DelimiterRemovalProcessor<T, P> : IElementProcessor<T, P> {
-    override fun process(elemsList: List<Element<T, P>>): List<Element<T, P>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
-
-/**
- * Removes all <code> ... </code> and ...
- */
-class TagRemovalTransformer<T, P> : IElementProcessor<T, P> {
-    override fun process(elemsList: List<Element<T, P>>): List<Element<T, P>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
-
 interface IPipeLinePreprocessor<T, P> {
     /**
      *
@@ -86,32 +51,29 @@ class StanfordNlpPipelineProcessor(val processors: MutableList<IElementProcessor
     //TODO maybe add language tool ? grazie?
     init {
         val props = Properties()
-        // set the list of annotators to run
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote")
-        // set a property for an annotator, in this case the coref annotator is being set to use the neural algorithm
-        props.setProperty("coref.algorithm", "neural")
-        // build pipeline
+        props.setProperty("annotators", "tokenize," + "ssplit," + "pos," + "lemma")
         pipeline = StanfordCoreNLP(props)
+
     }
 
     //TODO named entitty ADD?
     override fun process(comments: List<UnifiedComment>): List<List<Element<Int, UnifiedComment>>> =
         mapToNumbers(
-            comments.map { unifiedComment ->
+            processors.fold(comments.map { unifiedComment ->
                 val annotatedText = CoreDocument(unifiedComment.javadocComment.parse().description.toText())
                 pipeline.annotate(annotatedText)
                 val elems: List<Element<String, UnifiedComment>> = annotatedText.tokens().map {
                     CommentElement(
                         it.beginPosition(),
                         it.endPosition(),
-                        if (it.lemma().isNullOrBlank()) it.toString() else it.lemma(),
+                        if (it.lemma().isNullOrBlank()) it.word() else it.lemma(),
                         unifiedComment
                     )
                 }
-                processors.fold(elems, { acc, processor -> processor.process(acc) })
-            }
-        )
+                elems
+            }, { acc, processor -> processor.process(acc) })
 
+        )
 
     private fun mapToNumbers(elems: List<List<Element<String, UnifiedComment>>>): List<List<Element<Int, UnifiedComment>>> {
         // lemma -> int
