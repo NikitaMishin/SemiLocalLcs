@@ -1,9 +1,8 @@
 package application
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
 import duplicateDetection.IApproximateMatching
 import duplicateDetection.IMeasureFunction
-import utils.FixedScoringScheme
 import utils.IScoringScheme
 import utils.Interval
 import kotlin.math.exp
@@ -52,9 +51,9 @@ class TaskApproximateMatchingViaSemiLocal<T>(
     private data class ApproximateMatching(val text: String, val pattern: String, val clones: List<Interval>)
 
     override fun buildJSONReport(): String {
-        val gson = Gson()
+        val mapper = ObjectMapper()
         val res = ApproximateMatching(textRaw, patternRaw, clones)
-        return gson.toJson(res)
+        return mapper.writeValueAsString(res)
 
     }
 }
@@ -90,7 +89,7 @@ class TreeGroupDuplicate<T>(
     private data class Group(val vertices: List<Vertex>, val edges: List<Edge>)
 
     override fun buildJSONReport(): String {
-        val gson = Gson()
+        val mapper = ObjectMapper()
         val groups = cloneGroups.sortedByDescending { it.second.size }.map {
             Group(
                 it.second.map {
@@ -99,7 +98,7 @@ class TreeGroupDuplicate<T>(
                 it.first.map { Edge(it.from, it.to, it.data) })
         }
 
-        return gson.toJson(groups)
+        return mapper.writeValueAsString(groups)
     }
 
 }
