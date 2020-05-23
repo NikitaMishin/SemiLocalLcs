@@ -4,6 +4,7 @@ import utils.PermutationMatrixTwoLists
 import longestCommonSubsequence.RecursiveKernelEvaluation
 import utils.IScoringScheme
 import utils.RegularScoringScheme
+import utils.dummyPermutationMatrixTwoLists
 import kotlin.random.Random
 
 
@@ -20,14 +21,10 @@ internal class ImplicitSemiLocalSAViaRecursiveTest() : SemiLocalSABaseTester(Ran
             A,
             B,
             RegularScoringScheme(numerator, denominator),
-            RecursiveKernelEvaluation {
-                PermutationMatrixTwoLists(
-                    listOf(),
-                    0,
-                    0
-                )
-            }
-        ), RegularScoringScheme(numerator, denominator))
+            RecursiveKernelEvaluation ({
+                dummyPermutationMatrixTwoLists
+            },RegularScoringScheme(numerator, denominator)))
+        , RegularScoringScheme(numerator, denominator))
 
 
     }

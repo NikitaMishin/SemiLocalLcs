@@ -10,8 +10,7 @@ import kotlin.math.max
 /**
  * Implementation of semi-local LCS via naive approach, i.e the semi-local lcs matrix stored explicitly
  */
-class NaiveSemiLocalLCS<T>(override val pattern: List<T>, override val text: List<T>) : ISemiLocalCombined<T>,
-    ISemiLocalLCS {
+class NaiveSemiLocalLCS<T>(override val pattern: List<T>, override val text: List<T>) : ISemiLocalCombined<T> {
 
     override fun getScoringScheme(): IScoringScheme = LCSScoringScheme()
 
@@ -61,23 +60,23 @@ class NaiveSemiLocalLCS<T>(override val pattern: List<T>, override val text: Lis
         }
     }
 
-    override fun stringSubstringLCS(i: Int, j: Int): Int {
+   fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
         return semiLocalLCSMatrix[i + m][j]
     }
 
-    override fun prefixSuffixLCS(k: Int, j: Int): Int {
+    fun prefixSuffixLCS(k: Int, j: Int): Int {
         if (k < 0 || k > m || j < 0 || j > n) return -1
         return semiLocalLCSMatrix[m - k][j] - k
     }
 
-    override fun suffixPrefixLCS(l: Int, i: Int): Int {
+    fun suffixPrefixLCS(l: Int, i: Int): Int {
         if (l < 0 || l > m || i < 0 || i > n) return -1
         return semiLocalLCSMatrix[i + m][m + n - l] - m + l
 
     }
 
-    override fun substringStringLCS(k: Int, l: Int): Int {
+   fun substringStringLCS(k: Int, l: Int): Int {
         if (k < 0 || k > m || l < 0 || l > m) return -1
         return semiLocalLCSMatrix[m - k][m + n - l] - m - k + l
     }
@@ -135,6 +134,11 @@ class NaiveSemiLocalLCS<T>(override val pattern: List<T>, override val text: Lis
         }
 
     }
+
+    override fun getMatrix(): AbstractMongeMatrix {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 
 
 }

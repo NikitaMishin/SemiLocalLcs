@@ -1,7 +1,8 @@
-package utils
+package application
 
-import java.lang.Math.pow
-import java.util.*
+import utils.epsilon
+import utils.isEquals
+import utils.round
 import kotlin.collections.HashMap
 import kotlin.math.pow
 import kotlin.random.Random
@@ -55,6 +56,10 @@ interface IGraph<E, V> : Iterable<IVertex<V>> {
 
     fun getAllEdges(): List<IEdge<E>>
 
+    fun getSubgraph(vertices:List<Int>):IGraph<E,V>
+
+    fun getVertex(vertexId:Int):IVertex<V>
+
     //fun addVertex(index: Int, data: V): IVertex<V>
 
 //    fun addEdge(from: Int, to: Int, data: E): IEdge<E>
@@ -72,6 +77,12 @@ interface IGraph<E, V> : Iterable<IVertex<V>> {
  */
 interface IGraphBuilder<E, V> {
     fun build(vertices: List<Vertex<V>>, edges: List<Edge<E>>): IGraph<E, V>
+}
+
+class MatrixGraphBuilder<E,V>:IGraphBuilder<E,V>{
+    override fun build(vertices: List<Vertex<V>>, edges: List<Edge<E>>): IGraph<E, V> {
+        return GraphMatrix(vertices,edges)
+    }
 }
 
 class GraphMatrix<E, V> : IGraph<E, V> {
@@ -109,6 +120,17 @@ class GraphMatrix<E, V> : IGraph<E, V> {
     override fun getAllEdgesTo(index: Int): List<IEdge<E>> = matrixTo[index]!!.second
 
     override fun getAllEdges(): List<IEdge<E>> = matrixTo.toList().flatMap { it.second.second }
+
+    override fun getSubgraph(vertices:List<Int>): IGraph<E, V> {
+        val vert = vertices.toHashSet()
+        val subVertices  = vertices.map { matrixTo[it]!!.first }
+        val subEdges = getAllEdges().filter { vert.contains(it.from) && vert.contains(it.to)  }
+        return createNewGraph(subVertices,subEdges)
+    }
+
+    override fun getVertex(vertexId: Int): IVertex<V> {
+        return matrixTo[vertexId]!!.first
+    }
 
     override fun iterator(): Iterator<IVertex<V>> {
         val vertices = matrixTo.toList().map { it.second.first }
@@ -244,7 +266,7 @@ fun <E, V> connectedComponents(graph: IGraph<E, V>): List<List<Int>> {
 
 
 /**
- *
+ * TODO note f
  */
 fun <E, V> minimalSpanningTree(
     undirectedGraph: IGraph<E, V>,
@@ -623,12 +645,9 @@ class DSU(seed: Int = 42) {
 }
 
 
-interface HierarhicalNode {
-
-}
 
 
-//TODO make pretty print
+//TODO make pretty print FF
 interface INode<V> {
     var head: V
     var children: MutableList<INode<V>>
@@ -639,7 +658,8 @@ interface INode<V> {
 /**
  * Reprsenet cluster that contains
  */
-data class Cluster<V>(override var head: V, override var children: MutableList<INode<V>>) : INode<V> {
+data class Cluster<V>(override var head: V, override var children: MutableList<INode<V>>) :
+    INode<V> {
     override fun toString(): String {
         return "[ cluster:" + head.toString() + "\n" +
                 "childrens: " + if (children.isEmpty()) " None" else children.map { it.toString() }.joinToString(
@@ -656,13 +676,14 @@ data class Cluster<V>(override var head: V, override var children: MutableList<I
  */
 data class Leaf<V>(override var head: V) : INode<V> {
     override var children: MutableList<INode<V>> = mutableListOf()
-    override fun toString(): String = "[ Leaf" + head.toString() + " ]"
+    override fun toString(): String = " Leaf" + head.toString() + " ]"
 }
 
 /**
  * Represent clique
  */
-data class CliqueNode<V>(override var head: V, override var children: MutableList<INode<V>>) : INode<V> {
+data class CliqueNode<V>(override var head: V, override var children: MutableList<INode<V>>) :
+    INode<V> {
     override fun toString(): String {
         return "[ clique:" + head.toString() +
                 " childrens: " + if (children.isEmpty()) " None" else children.map { it.toString() }.joinToString(
@@ -743,6 +764,8 @@ abstract class AbstractHierarchicalClustering<E, V>(internal var initialGraph: I
                     tmp
                 }
                 root2.second is CliqueNode<*> && root1.second is CliqueNode<*> && isCliqueConnected -> {
+//                    TODO
+//                    root2.second.children.addAll(root1.second.children)
                     CliqueNode(
                         clusterHead,
                         (root1.second.children + root2.second.children).toMutableList()
@@ -859,6 +882,8 @@ fun mclClustering(
 ): Array<Int> {
 
 
+
+
     val algoEpsilon = epsilon
     val roundN = 8
 
@@ -966,9 +991,9 @@ fun mclClustering(
                 maxJ[j] = curMatrix[i][j]
                 isGroupDetected = true
             }
-            print("${curMatrix[i][j].round(3)}   ")
+//            print("${curMatrix[i][j].round(3)}   ")
         }
-        println()
+//        println()
         if (isGroupDetected) group++
     }
 

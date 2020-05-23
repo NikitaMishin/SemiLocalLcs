@@ -10,6 +10,10 @@ interface IScoringScheme {
     fun getMatchScore(): Fraction
     fun getMismatchScore(): Fraction
     fun getGapScore(): Fraction
+
+    /**
+     * TODO make simmple call
+     */
     fun getOriginalScoreFunc(value: Double, m: Int, i: Int, j: Int): Double
 }
 
@@ -67,10 +71,8 @@ class FixedScoringScheme(private val match: Fraction, private val mismatch: Frac
     override fun getGapScore() = gap
 
 
-//    TODO is m necesserly
     override fun getOriginalScoreFunc(value: Double, m: Int, i: Int, j: Int): Double {
-        //TODO ask tiskin
-        return value * (match - 2 * gap).toDouble() + ( (m +j-i)) * gap.toDouble()  //- ()//gap.toDouble()
+        return value * (match - 2 * gap).toDouble() + ( (m + j - i)) * gap.toDouble()  //- ()//gap.toDouble()
     }
 
 }

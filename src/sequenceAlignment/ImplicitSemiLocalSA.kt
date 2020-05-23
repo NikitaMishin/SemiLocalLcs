@@ -36,60 +36,24 @@ class ImplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
         text = b
         this.scoringScheme = scoringScheme
 
-        val permMatrixExtended = kernelEvaluator.evaluate(
-            pattern.flatMap {
-                Symbol(
-                    it,
-                    SymbolType.GuardSymbol
-                ).repeatShallowCopy(mu) +
-                        Symbol(
-                            it,
-                            SymbolType.AlphabetSymbol
-                        ).repeatShallowCopy(v - mu)
-            },
-            text.flatMap {
-                Symbol(
-                    it,
-                    SymbolType.GuardSymbol
-                ).repeatShallowCopy(mu) +
-                        Symbol(
-                            it,
-                            SymbolType.AlphabetSymbol
-                        ).repeatShallowCopy(v - mu)
-            }
-        )
+        val permMatrixExtended = kernelEvaluator.evaluate(pattern,text)
 
 
         val size = (pattern.size + text.size)
-        //Note ν-(sub)bistochastic matrix, there can be at most ν nonzeros in every row and every column
-        val points = IntArray(size * size) { 0 } // i*n + j
 
-        for (p in permMatrixExtended) {
-            val posInInitialI = p.i / v;
-            val posInInitialJ = p.j / v;
-            points[posInInitialI * size + posInInitialJ]++
+        val points = Array(size){ hashMapOf<Int,Position2D<Int>>()}
+        for(p in permMatrixExtended){
+            val i = (p.i / v)
+            val j = (p.j / v)
+            val row = points[i]
+            if (row.containsKey(j)) row[j]!!.value++
+            else row[j] = Position2D(i,j,1)
         }
-
-        //first create actual points, then filter all zero points, and pass them to range tree
-        val p =
-            points.mapIndexed { index, value -> Position2D(index / size, index % size, value) }.filter { it.value != 0 }
-
-        stochasticMatrix = VSubBistochasticMatrix(p, size, size, v)
+        val p = points.flatMap { it.values }
+        stochasticMatrix = VSubBistochasticMatrix(points.flatMap { it.values },size,size,v)
         rangeTree2D = RangeTree2D(p)
-
     }
 
-    constructor(lcsSolution: IImplicitSemiLocalLCSSolution<T>) {
-        this.stochasticMatrix = lcsSolution.kernel
-        rangeTree2D = RangeTree2D(lcsSolution.kernel.iterator().asSequence().toMutableList())
-        this.v = 1
-        mu = 0
-        m = lcsSolution.pattern.size
-        n = lcsSolution.text.size
-        pattern = lcsSolution.pattern
-        text = lcsSolution.text
-        scoringScheme = RegularScoringScheme(0, 1)
-    }
 
     constructor(a: List<T>, b: List<T>, scoringScheme: IScoringScheme, lcsKernel: Matrix) {
         mu = scoringScheme.getNormalizedMismatchScore().numerator
@@ -206,7 +170,7 @@ class ImplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
         }
 
 
-    fun getMatrix(): AbstractMongeMatrix {
+    override fun getMatrix(): AbstractMongeMatrix {
         val mongeMatrix = MongeMatrix(m + n + 1, m + n + 1)
         for (i in 0 until m + n + 1) {
             for (j in 0 until m + n + 1) {
@@ -315,24 +279,26 @@ class ExplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
             println()
         }
     }
-    fun getMatrix() = matrix
+    override fun getMatrix() = matrix
 }
 
 
-//TODO
+//TODO переделать
 
 
 interface ISemiLocalProvider{
     fun <T>buildSolution(a:List<T>,b:List<T>,scheme: IScoringScheme):ISemiLocalCombined<T>
 }
 
-class  ExplicitMongeSemiLocalProvider(var explicitKernelEvaluation: IStrategyExplicitMatrixEvaluation): ISemiLocalProvider {
+class  ExplicitSemiLocalProvider(var explicitKernelEvaluation: IStrategyExplicitMatrixEvaluation): ISemiLocalProvider {
     override fun <T> buildSolution(a: List<T>, b: List<T>,scheme: IScoringScheme): ISemiLocalCombined<T> =
         ExplicitSemiLocalSA(a,b,scheme,explicitKernelEvaluation)
 }
 
-class  ImplicitMongeSemiLocalProvider(var implicitKernel: IStrategyKernelEvaluation): ISemiLocalProvider {
+class  ImplicitSemiLocalProvider(var implicitKernel: IStrategyKernelEvaluation): ISemiLocalProvider {
     override fun <T> buildSolution(a: List<T>, b: List<T>,scheme: IScoringScheme): ISemiLocalCombined<T> =
         ImplicitSemiLocalSA(a,b,scheme,implicitKernel)
 }
+
+
 

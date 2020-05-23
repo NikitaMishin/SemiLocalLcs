@@ -150,7 +150,7 @@ class WindowSubstringSANaiveImplicit<T>(val kernelEvaluator: IStrategyKernelEval
 }
 
 
-class WindowSubstringProvider<T>(private var provider: IFragmentSubstringProvider<T>) : IWindowSubstringSA<T> {
+class WindowSubstringSA<T>(private var provider: IFragmentSubstringProvider<T>) : IWindowSubstringSA<T> {
     override fun solve(a: List<T>, b: List<T>, w: Int, scoringScheme: IScoringScheme): IWindowSubstringSolution<T> =
         WindowSubstringSolution((0..a.size - w).map { index -> provider.getSolutionFor(index, index + w) }
             .toMutableList(), w, a, b)

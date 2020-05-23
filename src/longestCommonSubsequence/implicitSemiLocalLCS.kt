@@ -1,13 +1,12 @@
 package longestCommonSubsequence
 
 import sequenceAlignment.ISemiLocalCombined
-import sequenceAlignment.ISemiLocalData
 import sequenceAlignment.ISemiLocalFastAccess
 import utils.*
 
 //ISemiLocalCombined
-class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T>, ISemiLocalLCS, IImplicitSemiLocalLCSSolution<T> {
-    override val kernel: Matrix
+class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T> {
+    val kernel: Matrix
 
     private lateinit var rangeTree2D: RangeTree2D<Int>
     override lateinit var pattern: List<T>
@@ -24,10 +23,10 @@ class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T>, ISemiLocalLCS, IImplicitS
         init(a, b)
     }
 
-    constructor(a: List<T>, b: List<T>, kernel: Matrix) {
-        this.kernel = kernel
-        init(a, b)
-    }
+//    constructor(a: List<T>, b: List<T>, kernel: Matrix) {
+//        this.kernel = kernel
+//        init(a, b)
+//    }
 
     private fun init(a: List<T>, b: List<T>) {
         this.pattern = a
@@ -50,22 +49,22 @@ class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T>, ISemiLocalLCS, IImplicitS
         )
     }
 
-    override fun prefixSuffixLCS(k: Int, j: Int): Int {
+    fun prefixSuffixLCS(k: Int, j: Int): Int {
         if (k < 0 || k > m || j < 0 || j > n) return -1
         return canonicalDecomposition(m - k, j) - k
     }
 
-    override fun stringSubstringLCS(i: Int, j: Int): Int {
+    fun stringSubstringLCS(i: Int, j: Int): Int {
         if (i < 0 || i > n || j < 0 || j > n) return -1
         return canonicalDecomposition(i + m, j)
     }
 
-    override fun substringStringLCS(k: Int, l: Int): Int {
+    fun substringStringLCS(k: Int, l: Int): Int {
         if (k < 0 || k > m || l < 0 || l > m) return -1
         return canonicalDecomposition(m - k, m + n - l) - m - k + l
     }
 
-    override fun suffixPrefixLCS(l: Int, i: Int): Int {
+    fun suffixPrefixLCS(l: Int, i: Int): Int {
         if (l < 0 || l > m || i < 0 || i > n) return -1
         return canonicalDecomposition(i + m, m + n - l) - m + l
     }
@@ -128,8 +127,7 @@ class ImplicitSemiLocalLCS<T> : ISemiLocalCombined<T>, ISemiLocalLCS, IImplicitS
         }
     }
 
-    //tmp
-    fun getMatrix(): AbstractMongeMatrix {
+    override fun getMatrix(): AbstractMongeMatrix {
         val mongeMatrix = MongeMatrix(m + n + 1, m + n + 1)
         for (i in 0 until m + n + 1) {
             for (j in 0 until m + n + 1) {

@@ -1,5 +1,11 @@
 package application
 
+
+interface IElementProcessor<T, P> {
+    fun process(elemsList: List<List<Element<T, P>>>): List<List<Element<T, P>>>
+}
+
+
 /**
  * Stanford stop words in LOWER CASE
  */
@@ -220,7 +226,7 @@ val stanfordStopWords = hashSetOf(
     "yourself",
     "yourselves",
     "###",
-    "return",
+    "return", //TODO maybe comment
     "arent",
     "cant",
     "couldnt",
@@ -285,9 +291,6 @@ val delimiters = hashSetOf(
     "\\\\"
 )
 
-interface IElementProcessor<T, P> {
-    fun process(elemsList: List<List<Element<T, P>>>): List<List<Element<T, P>>>
-}
 
 /**
  * Removes stop words from elemList

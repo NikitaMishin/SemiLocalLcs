@@ -1,6 +1,6 @@
 package sequenceAlignment
 
-import utils.PermutationMatrixTwoLists
+import longestCommonSubsequence.RecursiveKernelEvaluationVSubs
 import longestCommonSubsequence.ReducingKernelEvaluation
 import utils.IScoringScheme
 import utils.RegularScoringScheme
@@ -8,7 +8,7 @@ import utils.dummyPermutationMatrixTwoLists
 import kotlin.random.Random
 
 
-internal class ImplicitSemiLocalSAViaReducingTest() : SemiLocalSABaseTester(Random(17)) {
+internal class VSubRecursiveTest() : SemiLocalSABaseTester(Random(17)) {
 
 
     override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): Pair<ISemiLocalSA, IScoringScheme> {
@@ -22,8 +22,9 @@ internal class ImplicitSemiLocalSAViaReducingTest() : SemiLocalSABaseTester(Rand
             B,
 //            FixedScoringScheme(Fraction(2,1), Fraction(-1,1),Fraction(-4,2)),
             RegularScoringScheme(numerator, denominator),
-            ReducingKernelEvaluation ({ dummyPermutationMatrixTwoLists}, RegularScoringScheme(numerator, denominator))
-        ), RegularScoringScheme(numerator, denominator))
+            RecursiveKernelEvaluationVSubs ({ dummyPermutationMatrixTwoLists }, RegularScoringScheme(numerator, denominator))
+        ), RegularScoringScheme(numerator, denominator)
+        )
 
 
     }

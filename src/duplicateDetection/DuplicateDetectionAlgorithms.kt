@@ -1,47 +1,26 @@
 package duplicateDetection
 
+import application.Edge
+import application.IGraph
+import application.IGraphBuilder
+import application.Vertex
 import utils.*
 
+//
+///**
+// *
+// */
+//data class Group<T>(val head: Fragment<T>, val duplicates: List<TextInterval<T>>)
 
-/**
- *
- */
-data class Group<T>(val head: Fragment<T>, val duplicates: List<TextInterval<T>>)
-
-
-/**
- *
- */
-data class Fragment<T>(val text: List<T>, var startInclusive: Int, var endExclusive: Int) {
-    fun size() = endExclusive - startInclusive
-}
-
-
-/**
- *
- */
-interface ISimilarityGraphBuilder<T> {
-    fun buildGraph(fragments: List<List<T>>, func: IMeasureFunction<T>): IGraph<List<T>, List<T>>
-}
+//
+///**
+// *
+// */
+//data class Fragment<T>(val text: List<T>, var startInclusive: Int, var endExclusive: Int) {
+//    fun size() = endExclusive - startInclusive
+//}
 
 
-class SimilarityGraphBuilder<T>(var graphBuilder: IGraphBuilder<List<T>, List<T>>) : ISimilarityGraphBuilder<T> {
-
-    override fun buildGraph(fragments: List<List<T>>, func: IMeasureFunction<T>): IGraph<List<T>, List<T>> {
-        val vertices = fragments.mapIndexed { index: Int, list: List<T> -> Vertex(index, list) }
-        val edges = mutableListOf<Edge<List<T>>>()
-
-        for (i in fragments.indices) {
-            for (j in i + 1..fragments.size) {
-                val solutionIJ = func.computeSimilarity(fragments[i], fragments[j])
-                val solutionJI = func.computeSimilarity(fragments[j], fragments[i])
-                edges.add(Edge(i, j, solutionIJ.first, solutionIJ.second))
-                edges.add(Edge(j, i, solutionJI.first, solutionJI.second))
-            }
-        }
-        return graphBuilder.build(vertices, edges)
-    }
-}
 
 
 ///**
@@ -123,132 +102,132 @@ class SimilarityGraphBuilder<T>(var graphBuilder: IGraphBuilder<List<T>, List<T>
 
 //
 
-
-/**
- *
- */
-interface IGroupCloneDetection<T> {
-    fun find(fragments: List<Fragment<T>>): List<Group<T>>
-}
-
-
-class GroupCloneDetectionApproximateMatchWay<T>(
-    val approximateMatcher: IApproximateMatching<T>,
-    val minimumLen: Int,
-    val maximumLen: Int
-) :
-    IGroupCloneDetection<T> {
-
-    //TODO
-    override fun find(fragments: List<Fragment<T>>): List<Group<T>> {
-        return findGroups(fragments, mutableListOf(), minimumLen, maximumLen)
-    }
-
-
-    private fun findGroups(
-        fragments: List<Fragment<T>>,
-        groups: MutableList<Group<T>>,
-        min: Int,
-        max: Int
-    ): MutableList<Group<T>> {
-
-
-        if (max < min) return groups
-
-        val start = fragments.maxBy { it.size() }
-        if (start == null || start.size() < min) return groups
-
-        if (start.size() < max) return findGroups(fragments, groups, min, start.size())
-
-
-        for (p in fragments) {
-
-            for (offset in 0..p.size() - max) {
-
-                val rightEdge = p.startInclusive + max + offset
-                val leftEdge = p.startInclusive + offset
-                val pattern = Fragment(p.text, leftEdge, rightEdge)
-                val tmp = mutableListOf<Fragment<T>>()
-
-                if (offset >= min) tmp += Fragment(
-                    p.text,
-                    p.startInclusive,
-                    p.startInclusive + offset
-                )
-
-                if (p.endExclusive - rightEdge >= min) tmp += Fragment(
-                    p.text,
-                    rightEdge,
-                    p.endExclusive
-                )
-
-                for (fr in fragments) {
-                    if (p == fr) continue
-                    tmp.add(fr)
-                }
-
-                //
-                val clones = approximateMatcher.find(pattern, tmp)
-                //new
-                if (clones.any { it.second.isNotEmpty() }) {
-
-                    groups.add(Group(pattern,clones.flatMap { it.second }))
-
-                    val newFragments = mutableListOf<Fragment<T>>()
-
-
-
-                    for (clone in clones) {
-                        if (clone.second.isEmpty()) {
-                            newFragments.add(clone.first)
-                            continue
-                        }
-
-                        //local
-                        var last = clone.first.startInclusive
-                        // add intervals that not covered by clones with len > minlen
-                        for (cl in clone.second) {
-                            if (cl.startInclusive - last >= min)
-                                newFragments.add(
-                                    Fragment(
-                                        clone.first.text,
-                                        last,
-                                        cl.startInclusive
-                                    )
-                                )
-                            last = cl.endExclusive
-                        }
-
-
-                        //last
-                        if (clone.first.endExclusive - last >= min)
-                            newFragments.add(
-                                Fragment(
-                                    clone.first.text,
-                                    last,
-                                    clone.first.endExclusive
-                                )
-                            )
-
-
-
-
-
-
-                    }
-
-
-                    return findGroups(newFragments, groups, min, max)
-
-                }
-
-            }
-        }
-
-        // not found with specified length
-        return findGroups(fragments, groups, min, max - 1)
-    }
-}
+//
+///**
+// *
+// */
+//interface IGroupCloneDetection<T> {
+//    fun find(fragments: List<Fragment<T>>): List<Group<T>>
+//}
+//
+//
+//class GroupCloneDetectionApproximateMatchWay<T>(
+//    val approximateMatcher: IApproximateMatching<T>,
+//    val minimumLen: Int,
+//    val maximumLen: Int
+//) :
+//    IGroupCloneDetection<T> {
+//
+//    //TODO
+//    override fun find(fragments: List<Fragment<T>>): List<Group<T>> {
+//        return findGroups(fragments, mutableListOf(), minimumLen, maximumLen)
+//    }
+//
+//
+//    private fun findGroups(
+//        fragments: List<Fragment<T>>,
+//        groups: MutableList<Group<T>>,
+//        min: Int,
+//        max: Int
+//    ): MutableList<Group<T>> {
+//
+//
+//        if (max < min) return groups
+//
+//        val start = fragments.maxBy { it.size() }
+//        if (start == null || start.size() < min) return groups
+//
+//        if (start.size() < max) return findGroups(fragments, groups, min, start.size())
+//
+//
+//        for (p in fragments) {
+//
+//            for (offset in 0..p.size() - max) {
+//
+//                val rightEdge = p.startInclusive + max + offset
+//                val leftEdge = p.startInclusive + offset
+//                val pattern = Fragment(p.text, leftEdge, rightEdge)
+//                val tmp = mutableListOf<Fragment<T>>()
+//
+//                if (offset >= min) tmp += Fragment(
+//                    p.text,
+//                    p.startInclusive,
+//                    p.startInclusive + offset
+//                )
+//
+//                if (p.endExclusive - rightEdge >= min) tmp += Fragment(
+//                    p.text,
+//                    rightEdge,
+//                    p.endExclusive
+//                )
+//
+//                for (fr in fragments) {
+//                    if (p == fr) continue
+//                    tmp.add(fr)
+//                }
+//
+//                //
+//                val clones = approximateMatcher.find(pattern, tmp)
+//                //new
+//                if (clones.any { it.second.isNotEmpty() }) {
+//
+//                    groups.add(Group(pattern,clones.flatMap { it.second }))
+//
+//                    val newFragments = mutableListOf<Fragment<T>>()
+//
+//
+//
+//                    for (clone in clones) {
+//                        if (clone.second.isEmpty()) {
+//                            newFragments.add(clone.first)
+//                            continue
+//                        }
+//
+//                        //local
+//                        var last = clone.first.startInclusive
+//                        // add intervals that not covered by clones with len > minlen
+//                        for (cl in clone.second) {
+//                            if (cl.startInclusive - last >= min)
+//                                newFragments.add(
+//                                    Fragment(
+//                                        clone.first.text,
+//                                        last,
+//                                        cl.startInclusive
+//                                    )
+//                                )
+//                            last = cl.endExclusive
+//                        }
+//
+//
+//                        //last
+//                        if (clone.first.endExclusive - last >= min)
+//                            newFragments.add(
+//                                Fragment(
+//                                    clone.first.text,
+//                                    last,
+//                                    clone.first.endExclusive
+//                                )
+//                            )
+//
+//
+//
+//
+//
+//
+//                    }
+//
+//
+//                    return findGroups(newFragments, groups, min, max)
+//
+//                }
+//
+//            }
+//        }
+//
+//        // not found with specified length
+//        return findGroups(fragments, groups, min, max - 1)
+//    }
+//}
 
 
 

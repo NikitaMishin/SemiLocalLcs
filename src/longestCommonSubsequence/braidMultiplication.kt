@@ -38,23 +38,6 @@ class NaiveBraidMultiplication : IBraidMultiplication {
         val bDominance = CountingQueryLCS.dominanceMatrix(Q, CountingQueryLCS.topRightSummator)
         val cDominance: Array<Array<Int>> = Array(P.height() + 1) { Array(Q.width() + 1) { 0 } }
 
-        println("unmult")
-        val time = measureTimeMillis {
-            for (i in 0 until P.height() + 1) {
-                for (k in 0 until Q.width() + 1) {
-                    var tmp = Int.MAX_VALUE
-                    for (j in 0 until P.width() + 1) {
-                        tmp = Integer.min(aDominance[i][j] + bDominance[j][k], tmp)
-
-                    }
-                    cDominance[i][k] = tmp
-                }
-            }
-            println(cDominance[0][0])
-        }
-
-        println("mu tyme beach${time}")
-
 
         for (i in 0 until P.height() + 1) {
             for (k in 0 until Q.width() + 1) {
@@ -933,34 +916,7 @@ fun staggeredExplicitMultiplication(p: AbstractMongeMatrix, q: AbstractMongeMatr
         }
     }
 
-//    println("P")
-//    for(i in 0 until  p.height()){
-//        for (j in 0 until  p.width()){
-//            print("${p[i,j]}  ")
-//        }
-//        println()
-//    }
-//
-//    println()
-//    for(i in 0 until  pExtended.height()){
-//        for (j in 0 until  pExtended.width()){
-//            print("${pExtended[i,j]}  ")
-//        }
-//        println()
-//    }
-//
-//    println()
-//
-//    for(i in 0 until  qExtended.height()){
-//        for (j in 0 until  qExtended.width()){
-//            print("${qExtended[i,j]}  ")
-//        }
-//        println()
-//    }
-//
-//    println()
     return pExtended * qExtended
-
 
 }
 

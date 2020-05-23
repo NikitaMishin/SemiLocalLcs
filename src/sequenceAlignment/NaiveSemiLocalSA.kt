@@ -1,12 +1,15 @@
 package sequenceAlignment
 
+import longestCommonSubsequence.AbstractMongeMatrix
 import longestCommonSubsequence.Symbol
 import longestCommonSubsequence.SymbolType
 import utils.IScoringScheme
 import java.lang.Double.max
 
 //TODO  naive only works with rational scoring scheme
-class NaiveSemiLocalSA<T>(val a: List<T>, val b: List<T>, private val scoringScheme: IScoringScheme) : ISemiLocalSA, ISemiLocalSolution<T> {
+class NaiveSemiLocalSA<T>(val a: List<T>, val b: List<T>, private val scoringScheme: IScoringScheme) : ISemiLocalCombined<T> {
+
+
     override val pattern: List<T> = a
     override val text: List<T> = b
 
@@ -148,6 +151,9 @@ class NaiveSemiLocalSA<T>(val a: List<T>, val b: List<T>, private val scoringSch
     override fun getAtPosition(i: Int, j: Int): Double = matrix[i][j]
 
 
+    override fun getMatrix(): AbstractMongeMatrix {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }
 
 

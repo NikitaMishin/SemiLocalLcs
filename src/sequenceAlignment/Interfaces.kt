@@ -1,6 +1,7 @@
 package sequenceAlignment
 
 
+import longestCommonSubsequence.AbstractMongeMatrix
 import utils.IScoringScheme
 
 
@@ -107,6 +108,11 @@ interface ISemiLocalFastAccess {
      * returns scoring scheme for semilocal problem
      */
     fun getScoringScheme(): IScoringScheme
+
+    /**
+     * returns monge matrix associated with semi-local solution
+     */
+    fun getMatrix():AbstractMongeMatrix
 
 }
 

@@ -77,7 +77,6 @@ class CompleteAMatchViaSemiLocalTotallyMonotone<T>(var solution: ISemiLocalSolut
     private var pattern = solution.pattern
     private var text = solution.text
 
-    //TODO ask tiskin wrong formula? what about totally monotonne?
     private fun scoreTransformer(value: Double, i: Int, j: Int) =
         solution.getScoringScheme().getOriginalScoreFunc(value, solution.pattern.size, i, j)
 

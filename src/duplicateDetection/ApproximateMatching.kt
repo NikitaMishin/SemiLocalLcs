@@ -16,7 +16,7 @@ interface IApproximateMatching<T> {
     /**
      * For a given threshold in [0,1] according to scoring scheme find
      */
-    fun find(p: Fragment<T>, fragments: List<Fragment<T>>): MutableList<Pair<Fragment<T>, MutableList<TextInterval<T>>>>
+    fun find(p: List<T>, text: List<T>): MutableList<Interval>
 }
 
 
@@ -25,46 +25,65 @@ interface IApproximateMatching<T> {
  */
 class ApproximateMatchingViaThresholdAMatch<T>(
     var provider: ISemiLocalProvider,
-    var scheme: IScoringScheme
+    var scheme: IScoringScheme,
+    thresholdPercent: Double
 ) : IApproximateMatching<T> {
 
-    private var thresholdPercent: Double
-    init {
-        //TODO()
-        //TODO(add scheme translation to therssold)
-        thresholdPercent = 5.0
+    private val badPercent = (1 - thresholdPercent) * 3 / 4
+    private val approximatePercent = (1 - thresholdPercent) * 1 / 4
+    private val goodPercent = thresholdPercent
 
+    override fun find(p: List<T>, text: List<T>): MutableList<Interval> {
+        val solution = provider.buildSolution(p, text, scheme)
+
+        //exactMatchOverall*percent
+        val realThreshold = p.size * (scheme.getMatchScore().toDouble() * (goodPercent - approximatePercent)
+                + (scheme.getMismatchScore() + scheme.getGapScore()).toDouble() * badPercent)
+
+        val aMatch = CompleteAMatchViaSemiLocalTotallyMonotone(solution)
+        val clones = ThresholdAMathViaSemiLocal(aMatch).solve(realThreshold)
+        return clones.toMutableList()
     }
+}
 
-    override fun find(
-        p: Fragment<T>,
-        fragments: List<Fragment<T>>): MutableList<Pair<Fragment<T>, MutableList<TextInterval<T>>>> {
+/**
+ * Approximate matching via thresholdAMatch
+ */
+class ApproximateMatchingViaCut<T>(
+    var provider: ISemiLocalProvider,
+    var scheme: IScoringScheme,
+    thresholdPercent: Double
+) : IApproximateMatching<T> {
 
-        return fragments.map { fragment ->
-            val solution = provider.buildSolution(
-                p.text.subList(p.startInclusive, p.endExclusive),
-                fragment.text.subList(fragment.startInclusive, fragment.endExclusive),
-                scheme
-            )
+    private fun Interval.notIntersectedWith(other: Interval): Boolean =
+        // [this][other] or [other][this]
+        other.startInclusive >= this.endExclusive || other.endExclusive <= this.startInclusive
 
-            val realThreshold = 4.0//TODO(use percent of somethign)
+    private val badPercent = (1 - thresholdPercent) * 3 / 4
+    private val approximatePercent = (1 - thresholdPercent) * 1 / 4
+    private val goodPercent = thresholdPercent
 
-            val aMatch = CompleteAMatchViaSemiLocalTotallyMonotone(solution)
-            val clones = ThresholdAMathViaSemiLocal(aMatch).solve(realThreshold)
+    override fun find(p: List<T>, text: List<T>): MutableList<Interval> {
+        val solution = provider.buildSolution(p, text, scheme)
 
-            Pair(
-                fragment,
-                clones.map {
-                    TextInterval(
-                        it.startInclusive + fragment.startInclusive,
-                        it.endExclusive + fragment.startInclusive,
-                        fragment.text,
-                        it.score
-                    )
-                }.toMutableList()
-            )
+        //exactMatchOverall*percent
+        val realThreshold = p.size * (scheme.getMatchScore().toDouble() * (goodPercent - approximatePercent)
+                + (scheme.getMismatchScore() + scheme.getGapScore()).toDouble() * badPercent)
 
-        }.toMutableList()
+        val aMatch = CompleteAMatchViaSemiLocalTotallyMonotone(solution)
+
+        val result = mutableListOf<Interval>()
+        val candidates =
+            aMatch.solve().mapIndexed { index, pair -> Interval(pair.first, index, pair.second) }
+                .filter { it.score >= realThreshold }
+                .sortedByDescending { it.score }
+
+        println(candidates)
+
+        for (candidate in candidates) {
+            if (result.all { clone -> clone.notIntersectedWith(candidate) }) result.add(candidate)
+        }
+        return result
     }
 }
 

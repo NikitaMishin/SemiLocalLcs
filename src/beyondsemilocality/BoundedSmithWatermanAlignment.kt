@@ -25,14 +25,40 @@ class BoundedLengthSmithWatermanAlignment<T>(val provider: IFragmentSubstringPro
     data class SWSell(var type: TraceBackPointer, var score: Double)
 
     fun solve(a: List<T>, b: List<T>, scheme: IScoringScheme, minWindow: Int): Pair<Interval, Interval> {
-        val windows = WindowSubstringProvider(provider).solve(a, b, minWindow, scheme).getSolutions()
-
         val w = minWindow
-        val h: Array<Array<SWSell>> = Array(a.size + 1) { Array(b.size + 1) { SWSell(TraceBackPointer.Dummy, 0.0) } }
+
+        if (a.size < minWindow) return Pair(
+            Interval(0, 0, Double.NEGATIVE_INFINITY),
+            Interval(0, 0, Double.NEGATIVE_INFINITY)
+        )
+
+        if (b.isEmpty()) {
+            return Pair(Interval(0, w, (scheme.getGapScore() * w).toDouble()), Interval(0, 0))
+        }
+
+        val windows = WindowSubstringSA(provider).solve(a, b, minWindow, scheme).getSolutions()
+
+        val h: Array<Array<SWSell>> =
+            Array(a.size + 1) {
+                Array(b.size + 1) {
+                    SWSell(
+                        TraceBackPointer.Dummy,
+                        (scheme.getGapScore() * w).toDouble()
+                    )
+                }
+            }
 
         //just want array of arrays...
         val completeAMatchSolution: Array<Array<Pair<Int, Double>>> =
             Array(a.size + 1 - w) { Array(b.size + 1) { Pair(-99, 0.0) } }
+
+//        Only one window
+        if (a.size == w) {
+            val bIntetrval = CompleteAMatchViaSemiLocalTotallyMonotone(windows[0]).solve()
+                .mapIndexed { col, (row, score) -> Interval(row, col, score) }.maxBy { it.score }!!
+            return Pair(Interval(0, w, bIntetrval.score), bIntetrval)
+        }
+
 
         //TODo assign also i to traceback
         for ((l, window) in windows.withIndex()) {
@@ -41,14 +67,15 @@ class BoundedLengthSmithWatermanAlignment<T>(val provider: IFragmentSubstringPro
             }
         }
 
+
+
         for (j in 0 until b.size + 1) {
             h[w][j] = SWSell(TraceBackPointer.Window, completeAMatchSolution[w - w][j].second)
         }
 
-        var localMax = 0.0
+        var localMax = Double.NEGATIVE_INFINITY
         var startB = 0
         var startA = 0
-
         for (l in w + 1..a.size) {
             for (j in 1..b.size) {
                 val up = h[l - 1][j].score + scheme.getGapScore().toDouble()
@@ -82,7 +109,6 @@ class BoundedLengthSmithWatermanAlignment<T>(val provider: IFragmentSubstringPro
             }
         }
 
-
         val aEnd = startA
         val bEnd = startB
         loop@ while (true) {
@@ -110,7 +136,7 @@ class BoundedLengthSmithWatermanAlignment<T>(val provider: IFragmentSubstringPro
         }
 
 
-        return Pair(Interval(startB, bEnd, localMax), Interval(startA, aEnd, localMax))
+        return Pair(Interval(startA, aEnd, localMax), Interval(startB, bEnd, localMax))
 
 
     }

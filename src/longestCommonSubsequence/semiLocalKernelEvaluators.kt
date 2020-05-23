@@ -5,6 +5,7 @@ import sequenceAlignment.ISemiLocalStringSubstringProblem
 import sequenceAlignment.ISemiLocalSubstringStringProblem
 import sequenceAlignment.ISemiLocalSuffixPrefixProblem
 import utils.IScoringScheme
+import utils.LCSScoringScheme
 import utils.Matrix
 import kotlin.math.max
 import kotlin.random.Random
@@ -45,10 +46,36 @@ data class Symbol<T>(val symbol: T, val type: SymbolType) {
 /**
  *  @param  matrixInstance to get type M (see type erasure)
  */
-class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
+class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M,scheme: IScoringScheme=LCSScoringScheme()) :
     IStrategyKernelEvaluation {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
+    val mu = scheme.getNormalizedMismatchScore().numerator
+    val v = scheme.getNormalizedMismatchScore().denominator
 
+    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
+        return eval(a.flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }.toMutableList(),
+            b.flatMap {
+                Symbol(
+                    it,
+                    SymbolType.GuardSymbol
+                ).repeatShallowCopy(mu) +
+                        Symbol(
+                            it,
+                            SymbolType.AlphabetSymbol
+                        ).repeatShallowCopy(v - mu)
+            }.toMutableList()
+
+        )
+    }
     /**
      * The recursive algorithm based on steady ant braid multiplication.
      * See page 64
@@ -56,7 +83,7 @@ class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
+     private fun <T> eval(a: List<T>, b: List<T>): Matrix {
 
         if (a.size == 1 && b.size == 1) {
             val identityMatrix = instance.createZeroMatrix(2, 2)
@@ -76,9 +103,102 @@ class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
             val b2 = b.subList(n1, b.size)
             return getPermBA(
                 staggeredStickyMultiplication(
-                    evaluate(b1, a),
-                    evaluate(b2, a), a.size
+                    eval(b1, a),
+                    eval(b2, a), a.size
                 ), a.size, b.size
+            )
+        } else {
+            val m1 = a.size / 2
+            val a1 = a.subList(0, m1)
+            val a2 = a.subList(m1, a.size)
+
+            return staggeredStickyMultiplication(
+                eval(a1, b),
+                eval(a2, b),
+                b.size
+            )
+        }
+
+
+    }
+}
+
+/**
+ *  @param  matrixInstance to get type M (see type erasure)
+ */
+class RecursiveKernelEvaluationVSubs<M : Matrix>(matrixInstance: () -> M, scheme: IScoringScheme=LCSScoringScheme()) :
+    IStrategyKernelEvaluation {
+    private val instance = matrixInstance().createZeroMatrix(0, 0)
+    val mu:Int = scheme.getNormalizedMismatchScore().numerator
+    val v:Int = scheme.getNormalizedMismatchScore().denominator
+
+    val mismatchId = ReducingKernelEvaluation({instance}).evaluate(
+        mutableListOf(1).flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }
+        , mutableListOf(2).flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }
+
+    )
+    val matrixId = ReducingKernelEvaluation({instance}).evaluate(
+        mutableListOf(1).flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }
+        , mutableListOf(1).flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }
+    )
+
+    /**
+     * The recursive algorithm based on steady ant braid multiplication.
+     * See page 64
+     * @param a string of size m
+     * @param b string of size n
+     * @return Permutation matrix of type resMatrix for the semilocal problem (aka return semi-local  kernel)
+     */
+    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
+        if (a.size == 1 && b.size == 1) {
+            return if (a == b) matrixId else mismatchId
+        }
+
+        if (b.size > a.size) {
+            val n1 = b.size / 2
+            val b1 = b.subList(0, n1)
+            val b2 = b.subList(n1, b.size)
+            return getPermBA(
+                staggeredStickyMultiplication(
+                    evaluate(b1, a),
+                    evaluate(b2, a), a.size * v
+                ), a.size * v, b.size * v
             )
         } else {
             val m1 = a.size / 2
@@ -88,7 +208,7 @@ class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
             return staggeredStickyMultiplication(
                 evaluate(a1, b),
                 evaluate(a2, b),
-                b.size
+                b.size * v
             )
         }
 
@@ -97,11 +217,38 @@ class RecursiveKernelEvaluation<M : Matrix>(matrixInstance: () -> M) :
 }
 
 
+
+
 /**
  *  @param matrixInstance is for providing createZeroMatrix function of specified type (bad kotlin)
  */
-class ReducingKernelEvaluation<M : Matrix>(matrixInstance: () -> M) : IStrategyKernelEvaluation {
+class ReducingKernelEvaluation<M : Matrix>(matrixInstance: () -> M,scheme: IScoringScheme=LCSScoringScheme()) : IStrategyKernelEvaluation {
     private val instance = matrixInstance().createZeroMatrix(0, 0)
+    val mu = scheme.getNormalizedMismatchScore().numerator
+    val v = scheme.getNormalizedMismatchScore().denominator
+
+    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
+       return eval(a.flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }.toMutableList(),
+        b.flatMap {
+            Symbol(
+                it,
+                SymbolType.GuardSymbol
+            ).repeatShallowCopy(mu) +
+                    Symbol(
+                        it,
+                        SymbolType.AlphabetSymbol
+                    ).repeatShallowCopy(v - mu)
+        }.toMutableList())
+    }
 
     /**
      * iterative version of semilocalLCS (the second one with idea of unswepen unreduced sticky braid to reduced one
@@ -111,7 +258,7 @@ class ReducingKernelEvaluation<M : Matrix>(matrixInstance: () -> M) : IStrategyK
      * @param b string of size n
      * @return Permutation matrix of type resMatrix for the semilocalLCS problem (aka return semi-local lcs kernel)
      */
-    override fun <T> evaluate(a: List<T>, b: List<T>): Matrix {
+    private fun <T> eval(a: List<T>, b: List<T>): Matrix {
 
 //    fun isCrossedPreviously(strandLeft: Int, strandTop: Int): Boolean =
 //        //странд слева > странд сверху
@@ -166,8 +313,6 @@ fun getPermBA(A: Matrix, m: Int, n: Int): Matrix {
     return B
 }
 
-
-//TODO new
 
 /**
  *

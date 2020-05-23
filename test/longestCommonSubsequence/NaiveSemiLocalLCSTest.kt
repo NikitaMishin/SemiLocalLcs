@@ -3,11 +3,14 @@ package longestCommonSubsequence
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import sequenceAlignment.ISemiLocalCombined
+import sequenceAlignment.ISemiLocalSA
+import sequenceAlignment.ISemiLocalSolution
 import kotlin.random.Random
 
 internal class NaiveSemiLocalLCSTest : SemiLocalLCSBaseTester(Random(0)) {
 
-    override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalLCS =
+    override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): ISemiLocalSA =
         NaiveSemiLocalLCS(A, B)
 
     @Test

@@ -15,6 +15,14 @@ interface IThresholdAWindowProblem {
     fun solve(threshold: Double, windowLen: Int): List<Interval>
 }
 
+/*
+//TODO ask tiskin wrong formula? what about totally monotonne?
+private fun scoreTransformer(value: Double, i: Int, j: Int) =
+    solution.getScoringScheme().getOriginalScoreFunc(value, solution.pattern.size, i, j)
+
+*/
+
+
 class ThresholdWindowSemiLocal<T>(var semilocal: ISemiLocalSolution<T>, var aMatchProblem: ICompleteAMatchProblem<T>) :
     IThresholdAWindowProblem {
 
@@ -48,10 +56,10 @@ class ThresholdWindowSemiLocal<T>(var semilocal: ISemiLocalSolution<T>, var aMat
                 ISemiLocalFastAccess.Direction.Forward
             )
             curRow++
-            println(curRow)
-            println(curCol)
 
-            if (curValue >= threshold || (colMax[curCol].first + m > curRow && colMax[curCol].second >= threshold)) {
+            val value  = semilocal.getScoringScheme().getOriginalScoreFunc(curValue,m, curRow - m , curCol)
+
+            if (value >= threshold || (colMax[curCol].first + m > curRow && colMax[curCol].second >= threshold)) {
                 res.add(Interval(curRow - m, curCol, curValue))
             }
 

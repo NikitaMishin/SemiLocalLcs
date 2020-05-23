@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import utils.dummyPermutationMatrixTwoLists
 
-internal class WindowSubstringProviderTest {
+internal class WindowSubstringSATest {
 
     @Test
     fun solve() {

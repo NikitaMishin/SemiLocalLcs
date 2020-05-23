@@ -13,6 +13,8 @@ import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.javadoc.JavadocBlockTag
 import com.github.javaparser.javadoc.description.JavadocDescription
 import java.io.File
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -20,20 +22,31 @@ import java.util.stream.Collectors
 import kotlin.streams.toList
 
 /**
- * Represent comment
+ * Parser that parses input to get the required data to analyze
  */
-data class UnifiedComment(val fileLocation: String, val javadocComment: JavadocComment, val parentSignature: String)
-
-
-interface IJavaDocParser {
-    fun parse(): List<UnifiedComment>
+interface IParser<T> {
+    fun parse(): List<T>
 }
 
-class JavaDocParser(private val compilationUnit: CompilationUnit, private val localPath: String) : IJavaDocParser {
-    override fun parse(): List<UnifiedComment> = compilationUnit
+
+interface IJavaDocParser : IParser<UnifiedComment>
+
+
+class JavaDocParser(private val startLocation: String) : IJavaDocParser {
+
+    override fun parse(): List<UnifiedComment> {
+        val relPath = Paths.get(startLocation)
+        return Files.walk(relPath).use {
+            it.toList().filter { it.toString().endsWith(".java") }.map { path ->
+                parseSingle(JavaParser.parse(path), relPath.relativize(path).toString())
+            }.flatten()
+        }
+    }
+
+    private fun parseSingle(compilationUnit: CompilationUnit, localPath: String): List<UnifiedComment> = compilationUnit
         .javaDocToAnalyze().map { it as JavadocComment }
         .map {
-            UnifiedComment(localPath, it, if (it.commentedNode.isPresent) it.commentedNode.get().getSignature() else "")
+            UnifiedComment(localPath, it.parse(), if (it.commentedNode.isPresent) it.commentedNode.get().getSignature() else "")
         }
 
     /**
@@ -73,12 +86,10 @@ class JavaDocParser(private val compilationUnit: CompilationUnit, private val lo
 }
 
 
-fun collectAllJavaDoc(startLocation: String): List<UnifiedComment> {
-    val relPath = Paths.get(startLocation)
-    return Files.walk(relPath).use {
-        it.toList().filter { it.toString().endsWith(".java") }.map { path ->
-            JavaDocParser(JavaParser.parse(path), relPath.relativize(path).toString()).parse()
-        }.flatten()
 
+class FileParser(private val path: String, private val encoding:Charset = StandardCharsets.UTF_8):IParser<Char> {
+    override fun parse(): List<Char> {
+        val res = Files.lines(Paths.get(path),encoding).collect(Collectors.joining(System.lineSeparator()))
+        return res.toList()
     }
 }

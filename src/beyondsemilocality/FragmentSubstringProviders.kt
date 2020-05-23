@@ -107,7 +107,7 @@ class ExplicitFragmentSubstringProvider<T> : IFragmentSubstringProvider<T> {
 /**
  * provides semi-local lcs solution for specific fragment
  */
-class ImplicitFragmentSubstringProviderN<T> : IFragmentSubstringProvider<T> {
+class ImplicitFragmentSubstringProvider<T> : IFragmentSubstringProvider<T> {
 
     override val a: List<T>
     override val b: List<T>

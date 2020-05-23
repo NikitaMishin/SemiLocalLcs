@@ -13,12 +13,7 @@ interface IFragmentSubstringSA<T> {
     /**
      *
      */
-    fun solve(
-        a: List<T>,
-        b: List<T>,
-        fragments: List<Interval>,
-        scoringScheme: IScoringScheme
-    ): IFragmentSubstringSolution<T>
+    fun solve(a: List<T>, b: List<T>, fragments: List<Interval>, scheme: IScoringScheme): IFragmentSubstringSolution<T>
 }
 
 /**
@@ -34,7 +29,7 @@ interface IFragmentSubstringSolution<T> {
 
 class FragmentSubstringSA<T>(val provider: IFragmentSubstringProvider<T>) : IFragmentSubstringSA<T> {
 
-    override fun solve(a: List<T>, b: List<T>, fragments: List<Interval>, scoringScheme: IScoringScheme):
+    override fun solve(a: List<T>, b: List<T>, fragments: List<Interval>, scheme: IScoringScheme):
             IFragmentSubstringSolution<T> =
         FragmentSubstringSolution(
             a,

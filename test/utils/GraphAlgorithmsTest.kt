@@ -1,8 +1,8 @@
 package utils
 
+import application.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.math.min
 import kotlin.random.Random
 import kotlin.test.assertTrue
 
@@ -182,7 +182,14 @@ internal class GraphAlgorithmsTest {
             (0 until size).map { Vertex(it, it) },
             (0 until size).flatMap { i -> (0 until size).map { j -> Pair(i, j) } }
                 .filter { it.first != it.second }
-                .map { Edge(it.first, it.second, randomizer.nextDouble(-20.0, 20.0), "${it.first}->${it.second}") }
+                .map {
+                    Edge(
+                        it.first,
+                        it.second,
+                        randomizer.nextDouble(-20.0, 20.0),
+                        "${it.first}->${it.second}"
+                    )
+                }
         )
 
     }
@@ -391,13 +398,19 @@ internal class GraphAlgorithmsTest {
 
     @Test
     fun rArborosercenceTest() {
-        val r = tarjanOptimalBranchingBranching(exampleGraph2, mutableListOf(Vertex(2, 1)), true)
+        val r =
+            tarjanOptimalBranchingBranching(exampleGraph2, mutableListOf(Vertex(2, 1)), true)
         assertEquals(22.0, r.fold(0.0, { acc: Double, iEdge: IEdge<String> -> acc + iEdge.score }))
 
-        val r2 = tarjanOptimalBranchingBranching(exampleGraph1, mutableListOf(Vertex(2, 1)), true)
+        val r2 =
+            tarjanOptimalBranchingBranching(exampleGraph1, mutableListOf(Vertex(2, 1)), true)
         assertEquals(25.0, r2.fold(0.0, { acc, edge -> acc + edge.score }))
 
-        val r3 = tarjanOptimalBranchingBranching(completeGraph4Example, mutableListOf(Vertex(4, 2)), true)
+        val r3 = tarjanOptimalBranchingBranching(
+            completeGraph4Example,
+            mutableListOf(Vertex(4, 2)),
+            true
+        )
         assertEquals(5.0, r3.fold(0.0, { acc, edge -> acc + edge.score }))
 
         val r4 = tarjanOptimalBranchingBranching(exampleGraph4, mutableListOf(), true)
@@ -546,4 +559,37 @@ internal class GraphAlgorithmsTest {
 //        )
 
 
-}
+    @Test
+    fun TAMT() {
+        //should be three trees
+        var grahph = GraphMatrix(
+            mutableListOf(
+                Vertex(1, 1),
+                Vertex(2, 2),
+                Vertex(3, 3),
+                Vertex(4, 4),
+                Vertex(5, 5),
+                Vertex(6, 6)
+            ),
+            mutableListOf(
+                Edge(1, 2, 1.0, "1->2"),
+                Edge(2, 3, 7.0, "2->3"),
+
+                Edge(4, 3, 8.0, "4->3"),
+                Edge(5, 4, 2.0, "5->4"),
+
+                Edge(6, 3, 12.0, "6->3"),
+                Edge(1, 4, 12.0, "1->4")
+
+//                Edge(5, 4, 2.0, "5->4")
+            )
+        )
+
+
+        val r = tarjanOptimalBranchingBranching(grahph, mutableListOf(), false)
+        r.forEach { println(it) }
+//        assertEquals(22.0, r.fold(0.0, { acc: Double, iEdge: IEdge<String> -> acc + iEdge.score }))
+    }
+
+
+    }

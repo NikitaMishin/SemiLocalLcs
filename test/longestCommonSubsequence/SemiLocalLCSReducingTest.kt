@@ -1,6 +1,7 @@
 package longestCommonSubsequence
 
 import utils.PermutationMatrixTwoLists
+import utils.dummyPermutationMatrixTwoLists
 import kotlin.random.Random
 
 
@@ -10,11 +11,5 @@ internal class SemiLocalLCSReducingTest : SemiLocalLCSBaseTester(random = Random
         ImplicitSemiLocalLCS(
             A,
             B,
-            ReducingKernelEvaluation {
-                PermutationMatrixTwoLists(
-                    mutableListOf(),
-                    0,
-                    0
-                )
-            })
+            ReducingKernelEvaluation ({ dummyPermutationMatrixTwoLists }))
 }
