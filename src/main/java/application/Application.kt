@@ -38,6 +38,8 @@ import java.io.File
  * [4] pattern: .....
  * [5] file location of text: path
  * [6] threshold: set i think 0.8
+ * [7] unuised
+ * [8] outputfilepath
  */
 
 /**
@@ -50,6 +52,7 @@ import java.io.File
  * [5] directory: path to java project
  * [6] threshold: set from 0 to 1
  * [7] int (unsed here)
+ * [8] outputfilepath
  */
 
 /**
@@ -64,9 +67,6 @@ import java.io.File
 object Application {
 
     private val boundedLenghtConstant = 3
-
-    val outputFileName = "output.json"
-
 
     private fun <P> getProcessor(id: Int): IElementProcessor<String, P> = when (id) {
         0 -> TagRemovalTransformer()
@@ -133,7 +133,7 @@ object Application {
         val json = task.buildJSONReport()
 
 //        write to output file
-        File(outputFileName).bufferedWriter().use { out ->
+        File(args[8]).bufferedWriter().use { out ->
             out.write(json)
         }
 
