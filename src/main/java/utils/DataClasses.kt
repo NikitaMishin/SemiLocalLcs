@@ -1,7 +1,19 @@
 package utils
 
 //TODO new one
-data class Interval(var startInclusive: Int, var endExclusive: Int, val score: Double=1.0)
+data class Interval(var startInclusive: Int, var endExclusive: Int, var score: Double=1.0){
+    override fun equals(other: Any?): Boolean {
+        if (other is Interval) return startInclusive==other.startInclusive && endExclusive==other.endExclusive
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = startInclusive
+        result = 31 * result + endExclusive
+        return result
+    }
+}
+
 
 data class TextInterval<T>(val startInclusive: Int, val endExclusive: Int, val text:List<T>,val score:Double)
 

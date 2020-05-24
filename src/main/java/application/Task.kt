@@ -30,15 +30,14 @@ interface ITaskDuplicateDetection {
  * Task for approximate matching via analysis of semi-local matrix
  */
 class TaskApproximateMatchingViaSemiLocal<T>(
-    val approximMatchingAlgo: IApproximateMatching<Element<T, Int>>,
-    val pattern: List<Element<T, Int>>,
-    val text: List<Element<T, Int>>,
-    val textRaw: String,
-    val patternRaw: String,
-    val scheme: IScoringScheme
+        val approximMatchingAlgo: IApproximateMatching<Element<T, Int>>,
+        val pattern: List<Element<T, Int>>,
+        val text: List<Element<T, Int>>,
+        val textRaw: String,
+        val patternRaw: String,
+        val scheme: IScoringScheme
 ) : ITaskDuplicateDetection {
     var clones = listOf<Interval>()
-
 
     override fun processTask() {
         val aMatch = approximMatchingAlgo
@@ -65,14 +64,16 @@ class TaskApproximateMatchingViaSemiLocal<T>(
  * and IMeasureFunction for building similarity graph
  */
 class TreeGroupDuplicate<T>(
-    private val comments: List<List<Element<T, UnifiedComment>>>,
-    private val func: IMeasureFunction<Element<T, UnifiedComment>>,
-    private val groupAlgo: IGroupDuplicateTree<T>,
-    private val percent: Double
+        private val comments: List<List<Element<T, UnifiedComment>>>,
+        private val func: IMeasureFunction<Element<T, UnifiedComment>>,
+        private val groupAlgo: IGroupDuplicateTree<T>,
+        private val percent: Double
 ) : ITaskDuplicateDetection {
 
     private var cloneGroups: MutableList<Pair<List<IEdge<Interval>>, List<IVertex<List<Element<T, UnifiedComment>>>>>> =
-        mutableListOf()
+            mutableListOf()
+
+    val totalCommentsInProcjet = comments.size
 
     override fun processTask() {
         val graph = SimilarityGraphBuilder<T>(MatrixGraphBuilder()).buildGraph(comments, func, percent)
@@ -92,11 +93,13 @@ class TreeGroupDuplicate<T>(
         val mapper = ObjectMapper()
         val groups = cloneGroups.sortedByDescending { it.second.size }.map {
             Group(
-                it.second.map {
-                    Vertex(it.data.first().ptrData.parentSignature, it.index, it.data.first().ptrData.text.toText())
-                },
-                it.first.map { Edge(it.from, it.to, it.data) })
+                    it.second.map {
+                        Vertex(it.data.first().ptrData.parentSignature, it.index, it.data.first().ptrData.text.toText())
+                    },
+                    it.first.map { Edge(it.from, it.to, it.data) })
         }
+        println("Total comments in project:${totalCommentsInProcjet}")
+        println("Clones: ${groups.sumBy { it.vertices.size }}")
 
         return mapper.writeValueAsString(groups)
     }
@@ -120,7 +123,7 @@ class MCLWithSpanningTree<T> : IGroupDuplicateTree<T> {
 
 
     private val cloneGroups: MutableList<Pair<List<IEdge<Interval>>, List<IVertex<List<Element<T, UnifiedComment>>>>>> =
-        mutableListOf()
+            mutableListOf()
 
 
     override fun solve(graph: IGraph<Interval, List<Element<T, UnifiedComment>>>):
@@ -135,7 +138,6 @@ class MCLWithSpanningTree<T> : IGroupDuplicateTree<T> {
                 retrievedDoubleArray[edge.to][edge.from] = s
             }
         }
-
 
 
 //        val s =mclClustering(retrievedDoubleArray)
@@ -165,13 +167,13 @@ class MCLWithSpanningTree<T> : IGroupDuplicateTree<T> {
 //        println(s5)
 //        val s11  = mclClustering(retrievedDoubleArray,p=5,addSelfLoops = true)
 
-        val groups = mclClustering(retrievedDoubleArray,r=5)
-            .mapIndexed { vertexNumber: Int, clusterName: Int -> Pair(vertexNumber, clusterName) }
-            .groupBy { it.second }.filter { it.key != 0 }.map { it.value.map { it.first } }
+        val groups = mclClustering(retrievedDoubleArray, r = 5)
+                .mapIndexed { vertexNumber: Int, clusterName: Int -> Pair(vertexNumber, clusterName) }
+                .groupBy { it.second }.filter { it.key != 0 }.map { it.value.map { it.first } }
 
         for (group in groups) {
 
-            if(group.size==1) continue
+            if (group.size == 1) continue
             println(group)
             //            build mispanning tree
             val subgraph = graph.getSubgraph(group)
@@ -180,7 +182,7 @@ class MCLWithSpanningTree<T> : IGroupDuplicateTree<T> {
             val edgesRes = spanningEdges.first
 
             val verticesRes =
-                (edgesRes.map { subgraph.getVertex(it.to) } + edgesRes.map { subgraph.getVertex(it.from) }).distinct()
+                    (edgesRes.map { subgraph.getVertex(it.to) } + edgesRes.map { subgraph.getVertex(it.from) }).distinct()
             cloneGroups.add(Pair(edgesRes, verticesRes))
         }
         println(cloneGroups.size)
@@ -197,7 +199,7 @@ class TarjanTree<T> : IGroupDuplicateTree<T> {
 
 
     private val cloneGroups: MutableList<Pair<List<IEdge<Interval>>, List<IVertex<List<Element<T, UnifiedComment>>>>>> =
-        mutableListOf()
+            mutableListOf()
 
 
     override fun solve(graph: IGraph<Interval, List<Element<T, UnifiedComment>>>): MutableList<Pair<List<IEdge<Interval>>, List<IVertex<List<Element<T, UnifiedComment>>>>>> {
@@ -218,30 +220,29 @@ class TarjanTree<T> : IGroupDuplicateTree<T> {
 }
 
 
-
 /**
  *  Build similarity  matrix for given comments with edges via  measure function func
  *  edge (from,to) exists if and only if it score>=thershold
  */
 interface ISimilarityGraphBuilder<T> {
     fun buildGraph(
-        fragments: List<List<Element<T, UnifiedComment>>>,
-        func: IMeasureFunction<Element<T, UnifiedComment>>,
-        thresholdPercent: Double
+            fragments: List<List<Element<T, UnifiedComment>>>,
+            func: IMeasureFunction<Element<T, UnifiedComment>>,
+            thresholdPercent: Double
     ): IGraph<Interval, List<Element<T, UnifiedComment>>>
 }
 
 
 class SimilarityGraphBuilder<T>(private var graphBuilder: IGraphBuilder<Interval, List<Element<T, UnifiedComment>>>) :
-    ISimilarityGraphBuilder<T> {
+        ISimilarityGraphBuilder<T> {
 
     override fun buildGraph(
-        fragments: List<List<Element<T, UnifiedComment>>>,
-        func: IMeasureFunction<Element<T, UnifiedComment>>,
-        thresholdPercent: Double
+            fragments: List<List<Element<T, UnifiedComment>>>,
+            func: IMeasureFunction<Element<T, UnifiedComment>>,
+            thresholdPercent: Double
     ): IGraph<Interval, List<Element<T, UnifiedComment>>> {
         val vertices: List<Vertex<List<Element<T, UnifiedComment>>>> =
-            fragments.mapIndexed { index: Int, list -> Vertex(index, list) }
+                fragments.mapIndexed { index: Int, list -> Vertex(index, list) }
         val edges: MutableList<Edge<Interval>> = mutableListOf()
         for (i in 0 until fragments.size) {
             println("$i from ${fragments.size}")

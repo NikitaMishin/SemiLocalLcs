@@ -34,7 +34,7 @@ import java.io.File
  * [0] preproc: "1,2"
  * [1] metric:  "1/1,-1/1,-1/1" --- aka edit distance
  * [2] taskType: "1" -- because pattern matching
- * [3] patternAlgo:  "0" -- tiskin others:TODO
+ * [3] patternAlgo:  "0" -- tiskin, "1"- max cut, luciv - 2, smartlucivsemi-3 naivelucivsemi-4
  * [4] pattern: .....
  * [5] file location of text: path
  * [6] threshold: set i think 0.8
@@ -105,10 +105,10 @@ object Application {
             textPreprocessor.addAllProcessors(preprocessorsToApply.map { getProcessor<Int>(it.toInt()) })
             val textRaw = FileParser(file).parse().joinToString("")
             val t = transformer.transformMultiple(
-                listOf(
-                    textPreprocessor.processSingle(patternRaw),
-                    textPreprocessor.processSingle(textRaw)
-                )
+                    listOf(
+                            textPreprocessor.processSingle(patternRaw),
+                            textPreprocessor.processSingle(textRaw)
+                    )
             )
             task = getPatternMatchingTask(patternAlgo, t[0], t[1], textRaw, patternRaw, scheme, percent)
 
@@ -124,7 +124,7 @@ object Application {
             val parsed = javaDocParser.parse()
             val transformer: ITransformer<String, Int, UnifiedComment> = StringToIntTransformerUnifiedComment()
             val comments: List<List<Element<Int, UnifiedComment>>> =
-                transformer.transformMultiple(preprocessor.processMultiple(parsed))
+                    transformer.transformMultiple(preprocessor.processMultiple(parsed))
             task = getGroupMatchingTaskProvider(grouppingAlgo, metric, scheme, comments, percent1, percent2)
         }
 
@@ -140,54 +140,66 @@ object Application {
     }
 
     private fun <T> getPatternMatchingTask(
-        id: PATTERNALGO,
-        pattern: List<Element<T, Int>>,
-        text: List<Element<T, Int>>,
-        rawText: String,
-        rawPattern: String,
-        scheme: FixedScoringScheme,
-        percent: Double
+            id: PATTERNALGO,
+            pattern: List<Element<T, Int>>,
+            text: List<Element<T, Int>>,
+            rawText: String,
+            rawPattern: String,
+            scheme: FixedScoringScheme,
+            percent: Double
     ): ITaskDuplicateDetection =
-        when (id) {
-            Application.PATTERNALGO.TISKIN ->
-                TaskApproximateMatchingViaSemiLocal(
-                    ApproximateMatchingViaThresholdAMatch<Element<T, Int>>(
-                        ImplicitSemiLocalProvider(ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scheme)),
-                        scheme, percent
-                    ), pattern, text, rawText, rawPattern, scheme
-                )
-            Application.PATTERNALGO.NAIVEMAXIMUM2020 ->
-                TaskApproximateMatchingViaSemiLocal(
+            when (id) {
+                Application.PATTERNALGO.TISKIN ->
+                    TaskApproximateMatchingViaSemiLocal(
+                            ApproximateMatchingViaThresholdAMatch<Element<T, Int>>(
+                                    ImplicitSemiLocalProvider(ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scheme)),
+                                    scheme, percent
+                            ), pattern, text, rawText, rawPattern, scheme
+                    )
+                Application.PATTERNALGO.NAIVEMAXIMUM2020 ->
+                    TaskApproximateMatchingViaSemiLocal(
 
-                    ApproximateMatchingViaCut<Element<T, Int>>(
-                        ImplicitSemiLocalProvider(ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scheme)),
-                        scheme, percent
-                    ), pattern, text, rawText, rawPattern, scheme
-                )
-            else -> throw NotImplementedError("dfdf")
-        }
+                            ApproximateMatchingViaCut<Element<T, Int>>(
+                                    ImplicitSemiLocalProvider(ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scheme)),
+                                    scheme, percent
+                            ), pattern, text, rawText, rawPattern, scheme
+                    )
+                Application.PATTERNALGO.LUCIV ->
+                    TaskApproximateMatchingViaSemiLocal(
+                            InteractiveDuplicateSearch(0.77), pattern, text, rawText, rawPattern, scheme)
+                Application.PATTERNALGO.LUCIVSmartSlow ->
+                    TaskApproximateMatchingViaSemiLocal(
+                            InteractiveDuplicateSearchViaSemiLocal(0.77, true),
+                            pattern, text, rawText, rawPattern, scheme)
+                Application.PATTERNALGO.LUCIVNaiveFast ->
+                    TaskApproximateMatchingViaSemiLocal(
+                            InteractiveDuplicateSearchViaSemiLocal(0.77, false),
+                            pattern, text, rawText, rawPattern, scheme)
+
+                else -> throw NotImplementedError("dfdf")
+            }
 
     private fun <T> getGroupMatchingTaskProvider(
-        id: GROUPALGO,
-        metric: METRIC,
-        scheme: FixedScoringScheme,
-        comments: List<List<Element<T, UnifiedComment>>>,
-        percent1: Double,
-        percent2: Double
+            id: GROUPALGO,
+            metric: METRIC,
+            scheme: FixedScoringScheme,
+            comments: List<List<Element<T, UnifiedComment>>>,
+            percent1: Double,
+            percent2: Double
     ): ITaskDuplicateDetection = when {
         id == Application.GROUPALGO.MCL && metric == Application.METRIC.MAXIMUMLOCAL ->
             TreeGroupDuplicate(
-                comments,
-                BoundedLengthSWMeasureFunction(scheme, boundedLenghtConstant),
-                MCLWithSpanningTree(),
-                percent1
+                    comments,
+                    BoundedLengthSWMeasureFunction(scheme, boundedLenghtConstant),
+                    MCLWithSpanningTree(),
+                    percent1
             )
         id == Application.GROUPALGO.BRANCHING && metric == Application.METRIC.MAXIMUMLOCAL ->
             TreeGroupDuplicate(
-                comments,
-                BoundedLengthSWMeasureFunction(scheme, boundedLenghtConstant),
-                TarjanTree(),
-                percent1
+                    comments,
+                    BoundedLengthSWMeasureFunction(scheme, boundedLenghtConstant),
+                    TarjanTree(),
+                    percent1
             )
         id == Application.GROUPALGO.BRANCHING && metric == Application.METRIC.MAXIMUMSEMI ->
             TreeGroupDuplicate(comments, StringSubstringMeasureFunction(scheme), TarjanTree(), percent1)
@@ -218,6 +230,8 @@ object Application {
 
     private enum class PATTERNALGO {
         LUCIV,
+        LUCIVSmartSlow,
+        LUCIVNaiveFast,
         TISKIN,
         NAIVEMAXIMUM2020,
         UPDATEDLUCIV,
@@ -233,6 +247,9 @@ object Application {
     private fun Int.toApproximateMatchingAlgo() = when (this) {
         0 -> Application.PATTERNALGO.TISKIN
         1 -> Application.PATTERNALGO.NAIVEMAXIMUM2020
+        2 -> Application.PATTERNALGO.LUCIV
+        3 -> Application.PATTERNALGO.LUCIVSmartSlow
+        4 -> Application.PATTERNALGO.LUCIVNaiveFast
         else -> throw NotImplementedError("No task for this id")
     }
 

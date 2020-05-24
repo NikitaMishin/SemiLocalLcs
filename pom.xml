@@ -56,6 +56,11 @@
             <version>5.6.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.breinify</groupId>
+            <artifactId>brein-time-utilities</artifactId>
+            <version>1.7.0</version>
+        </dependency>
 
 
 

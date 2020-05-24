@@ -2,8 +2,13 @@ import beyondsemilocality.ExplicitFragmentSubstringProvider
 import beyondsemilocality.ImplicitFragmentSubstringProvider
 import beyondsemilocality.WindowSubstringSA
 import beyondsemilocality.WindowSubstringSANaiveImplicit
+import duplicateDetection.ApproximateMatchingViaCut
+import duplicateDetection.ApproximateMatchingViaThresholdAMatch
+import duplicateDetection.InteractiveDuplicateSearch
+import duplicateDetection.InteractiveDuplicateSearchViaSemiLocal
 import longestCommonSubsequence.*
 import sequenceAlignment.ExplicitSemiLocalSA
+import sequenceAlignment.ImplicitSemiLocalProvider
 import sequenceAlignment.ImplicitSemiLocalSA
 import utils.*
 import kotlin.math.max
@@ -57,7 +62,7 @@ object SpeedRunner {
         return scoreMatrix[a.size][b.size]
     }
 
-    fun <T : Comparable<T>> lightPrefixAlignment(a: List<T>, b: List<T>, scoringScheme: IScoringScheme): Double {
+    fun <T> lightPrefixAlignment(a: List<T>, b: List<T>, scoringScheme: IScoringScheme): Double {
         val row = DoubleArray(b.size + 1) { 0.0 }
 
         val match = scoringScheme.getMatchScore().toDouble()
@@ -123,6 +128,11 @@ object SpeedRunner {
                  * 7 -  windowSubstring LCS/SA explicit
                  * 8 -  windowSubstring naive Implicit
                  * 9 - light prefix alignment
+                 * 10 - luciv algo
+                 * 11 - luciv algo with maive window substring reducign
+                 * 12 - luciv algo with smart slow window substring
+                 * 13 - max cut aapproxim matching
+                 * 14 - via threshold amatch
                  */
                 0 -> {
                     prefixAlignment(sequenceA, sequenceB, scoringScheme)
@@ -180,6 +190,28 @@ object SpeedRunner {
                 9 -> {
                     lightPrefixAlignment(sequenceA, sequenceB, scoringScheme)
 
+                }
+                10 -> {
+                    InteractiveDuplicateSearch<Int>(0.77).find(sequenceA,sequenceB)
+                }
+                11 -> {
+                    InteractiveDuplicateSearchViaSemiLocal<Int>(0.77,false)
+                            .find(sequenceA,sequenceB)
+                }
+                12 -> {
+                    InteractiveDuplicateSearchViaSemiLocal<Int>(0.77,true)
+                            .find(sequenceA,sequenceB)
+                }
+                13 -> {
+                    ApproximateMatchingViaCut<Int>(
+                            ImplicitSemiLocalProvider(
+                                    ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists},scoringScheme)),scoringScheme,0.7)
+                            .find(sequenceA,sequenceB)
+                }
+                14 -> {
+                    ApproximateMatchingViaThresholdAMatch<Int>( ImplicitSemiLocalProvider(
+                            ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists},scoringScheme)),scoringScheme,0.7)
+                            .find(sequenceA,sequenceB)
                 }
                 else -> throw NotImplementedError("Wrong ID")
             }
