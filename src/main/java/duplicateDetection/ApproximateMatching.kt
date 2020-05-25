@@ -188,6 +188,8 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
                 resullt.add(possibleClone)
             }
         }
+
+        println(resullt.size)
         return resullt
     }
 }
@@ -301,6 +303,7 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKer
         }
 
 
+        println(result.size)
         return result
     }
 }
