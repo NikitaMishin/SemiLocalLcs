@@ -1,21 +1,18 @@
 package duplicateDetection
 
-import SpeedRunner.lightPrefixAlignment
 import approximateMatching.CompleteAMatchViaSemiLocalTotallyMonotone
 import approximateMatching.ThresholdAMathViaSemiLocal
-import beyondsemilocality.ImplicitFragmentSubstringProvider
-import beyondsemilocality.WindowSubstringSA
-import beyondsemilocality.WindowSubstringSANaiveImplicit
 import sequenceAlignment.ISemiLocalProvider
 import com.brein.time.timeintervals.collections.ListIntervalCollection
 import com.brein.time.timeintervals.indexes.IntervalTreeBuilder.IntervalType
 import com.brein.time.timeintervals.indexes.IntervalTreeBuilder
 import com.brein.time.timeintervals.intervals.IntegerInterval
+import longestCommonSubsequence.AbstractMongeMatrix
 import longestCommonSubsequence.ReducingKernelEvaluation
+import sequenceAlignment.ImplicitSemiLocalSA
 import utils.*
 import java.util.stream.Collectors
 import kotlin.math.max
-import kotlin.system.measureTimeMillis
 
 
 /**
@@ -106,12 +103,12 @@ class ApproximateMatchingViaCut<T>(
 
 class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
 
-    fun <T> lightPrefixAlignment(a: List<T>, b: List<T>, scoringScheme: IScoringScheme): Double {
+    fun <T> editDistance(a: List<T>, b: List<T>): Double {
         val row = DoubleArray(b.size + 1) { 0.0 }
 
-        val match = scoringScheme.getMatchScore().toDouble()
-        val mismatch = scoringScheme.getMismatchScore().toDouble()
-        val gap = scoringScheme.getGapScore().toDouble()
+        val match = 1.0//scoringScheme.getMatchScore().toDouble()
+        val mismatch = 0.0//scoringScheme.getMismatchScore().toDouble()
+        val gap = 0.0//scoringScheme.getGapScore().toDouble()
         var left = 0.0
         var newLeft = 0.0
         for (i in 1 until a.size + 1) {
@@ -129,7 +126,7 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
             )
             row[b.size - 1] = left
         }
-        return row.last()
+        return row.last() * (0 - 2 * (-1)) + (a.size + b.size) * (-1)
     }
 
     //    note inverse operands for alignment score
@@ -140,21 +137,19 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
     }
 
     override fun find(p: List<T>, text: List<T>): MutableList<Interval> {
-        val scoringScheme =
-                FixedScoringScheme(Fraction(0, 1), Fraction(-1, 1), Fraction(-1, 1))
         val w = (p.size / k).toInt()
 
         val kdi = p.size * (1 / k + 1) * (1 - k * k)
-
 //        phase one
         val setW1 = hashSetOf<Interval>()
         for (end in w..text.size) {
-            val dist = lightPrefixAlignment(p, text.subList(end - w, end), scoringScheme)
+            val dist = editDistance(text.subList(end - w, end), p)
             if (dist >= -kdi) setW1.add(Interval(end - w, end, dist))
         }
         val setW2 = hashSetOf<Interval>()
 
 //        phase 2
+//3743
 
         for (clone in setW1) {
             var w_stroke = clone
@@ -162,7 +157,7 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
             for (l in (p.size * k).toInt()..w) {
                 for (end in l + clone.startInclusive..clone.endExclusive) {
                     val w2 =
-                            Interval(end - l, end, lightPrefixAlignment(p, text.subList(end - l, end), scoringScheme))
+                            Interval(end - l, end, editDistance(p, text.subList(end - l, end)))
                     if (compare(w2, w_stroke)) {
                         w_stroke = w2
                     }
@@ -198,50 +193,103 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
 }
 
 
-class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val withSmartWindowSubstringCalc: Boolean = false) : IApproximateMatching<T> {
+class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKernel: Boolean = false) : IApproximateMatching<T> {
+
+    val scoringScheme =
+//            LCSScoringScheme()
+            FixedScoringScheme(Fraction(0, 1), Fraction(-2, 1), Fraction(-1, 1))
 
 
+    private fun getStringSubstringMatrix(monge: AbstractMongeMatrix, n: Int, m: Int): Array<DoubleArray> {
+        val matrix = Array<DoubleArray>(n + 1) { DoubleArray(n + 1) }
+        for (i in 0 until n) {
+            for (j in 0 until n) {
+                matrix[i][j] = monge[i + m, j]
+            }
+        }
+        return matrix
+    }
+
+
+    //    time /usr/lib/jvm/jdk-12.0.2/bin/java -jar target/GeneralSemiLocalSubsequenceProblem-1.0-SNAPSHOT-jar-with-dependencies.jar "1,2" "1/1,-1/1,-1/1" "1" "1" "Started shortly for assured hearing expense sdjfhsjd hjfsd sdhfj hsdjf sdhf hdsf jdsj fdhs jfhdsj fsdj hfsdj fhsdjhf dsjf dshf hjsdf hjdsfh jsdf dsjf hdjs hfjsdj fhsdj fhds fdsj fhjsd hfjsd fhhd fsdj fhjsd fhsdj fhsd hfdsj hfdsj fhdjs hfdsfj hdsj hfsdjh fsjdh fshdjf hdsjf sjd fhhjsd hfjshdf sj fhjsd fhdsjf hsdj hfsdjfhdsj hfdsjhfsdjhfsdfj hsdhjsdhj fsdh fjshd jfds hjsdf hjdsh fdshjfh sdjfhjsdhf dsjhdsfjh sdj hfsd jfhjdsf hsdjf hjdsfh sdjf hsdj fhsdjf hsdj fhsdfj hjsdjf hsd fh sda sadh shajd hasjd sajd jasd hjsa jdsja dhjsaj hdsajd sa hjdsa das hjsda hjdsa dhash dhsja dhsaj hash jjasds hjas jshjsa hjsa hj ashj ashj sahj  shj shj saahj sas h sadjh sadhj sdahj sadhj sa shj sdahjs ahj ash as jhs ahjds ah shsjh sdjh s hjs ajh hj saj  sadhj sadjhsa dhjs adhj asdhj asdhj asjh sajh  sad hj hj" "/home/nikita/IdeaProjects/GeneralSemiLocalSubsequenceProblem/src/main/java/application/exampleTextForPatternMatching.txt" "0.8" 5 "df.sog"
     override fun find(p: List<T>, text: List<T>): MutableList<Interval> {
-        val scoringScheme =
-                FixedScoringScheme(
-                        Fraction(0, 1),
-                        Fraction(-1, 1),
-                        Fraction(-1, 1))
+
         val w = (p.size / k).toInt()
         val kdi = p.size * (1 / k + 1) * (1 - k * k)
 
-        val setW2 = hashSetOf<Interval>()
+//        O(tp)
+        val windowSubstringSA = ImplicitSemiLocalSA(p, text, scoringScheme,
+                ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scoringScheme))
 
-        val windowSubs = if (withSmartWindowSubstringCalc)
-            WindowSubstringSA(ImplicitFragmentSubstringProvider(p, text, scoringScheme)) else
-            WindowSubstringSANaiveImplicit<T>(ReducingKernelEvaluation({ dummyPermutationMatrixTwoLists }, scoringScheme))
-
-        val windowSubstring = windowSubs.solve(p, text, w, scoringScheme)
-
-        for (window in windowSubstring.getSolutions()) {
-            //findmax its O(nlogn) for implicit keys and O(n) for explicit
-            val maximums = CompleteAMatchViaSemiLocalTotallyMonotone(window).solve()
-            val maxScore = maximums.maxBy { it.second }!!.second
-            if (maxScore >= -kdi) continue
-
-            val curMax = Interval(0, 0, 0.0)
-
-//            O(n)
-            for ((column, pair) in maximums.withIndex()) {
-                if (pair.second == maxScore && column - pair.first >= curMax.endExclusive - curMax.startInclusive) {
-                    curMax.startInclusive = pair.first
-                    curMax.endExclusive = column
+        val setW2 = if (toExplicitKernel) {
+//            n+1 n+1 size
+            val w1Set = hashSetOf<Interval>()
+            val matrix = getStringSubstringMatrix(windowSubstringSA.getMatrix(), text.size, p.size)
+//            O(text.size-w) *O(w) ~ O(tp)
+            for (end in w..text.size) {
+                val offset = end - w
+                if (windowSubstringSA.stringSubstring(offset, offset + w + 1) < -kdi) continue
+                val smawk = rowMinima({ i, j -> -matrix[i + offset][j + offset] }, w, w)
+                val possible = smawk.mapIndexed { col: Int, row: Int ->
+                    Interval(row + offset, col + offset,
+                            matrix[row + offset][col + offset])
+                }.filter { it.score >= -kdi }
+                if (possible.isEmpty()) continue
+                val maximum = possible.maxBy { it.score }!!.score
+                val curMax = Interval(0, 0, 0.0)
+                for (clone in possible) {
+                    if (clone.score == maximum && clone.endExclusive - clone.startInclusive >= curMax.endExclusive - curMax.startInclusive) {
+                        curMax.startInclusive = clone.startInclusive
+                        curMax.endExclusive = clone.endExclusive
+                    }
                 }
+                w1Set.add(curMax)
             }
-            setW2.add(curMax)
+            w1Set
+        } else {
+
+//            2385
+//            2023
+
+//            val possible = rowMinima({ i, j -> -windowSubstringSA.stringSubstring(j + 0, i ) }, text.size + 1, text.size + 1)
+//                    .mapIndexed{ col: Int, row: Int ->  Interval(row,col,
+//                            windowSubstringSA.stringSubstring(row+0,col+0))}
+//                    .filter { it.score>=-kdi }.forEach{println(it)}
+            var ja = 0
+            val w1Set = hashSetOf<Interval>()
+
+
+            for (end in w..text.size) {
+
+                val offset = end - w
+                if (windowSubstringSA.stringSubstring(offset, offset + w) < -kdi) {
+                    continue
+                }
+
+                val smawk = rowMinima({ i, j -> -windowSubstringSA.stringSubstring(j + offset, i + offset) }, w + 1, w + 1)
+                        .mapIndexed { col: Int, row: Int -> Interval(row + offset, col + offset, windowSubstringSA.stringSubstring(row + offset, col + offset)) }
+                val possible = smawk.filter { it.score >= -kdi }
+                if (possible.isEmpty()) continue
+
+                val maximum = possible.maxBy { it.score }!!.score
+                val curMax = Interval(0, 0, 0.0)
+                for (clone in possible) {
+                    if (clone.score == maximum && clone.endExclusive - clone.startInclusive >= curMax.endExclusive - curMax.startInclusive) {
+                        curMax.startInclusive = clone.startInclusive
+                        curMax.endExclusive = clone.endExclusive
+                    }
+                }
+                w1Set.add(curMax)
+            }
+            w1Set
         }
+
         val result = mutableListOf<Interval>()
-//        phase3
         val intervalTree = IntervalTreeBuilder.newBuilder()
                 .usePredefinedType(IntervalType.LONG)
                 .collectIntervals { interval -> ListIntervalCollection() }
                 .build()
-
+//3634
         for (possibleClone in setW2) {
             val interval =
                     IntegerInterval(possibleClone.startInclusive, possibleClone.endExclusive, false, true)
@@ -251,6 +299,7 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val withSmartWind
                 result.add(possibleClone)
             }
         }
+
 
         return result
     }

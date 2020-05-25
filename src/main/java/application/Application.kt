@@ -7,6 +7,7 @@ import utils.FixedScoringScheme
 import utils.Fraction
 import utils.dummyPermutationMatrixTwoLists
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 
 //fun main(){
@@ -34,7 +35,7 @@ import java.io.File
  * [0] preproc: "1,2"
  * [1] metric:  "1/1,-1/1,-1/1" --- aka edit distance
  * [2] taskType: "1" -- because pattern matching
- * [3] patternAlgo:  "0" -- tiskin, "1"- max cut, luciv - 2, smartlucivsemi-3 naivelucivsemi-4
+ * [3] patternAlgo:  "0" -- tiskin, "1"- max cut, luciv - 2, lucivExplicit-3 lucivImplicti-4
  * [4] pattern: .....
  * [5] file location of text: path
  * [6] threshold: set i think 0.8
@@ -128,10 +129,13 @@ object Application {
             task = getGroupMatchingTaskProvider(grouppingAlgo, metric, scheme, comments, percent1, percent2)
         }
 
-        task.processTask()
-
+        val t =
+        measureTimeMillis {
+            task.processTask()
+        }
         val json = task.buildJSONReport()
 
+        println(t)
 //        write to output file
         File(args[8]).bufferedWriter().use { out ->
             out.write(json)

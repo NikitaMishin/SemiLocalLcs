@@ -28,6 +28,7 @@ class ImplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
 
 
     constructor(a: List<T>, b: List<T>, scoringScheme: IScoringScheme, kernelEvaluator: IStrategyKernelEvaluation) {
+
         v = scoringScheme.getNormalizedMismatchScore().denominator
         mu = scoringScheme.getNormalizedMismatchScore().numerator
         m = a.size
@@ -171,14 +172,18 @@ class ImplicitSemiLocalSA<T> : ISemiLocalCombined<T> {
 
 
     override fun getMatrix(): AbstractMongeMatrix {
+
         val mongeMatrix = MongeMatrix(m + n + 1, m + n + 1)
+//        TODO make fast through incremental queries
+
+
         for (i in 0 until m + n + 1) {
-            for (j in 0 until m + n + 1) {
+            for (j in 1 until m + n + 1) {
                 mongeMatrix[i, j] = getAtPosition(i, j)
             }
-
         }
         return mongeMatrix
+
     }
 
 }

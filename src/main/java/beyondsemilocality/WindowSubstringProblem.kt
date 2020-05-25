@@ -139,7 +139,12 @@ class WindowSubstringSANaiveImplicit<T>(val kernelEvaluator: IStrategyKernelEval
         w: Int,
         scoringScheme: IScoringScheme
     ): IWindowSubstringSolution<T> {
-        if (w > a.size || w > b.size) throw IllegalArgumentException("The window is greater then lists sizes")
+        if (w > a.size || w > b.size) {
+            println(w)
+            println(a.size)
+            println(b.size)
+            throw IllegalArgumentException("The window is greater then lists sizes")
+        }
 
         val res = (w..a.size).map { endPos ->
             val subListA = a.subList(endPos - w, endPos)

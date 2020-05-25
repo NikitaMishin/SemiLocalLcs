@@ -14,6 +14,7 @@ internal class VSubRecursiveTest() : SemiLocalSABaseTester(Random(17)) {
     override fun <E : Comparable<E>> getSemiLocalSolution(A: List<E>, B: List<E>): Pair<ISemiLocalSA, IScoringScheme> {
 
 
+//        TODO how to check correctness for >=1
         val denominator = random.nextInt(1, 17)
         val numerator = random.nextInt(0, denominator)
 

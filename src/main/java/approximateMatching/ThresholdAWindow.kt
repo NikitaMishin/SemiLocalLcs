@@ -15,13 +15,6 @@ interface IThresholdAWindowProblem {
     fun solve(threshold: Double, windowLen: Int): List<Interval>
 }
 
-/*
-//TODO ask tiskin wrong formula? what about totally monotonne?
-private fun scoreTransformer(value: Double, i: Int, j: Int) =
-    solution.getScoringScheme().getOriginalScoreFunc(value, solution.pattern.size, i, j)
-
-*/
-
 
 class ThresholdWindowSemiLocal<T>(var semilocal: ISemiLocalSolution<T>, var aMatchProblem: ICompleteAMatchProblem<T>) :
     IThresholdAWindowProblem {
