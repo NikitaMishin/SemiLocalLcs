@@ -100,6 +100,7 @@ class TreeGroupDuplicate<T>(
         }
         println("Total comments in project:${totalCommentsInProcjet}")
         println("Clones: ${groups.sumBy { it.vertices.size }}")
+        println("Groups:${groups.size}")
 
         return mapper.writeValueAsString(groups)
     }
@@ -174,18 +175,22 @@ class MCLWithSpanningTree<T> : IGroupDuplicateTree<T> {
         for (group in groups) {
 
             if (group.size == 1) continue
-            println(group)
             //            build mispanning tree
             val subgraph = graph.getSubgraph(group)
-            //            maximum
+
             val spanningEdges = minimalSpanningTree(subgraph) { x -> -x }
+
+            if (spanningEdges.first.isEmpty()){
+                continue
+            }
             val edgesRes = spanningEdges.first
 
             val verticesRes =
                     (edgesRes.map { subgraph.getVertex(it.to) } + edgesRes.map { subgraph.getVertex(it.from) }).distinct()
             cloneGroups.add(Pair(edgesRes, verticesRes))
+
         }
-        println(cloneGroups.size)
+
 
         return cloneGroups
     }
@@ -245,7 +250,7 @@ class SimilarityGraphBuilder<T>(private var graphBuilder: IGraphBuilder<Interval
                 fragments.mapIndexed { index: Int, list -> Vertex(index, list) }
         val edges: MutableList<Edge<Interval>> = mutableListOf()
         for (i in 0 until fragments.size) {
-            println("$i from ${fragments.size}")
+//            println("$i from ${fragments.size}")
             for (j in i + 1 until fragments.size) {
                 val solutionIJ = func.computeSimilarity(fragments[i], fragments[j], thresholdPercent)
                 val solutionJI = func.computeSimilarity(fragments[j], fragments[i], thresholdPercent)
