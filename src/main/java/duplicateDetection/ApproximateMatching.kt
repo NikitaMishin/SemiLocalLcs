@@ -11,6 +11,7 @@ import longestCommonSubsequence.AbstractMongeMatrix
 import longestCommonSubsequence.ReducingKernelEvaluation
 import sequenceAlignment.ImplicitSemiLocalSA
 import utils.*
+import java.util.*
 import java.util.stream.Collectors
 import kotlin.math.max
 
@@ -312,4 +313,39 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKer
  * TODO do we have other options?
  * Our approavch when analyze dist matrix
  */
-class ApproximateMatchingViaRangeQuery
+class ApproximateMatchingViaRangeQuery<T>(var provider: ISemiLocalProvider, var scheme: IScoringScheme, thresholdPercent: Double) : IApproximateMatching<T> {
+
+    private val badPercent = (1 - thresholdPercent) * 3 / 4
+    private val approximatePercent = (1 - thresholdPercent) * 1 / 4
+    private val goodPercent = thresholdPercent
+
+
+    override fun find(p: List<T>, text: List<T>): MutableList<Interval> {
+        val realThreshold = p.size * (scheme.getMatchScore().toDouble() * (goodPercent - approximatePercent)
+                + (scheme.getMismatchScore() + scheme.getGapScore()).toDouble() * badPercent)
+
+
+        val solution = provider.buildSolution(p, text, scheme)
+        val accessor = { i: Int, j: Int -> solution.stringSubstring(i, j) }
+        val rmQ2D = SparseTableRMQ2D(accessor, text.size, text.size)
+        val intervalsToSearch = Stack<Pair<Int, Int>>()
+        intervalsToSearch.push(Pair(0, text.size))
+        val result = mutableListOf<Interval>()
+        while (intervalsToSearch.isNotEmpty()) {
+            val (i, j) = intervalsToSearch.pop()
+            val interval = rmQ2D.query(i, j, i, j)
+            if (interval.score >= realThreshold) {
+                result.add(interval)
+                if (i - interval.startInclusive >= 1) intervalsToSearch.add(Pair(i, interval.startInclusive))
+                if (j - interval.endExclusive >= 1) intervalsToSearch.add(Pair(interval.endExclusive, j))
+            } else {
+//                will never find
+                break
+            }
+        }
+
+        return result
+
+
+    }
+}
