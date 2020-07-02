@@ -6,16 +6,23 @@ import kotlin.random.Random
 
 
 /**
- * provides aceess to fast range maximum query
+ * provides acceess to fast range maximum query
  */
 interface IRMQ2D {
+    /**
+     * @param x1 startInclusive
+     * @param x2 endExclusive
+     * @param y1 startInclusive
+     * @param y2 endExclusive
+
+     */
     fun query(x1: Int, x2: Int, y1: Int, y2: Int): Interval
 }
 
 class NaiveRMQ2D : IRMQ2D {
-    private val matrix: Array<DoubleArray>
+    private val matrix: (Int,Int)->Double
 
-    constructor(array: Array<DoubleArray>, rows: Int, cols: Int) {
+    constructor(array: (Int,Int)->Double, rows: Int, cols: Int) {
         matrix = array
     }
 
@@ -23,10 +30,10 @@ class NaiveRMQ2D : IRMQ2D {
         var max = Double.NEGATIVE_INFINITY
         var posI = 0
         var posJ = 0
-        for (i in x1..x2) {
-            for (j in y1..y2) {
-                if (matrix[i][j] >= max) {
-                    max = matrix[i][j]
+        for (i in x1 until x2) {
+            for (j in y1 until y2) {
+                if (matrix(i,j) >= max) {
+                    max = matrix(i,j)
                     posI = i
                     posJ = j
                 }
@@ -41,6 +48,7 @@ class NaiveRMQ2D : IRMQ2D {
 /**
  * Taken from  https://codeforces.com/blog/entry/45485?locale=ru
  * Stored [ n][ m][ 1+logn][ 1+logm]
+ * TODO [ 1+logn][ 1+logm][ n][ m] should be faster?
  */
 class SparseTableRMQ2D : IRMQ2D {
 
@@ -114,14 +122,16 @@ class SparseTableRMQ2D : IRMQ2D {
 
 
     override fun query(x1: Int, x2: Int, y1: Int, y2: Int): Interval {
-        val k1 = logs[x2 - x1 + 1]
-        val k2 = logs[y2 - y1 + 1]
+        val x2Score = x2 - 1
+        val y2Score = y2 - 1
+        val k1 = logs[x2Score - x1 + 1]
+        val k2 = logs[y2Score - y1 + 1]
         val powk1 = pows[k1]
         val powk2 = pows[k2]
         val q1 = sparseTable[x1][y1][k1][k2]
-        val q2 = sparseTable[x2 - powk1 + 1][y1][k1][k2]
-        val q3 = sparseTable[x1][y2 - powk2 + 1][k1][k2]
-        val q4 = sparseTable[x2 - powk1 + 1][y2 - powk2 + 1][k1][k2]
+        val q2 = sparseTable[x2Score - powk1 + 1][y1][k1][k2]
+        val q3 = sparseTable[x1][y2Score - powk2 + 1][k1][k2]
+        val q4 = sparseTable[x2Score - powk1 + 1][y2Score - powk2 + 1][k1][k2]
         val max1 = if (q1.score >= q2.score) q1 else q2
         val max2 = if (q3.score >= q4.score) q3 else q4
         return if (max1.score >= max2.score) max1 else max2

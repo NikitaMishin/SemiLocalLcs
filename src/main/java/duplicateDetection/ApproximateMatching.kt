@@ -334,18 +334,26 @@ class ApproximateMatchingViaRangeQuery<T>(var provider: ISemiLocalProvider, var 
         while (intervalsToSearch.isNotEmpty()) {
             val (i, j) = intervalsToSearch.pop()
             val interval = rmQ2D.query(i, j, i, j)
+
+            // empty string
+            if (interval.endExclusive == interval.startInclusive) continue
+
             if (interval.score >= realThreshold) {
                 result.add(interval)
-                if (i - interval.startInclusive >= 1) intervalsToSearch.add(Pair(i, interval.startInclusive))
-                if (j - interval.endExclusive >= 1) intervalsToSearch.add(Pair(interval.endExclusive, j))
+                if (interval.startInclusive - i  >= 1) intervalsToSearch.add(Pair(i, interval.startInclusive))
+                if (j - interval.endExclusive   >= 1) intervalsToSearch.add(Pair(interval.endExclusive, j))
             } else {
 //                will never find
-                break
+                continue
             }
         }
 
         return result
-
-
     }
+}
+
+
+interface IThreshgholder {
+    val minIntervalLengthToSearch:Int
+    fun thresholdFor(patternSize:Int, scheme: IScoringScheme)
 }
