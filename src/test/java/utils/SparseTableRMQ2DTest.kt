@@ -53,5 +53,21 @@ internal class SparseTableRMQ2DTest {
             println(it)
         }
 
+
+        val arrr = mutableListOf(
+                mutableListOf(1,2,3,4),
+                mutableListOf(5,6,7,8),
+                mutableListOf(9,10,11,12),
+                mutableListOf(13,14,15,16)
+        )
+
+        val n = arrr.size
+        for (i in 0 until n){
+            for(j in 0 until n){
+                print("${arrr[n-1-i][n-1-j]} ")
+            }
+            println()
+        }
+
     }
 }

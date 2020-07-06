@@ -10,7 +10,7 @@ internal class InteractiveDuplicateSearchTest {
     @Test
     fun equals() {
         val fast = InteractiveDuplicateSearchViaSemiLocal<Int>(0.7)
-        val slow = InteractiveDuplicateSearchViaSemiLocal<Int>(0.7)
+        val slow = InteractiveDuplicateSearch<Int>(0.7)
 
         val random = Random(42)
         for (i in 0 until 1000){
@@ -23,7 +23,10 @@ internal class InteractiveDuplicateSearchTest {
                     (0 until t).toList().map { kotlin.math.abs(random.nextInt()) % alphabetSize }.toMutableList()
             val f = fast.find(sequenceP,sequenceT)
             val s = slow.find(sequenceP,sequenceT)
-            if(!f.containsAll(s)){
+
+            if(f.toString()!=s.toString()){//12 35
+                println(f.sortedBy { it.startInclusive}) // fast  17 31 score 0  //-14
+                println(s.sortedBy { it.startInclusive }) // slow 12 31 score -14
                 assertTrue(false)
             } else{
                 println("size=${f.size}")

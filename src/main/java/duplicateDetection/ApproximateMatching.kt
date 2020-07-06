@@ -105,29 +105,26 @@ class ApproximateMatchingViaCut<T>(
 class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
 
     fun <T> editDistance(a: List<T>, b: List<T>): Double {
-        val row = DoubleArray(b.size + 1) { 0.0 }
-
+        var prevRow = DoubleArray(b.size + 1) { 0.0 }
+        var curRow = DoubleArray(b.size + 1) { 0.0 }
         val match = 1.0//scoringScheme.getMatchScore().toDouble()
         val mismatch = 0.0//scoringScheme.getMismatchScore().toDouble()
         val gap = 0.0//scoringScheme.getGapScore().toDouble()
-        var left = 0.0
-        var newLeft = 0.0
-        for (i in 1 until a.size + 1) {
-            left = max(if (a[i - 1] == b[0]) match else mismatch, max(gap + row[0], row[1] + gap))
 
-            for (j in 2 until b.size) {
-                newLeft = max(left + gap, max(row[j - 1] + if (a[i - 1] == b[j - 1]) match else mismatch, row[j] + gap))
-                row[j - 1] = left
-                left = newLeft
+        for (i in 1 until a.size + 1) {
+            var l = 0.0
+            for (j in 1 until b.size + 1){
+                curRow[j] =  max(
+                        if (a[i - 1] == b[j-1]) match + prevRow[j-1] else mismatch + prevRow[j - 1],
+                        max(gap + prevRow[j], l + gap)
+                )
+                l = curRow[j]
             }
-            //j==b.size
-            row[b.size] = max(
-                    row[b.size - 1] + if (a[i - 1] == b[b.size - 1]) match else mismatch,
-                    max(left + gap, row[b.size] + gap)
-            )
-            row[b.size - 1] = left
+            val tmp = prevRow
+            prevRow = curRow
+            curRow = tmp
         }
-        return row.last() * (0 - 2 * (-1)) + (a.size + b.size) * (-1)
+        return prevRow.last() * (0 - 2 * (-1)) + (a.size + b.size) * (-1)
     }
 
     //    note inverse operands for alignment score
@@ -141,39 +138,35 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
         val w = (p.size / k).toInt()
 
         val kdi = p.size * (1 / k + 1) * (1 - k * k)
+
 //        phase one
         val setW1 = hashSetOf<Interval>()
         for (end in w..text.size) {
             val dist = editDistance(text.subList(end - w, end), p)
             if (dist >= -kdi) setW1.add(Interval(end - w, end, dist))
         }
+
         val setW2 = hashSetOf<Interval>()
 
-//        phase 2
-//3743
-
+        //phase 2
         for (clone in setW1) {
             var w_stroke = clone
+
+
             // iterated over all sizes
-            for (l in (p.size * k).toInt()..w) {
+
+            for (l in (p.size*k).toInt()..w) {
                 for (end in l + clone.startInclusive..clone.endExclusive) {
-                    val w2 =
-                            Interval(end - l, end, editDistance(p, text.subList(end - l, end)))
+                    val w2 = Interval(end - l, end, editDistance(p, text.subList(end - l, end)))
                     if (compare(w2, w_stroke)) {
                         w_stroke = w2
                     }
-//                    here in place filtering of same interaals
-//                    i think there error in luciv article: this should not be here
-//                    setW2.add(w_stroke)
                 }
             }
-//          should be here
-//            unique function is used here by using hashmap
             setW2.add(w_stroke)
         }
 
-
-        val resullt = mutableListOf<Interval>()
+        val res = mutableListOf<Interval>()
 //        phase3
         val intervalTree = IntervalTreeBuilder.newBuilder()
                 .usePredefinedType(IntervalType.LONG)
@@ -186,12 +179,11 @@ class InteractiveDuplicateSearch<T>(val k: Double) : IApproximateMatching<T> {
             if (intervalTree.overlapStream(interval).limit(1).collect(Collectors.toList()).isEmpty()) {
                 //not intersected
                 intervalTree.insert(interval)
-                resullt.add(possibleClone)
+                res.add(possibleClone)
             }
         }
 
-        println(resullt.size)
-        return resullt
+        return res
     }
 }
 
@@ -251,31 +243,25 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKer
             w1Set
         } else {
 
-//            2385
-//            2023
-
-//            val possible = rowMinima({ i, j -> -windowSubstringSA.stringSubstring(j + 0, i ) }, text.size + 1, text.size + 1)
-//                    .mapIndexed{ col: Int, row: Int ->  Interval(row,col,
-//                            windowSubstringSA.stringSubstring(row+0,col+0))}
-//                    .filter { it.score>=-kdi }.forEach{println(it)}
-            var ja = 0
             val w1Set = hashSetOf<Interval>()
-
 
             for (end in w..text.size) {
 
                 val offset = end - w
+
                 if (windowSubstringSA.stringSubstring(offset, offset + w) < -kdi) {
                     continue
                 }
+
+
 
                 val smawk = rowMinima({ i, j -> -windowSubstringSA.stringSubstring(j + offset, i + offset) }, w + 1, w + 1)
                         .mapIndexed { col: Int, row: Int -> Interval(row + offset, col + offset, windowSubstringSA.stringSubstring(row + offset, col + offset)) }
                 val possible = smawk.filter { it.score >= -kdi }
                 if (possible.isEmpty()) continue
 
-                val maximum = possible.maxBy { it.score }!!.score
-                val curMax = Interval(0, 0, 0.0)
+                val curMax = possible.maxBy { it.score }!!
+                val maximum = curMax.score
                 for (clone in possible) {
                     if (clone.score == maximum && clone.endExclusive - clone.startInclusive >= curMax.endExclusive - curMax.startInclusive) {
                         curMax.startInclusive = clone.startInclusive
@@ -286,6 +272,7 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKer
             }
             w1Set
         }
+
 
         val result = mutableListOf<Interval>()
         val intervalTree = IntervalTreeBuilder.newBuilder()
@@ -304,7 +291,6 @@ class InteractiveDuplicateSearchViaSemiLocal<T>(val k: Double, val toExplicitKer
         }
 
 
-        println(result.size)
         return result
     }
 }
